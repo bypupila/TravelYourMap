@@ -1,9 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono, Outfit } from "next/font/google";
 import "@/app/globals.css";
-import { DesinInspectorRuntime } from "@/components/site/desin-inspector-runtime";
-import { getSessionUserById, getValidSessionUserIdFromServerCookies } from "@/lib/current-user";
-import { canAccessDesinInspector } from "@/lib/desin-inspector";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
@@ -61,16 +58,11 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const sessionUserId = await getValidSessionUserIdFromServerCookies();
-  const sessionUser = sessionUserId ? await getSessionUserById(sessionUserId) : null;
-  const canUseDesinInspector = canAccessDesinInspector(sessionUser?.email);
-
   return (
     <html lang="es" className={cn(outfit.variable, jetbrainsMono.variable, "font-sans dark")} suppressHydrationWarning>
       <body className="travel-shell" suppressHydrationWarning>
         <TooltipProvider>
           {children}
-          <DesinInspectorRuntime enabled={canUseDesinInspector} />
         </TooltipProvider>
       </body>
     </html>
