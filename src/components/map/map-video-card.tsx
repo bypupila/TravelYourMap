@@ -5,6 +5,7 @@ import { getDemoMapPreviewImage } from "@/lib/demo-video-previews";
 import type { SponsorBannerColors } from "@/lib/sponsor-banner-colors";
 import { resolveSponsorCardVariant } from "@/lib/sponsor-card-style";
 import { formatVideoDuration, getCountryNameInSpanish, isVideoNew } from "@/components/map/video-viewer-utils";
+import { CountryFlag } from "@/components/ui/country-flag";
 
 type WatchStatus = "not_started" | "not_finished" | "watched" | "watch_later";
 
@@ -260,9 +261,9 @@ export function MapVideoCard({
           <span>{formatCompactMetric(videoViews)}</span>
         </div>
 
-        <div className="flex gap-1.5 items-center text-[8px] font-mono text-white/78 justify-center w-1/3 absolute left-1/2 -translate-x-1/2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
-          <span className="text-[10px]">{countryCodeToFlag(countryCode)}</span>
-          <span className="truncate">{countryName}</span>
+        <div className="flex gap-1.5 items-center text-[8px] font-mono text-white justify-center w-1/3 absolute left-1/2 -translate-x-1/2 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+          <CountryFlag code={countryCode} size={12} />
+          <span className="truncate uppercase">{countryName}</span>
         </div>
 
         <div className="flex gap-1.5 items-center text-[8px] font-mono text-white/78 w-1/3 justify-end drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
@@ -285,15 +286,6 @@ export function MapVideoCard({
       </div>
       </div>
     </div>
-  );
-}
-
-function countryCodeToFlag(code: string) {
-  const normalized = code.trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(normalized)) return "🌍";
-  return String.fromCodePoint(
-    normalized.charCodeAt(0) + 127397,
-    normalized.charCodeAt(1) + 127397
   );
 }
 

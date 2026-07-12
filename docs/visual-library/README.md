@@ -40,3 +40,7 @@ Los nombres visuales salen de `data-component` cuando existe. El inventario de `
 Las rutas con mapa no se guardan como referencia si el canvas WebGL sigue negro, si no hay markers, si no carga texto base del layout o si hay alturas anómalas (sidebar/rail/stage fuera de viewport). En ese caso la ruta pasa a `ui-issues/` y sus componentes se guardan en `ui-issues/components/`.
 
 Para evitar capturas incompletas de WebGL, las rutas de mapa se capturan en viewport (no `fullPage`) después de los checks de readiness.
+
+La captura cubre las 25 rutas de pagina a Desktop y genera perfiles `mobile-390` y `tablet-768`. Las superficies privadas usan fixtures `qa=responsive` o tokens QA locales, siempre deshabilitados en produccion.
+
+El contrato de composicion, hit areas, overflow, overlays, contenido y matriz de viewports vive en [`Design.MD`](../../Design.MD).

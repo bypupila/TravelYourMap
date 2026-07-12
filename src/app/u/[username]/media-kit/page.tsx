@@ -177,7 +177,7 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-8">
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           <Panel title="Formatos recomendados" eyebrow="Partnerships">
             <div className="grid gap-3">
               <FormatRow title="Sponsor por destino" text="Presencia contextual en paises donde la audiencia ya explora videos y rutas." />
@@ -186,7 +186,7 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
             </div>
           </Panel>
           <div className="rounded-lg border border-[#d7dce4] bg-white p-4 text-sm leading-6 text-[#475569]">
-            Link del media kit: <span className="font-bold text-[#111827]">{absoluteMediaKitUrl}</span>
+            Link del media kit: <span className="break-all font-bold text-[#111827]">{absoluteMediaKitUrl}</span>
           </div>
         </div>
         <MediaKitInquiryForm channelId={mediaKit.channel.id} creatorName={mediaKit.channel.channel_name} mapUrl={absoluteMapUrl} />

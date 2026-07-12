@@ -249,12 +249,25 @@ Efectos base ya presentes en el sistema:
 
 Reglas base:
 
-- mobile first
-- sin overflow horizontal
-- 320px, 390px, 768px, 1024px y 1440px son viewport de prueba obligatorios
-- targets tactiles minimos de 44px
+- Mobile es la base y cubre 320–767px; Tablet usa `md` entre 768–1023px; Desktop comienza en `lg` a 1024px.
+- Resolver y certificar Mobile completo antes de iniciar Tablet. Desktop se valida despues como regresion independiente.
+- No usar media queries que alteren Desktop para corregir problemas exclusivos de Mobile o Tablet.
+- Mobile usa una columna, `w-full`, `min-w-0` y padding exterior de 16–20px.
+- Centrar en Mobile titulos, overlines, resumenes breves, estados, CTA principales y grupos cortos de acciones.
+- Mantener alineados a la izquierda labels/errores de formulario, parrafos largos, listas, tablas y controles espaciales del mapa.
+- Tablet usa dos columnas solo si cada columna conserva al menos 280px utiles; si no, mantiene una columna.
+- Sin overflow horizontal del documento: `scrollWidth` no puede superar `clientWidth`.
+- URLs y strings largas deben envolver; grids/flex con texto, inputs o tablas deben usar `min-w-0`.
+- Carruseles y tablas anchas usan scroll interno intencional con overscroll contenido, nunca overflow del documento.
+- Targets tactiles minimos de 44px; se permite 45px para evitar redondeo subpixel.
+- Checkbox/radio pueden ser visualmente menores solo si el `label` completo ofrece al menos 44px y activa el control.
 - contraste suficiente sobre glass y overlays
 - foco visible en toda interaccion
+- `Dialog` y `Sheet` deben caber en `100dvh`, respetar safe areas, tener un unico scroll interno y mantener cierre/acciones alcanzables.
+- Barras fijas dejan espacio equivalente en el contenido y respetan `env(safe-area-inset-*)`.
+- En Tablet, rails laterales no se abren sobre el contenido por defecto.
+- En mapas Mobile, votacion y paneles secundarios comienzan colapsados; en landscape bajo se prioriza el globo y el rail mantiene al menos `Ver todos`.
+- Animar solo `transform` y `opacity`; `prefers-reduced-motion` desactiva loops no esenciales.
 
 Accesibilidad:
 
@@ -324,22 +337,19 @@ npm run build
 
 Validar en navegador:
 
-- landing
-- onboarding
-- auth
-- dashboard/map
-- `/map`
-- `/explore`
-- `/u/[username]`
-- terms/privacy
+- las 25 rutas de pagina, incluidas superficies privadas mediante fixtures QA locales bloqueados en produccion
+- los siete pasos del onboarding y sus errores
+- filtros, votacion, videos, fullscreen y overlays del mapa
+- tabs, filtros, formularios y rails del Panel del creador
+- admin, Acceso de marca, Media Kit y Export de reporte
+- loading, empty, error, medios faltantes y strings largas ES/EN
 
-Viewports minimos:
+Matriz minima:
 
-- 320px
-- 390px
-- 768px
-- 1024px
-- 1440px
+- Mobile portrait: 320×760, 360×800, 390×844 y 430×932.
+- Tablet portrait: 768×1024, 820×1180 y 1023×1180.
+- Landscape critico: 667×375, 740×430, 900×600 y 1023×768.
+- Desktop regresion: 1024×900, 1280×900 y 1440×1000.
 
 Criterios de aceptacion:
 
@@ -348,5 +358,8 @@ Criterios de aceptacion:
 - Los CTA a YouTube son referenciales y usan icono generico de salida.
 - No hay claims de afiliacion, respaldo o UI oficial.
 - No hay textos cortados ni overlap en mobile.
+- No hay elementos accionables recortados, solapamientos ni controles principales menores a 44px en Mobile/Tablet.
+- Los scrollers horizontales son internos, alcanzables y visualmente intencionales.
+- Desktop conserva su composicion y comportamiento salvo una decision explicita documentada.
 - La experiencia se siente centrada en mapa/viaje, no en una copia de YouTube Studio.
 - No queda ningun otro archivo de diseño con autoridad propia.

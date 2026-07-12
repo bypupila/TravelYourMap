@@ -143,7 +143,7 @@ function AuthPageContent() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((current) => !current)}
-                  className="absolute inset-y-0 right-0 flex h-full items-center justify-center px-3 text-muted-foreground transition hover:text-foreground"
+                  className="absolute inset-y-0 right-0 flex h-full min-w-11 items-center justify-center px-3 text-muted-foreground transition hover:text-foreground lg:min-w-10"
                   aria-label={showPassword ? "Ocultar contraseña" : "Ver contraseña"}
                   aria-pressed={showPassword}
                 >

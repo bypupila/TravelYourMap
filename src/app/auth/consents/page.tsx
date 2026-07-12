@@ -111,19 +111,19 @@ export default function AuthConsentsPage() {
 
           {!loading ? (
             <div className="mt-6 grid gap-3">
-              <label className="flex items-start gap-2 text-sm text-muted-foreground">
+              <label className="flex min-h-11 items-start gap-3 text-sm text-muted-foreground">
                 <input
                   type="checkbox"
-                  className="mt-1"
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
                   checked={consentPlatformPromotions}
                   onChange={(event) => setConsentPlatformPromotions(event.target.checked)}
                 />
                 <span>Recibir promociones de Travel Your Map.</span>
               </label>
-              <label className="flex items-start gap-2 text-sm text-muted-foreground">
+              <label className="flex min-h-11 items-start gap-3 text-sm text-muted-foreground">
                 <input
                   type="checkbox"
-                  className="mt-1"
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
                   checked={consentCreatorPromotions}
                   onChange={(event) => setConsentCreatorPromotions(event.target.checked)}
                 />
@@ -154,13 +154,13 @@ export default function AuthConsentsPage() {
                   value={deleteConfirmationText}
                   onChange={(event) => setDeleteConfirmationText(event.target.value)}
                   placeholder="ELIMINAR MI CUENTA"
-                  className="h-10 rounded-lg border border-white/15 bg-black/20 px-3 text-[13px] text-white outline-none"
+                  className="h-11 rounded-lg border border-white/15 bg-black/20 px-3 text-[13px] text-white outline-none lg:h-10"
                 />
                 <input
                   value={deleteReason}
                   onChange={(event) => setDeleteReason(event.target.value)}
                   placeholder="Motivo (opcional)"
-                  className="h-10 rounded-lg border border-white/15 bg-black/20 px-3 text-[13px] text-white outline-none"
+                  className="h-11 rounded-lg border border-white/15 bg-black/20 px-3 text-[13px] text-white outline-none lg:h-10"
                 />
                 <Button
                   onClick={deleteViewerAccount}

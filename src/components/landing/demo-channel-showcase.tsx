@@ -98,7 +98,7 @@ export function DemoChannelShowcase() {
 
   return (
     <section id="examples" className="py-12 lg:py-16">
-      <div className="max-w-[760px]">
+      <div className="mx-auto max-w-[760px] text-center lg:mx-0 lg:text-left">
         <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#ff473b]">Canal demo</p>
         <h2 className="mt-4 text-[34px] font-extrabold leading-[1] tracking-[-0.055em] text-white sm:text-[42px] lg:text-[52px]">
           La vista pública del canal demo, lista para marcas y sponsors.
@@ -169,7 +169,7 @@ export function DemoChannelShowcase() {
                     type="button"
                     onClick={() => setSelectedMode(mode)}
                     className={cn(
-                      "rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition",
+                      "min-h-11 rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] transition lg:min-h-[34px]",
                       active
                         ? "border-transparent text-[#081018]"
                         : "border-white/10 bg-white/[0.03] text-white/68 hover:bg-white/[0.06]",

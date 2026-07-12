@@ -193,6 +193,19 @@ export function YouTubeEmbedPlayer({
     });
   }, [isMadeForKids]);
 
+  const applyInitialStartSeconds = useCallback(() => {
+    if (isMadeForKids || hasObservedPlayingRef.current || hasAppliedInitialStartRef.current) return;
+    const player = playerRef.current;
+    if (!player) return;
+
+    const startSeconds = Math.max(0, Math.round(Number(initialStartSecondsRef.current || 0)));
+    if (startSeconds <= 0) return;
+
+    hasAppliedInitialStartRef.current = true;
+    player.seekTo?.(startSeconds, true);
+    emitPlaybackProgress(false);
+  }, [emitPlaybackProgress, isMadeForKids]);
+
   const startProgressTracking = useCallback(() => {
     if (isMadeForKids) return;
     if (progressIntervalRef.current !== null) return;
@@ -206,6 +219,33 @@ export function YouTubeEmbedPlayer({
     emitPlaybackProgress(true);
     stopProgressTracking();
   }, [emitPlaybackProgress, stopProgressTracking]);
+
+  useEffect(() => {
+    if (status !== "ready") return;
+    applyInitialStartSeconds();
+  }, [applyInitialStartSeconds, initialStartSeconds, status]);
+
+  useEffect(() => {
+    if (isMadeForKids) return;
+
+    function flushCurrentProgress() {
+      emitPlaybackProgress(true);
+    }
+
+    function flushWhenHidden() {
+      if (document.visibilityState === "hidden") flushCurrentProgress();
+    }
+
+    window.addEventListener("pagehide", flushCurrentProgress);
+    window.addEventListener("beforeunload", flushCurrentProgress);
+    document.addEventListener("visibilitychange", flushWhenHidden);
+
+    return () => {
+      window.removeEventListener("pagehide", flushCurrentProgress);
+      window.removeEventListener("beforeunload", flushCurrentProgress);
+      document.removeEventListener("visibilitychange", flushWhenHidden);
+    };
+  }, [emitPlaybackProgress, isMadeForKids]);
 
   useEffect(() => {
     if (!playbackCommand || !playerRef.current) return;
@@ -265,12 +305,7 @@ export function YouTubeEmbedPlayer({
           events: {
             onReady: () => {
               if (cancelled) return;
-              const startSeconds = Math.max(0, Math.round(Number(initialStartSecondsRef.current || 0)));
-              if (!isMadeForKids && startSeconds > 0 && !hasAppliedInitialStartRef.current) {
-                hasAppliedInitialStartRef.current = true;
-                playerRef.current?.seekTo?.(startSeconds, true);
-                emitPlaybackProgress(false);
-              }
+              applyInitialStartSeconds();
               setStatus("ready");
             },
             onError: (event) => {
@@ -315,7 +350,7 @@ export function YouTubeEmbedPlayer({
       playerRef.current?.destroy();
       playerRef.current = null;
     };
-  }, [allowFullscreen, emitPlaybackProgress, flushPlaybackProgress, isMadeForKids, normalizedVideoId, requestFullscreenOnPlay, startProgressTracking, stopProgressTracking]);
+  }, [allowFullscreen, applyInitialStartSeconds, flushPlaybackProgress, isMadeForKids, normalizedVideoId, requestFullscreenOnPlay, startProgressTracking, stopProgressTracking]);
 
   function openInYoutube() {
     if (onOpenInYouTube) {

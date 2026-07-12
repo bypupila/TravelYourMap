@@ -201,7 +201,7 @@ export function DemoDisenoClient({ videoLocations }: DemoDisenoClientProps) {
           </div>
 
           {/* Simulator state toggles widget */}
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-white/[0.06] bg-[#070e17]/80 p-3.5 backdrop-blur-md shadow-2xl">
+          <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-white/[0.06] bg-[#070e17]/80 p-3.5 backdrop-blur-md shadow-2xl md:w-auto">
             <div className="flex items-center gap-1.5 text-xs font-bold text-zinc-400 mr-2">
               <Sliders size={15} className="text-red-500" />
               <span>SIMULADOR:</span>
@@ -210,7 +210,7 @@ export function DemoDisenoClient({ videoLocations }: DemoDisenoClientProps) {
             <div className="h-4 w-px bg-white/10 hidden sm:block" />
 
             {/* Video Selector */}
-            <div className="flex flex-col gap-1">
+            <div className="flex w-full min-w-0 flex-col gap-1 sm:w-auto">
               <label className="text-[9px] uppercase tracking-wider text-zinc-500 font-bold">Destino Seleccionado</label>
               <select
                 value={currentVideo.youtube_video_id}
@@ -218,7 +218,7 @@ export function DemoDisenoClient({ videoLocations }: DemoDisenoClientProps) {
                   const video = sampleVideos.find((v) => v.youtube_video_id === e.target.value);
                   if (video) setCurrentVideo(video);
                 }}
-                className="h-8 rounded bg-zinc-900 border border-white/10 px-2 text-xs font-semibold text-white focus:outline-none focus:border-red-500 transition-colors"
+                className="h-8 w-full min-w-0 max-w-full rounded border border-white/10 bg-zinc-900 px-2 text-xs font-semibold text-white transition-colors focus:border-red-500 focus:outline-none sm:w-auto"
               >
                 {sampleVideos.map((video, idx) => (
                   <option key={video.youtube_video_id} value={video.youtube_video_id}>
@@ -1273,7 +1273,7 @@ export function DemoDisenoClient({ videoLocations }: DemoDisenoClientProps) {
                 </div>
 
                 {/* Compact, transparent actions deck */}
-                <div className="flex items-center justify-between gap-3 pt-1 border-t border-white/[0.03]">
+                <div className="flex flex-col gap-3 border-t border-white/[0.03] pt-2 sm:flex-row sm:items-center sm:justify-between sm:pt-1">
                   <div className="flex gap-1">
                     <button
                       onClick={() => activity.toggleVideoSaved(currentVideo.youtube_video_id)}
@@ -1302,7 +1302,7 @@ export function DemoDisenoClient({ videoLocations }: DemoDisenoClientProps) {
                   </div>
 
                   {/* Clean controller and status */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-start">
                     <button
                       onClick={() => go(-1)}
                       className="flex h-7.5 w-7.5 items-center justify-center rounded bg-[#121214] hover:bg-red-500/10 hover:text-red-400 border border-white/5 transition-all text-zinc-400 active:scale-95"

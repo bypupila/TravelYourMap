@@ -321,6 +321,14 @@ export function MapAdminProposalV2({
   const [notice, setNotice] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  useEffect(() => {
+    const tabletQuery = window.matchMedia("(max-width: 1023px)");
+    const syncAlertsForViewport = () => setAlertsOpen(!tabletQuery.matches);
+    syncAlertsForViewport();
+    tabletQuery.addEventListener("change", syncAlertsForViewport);
+    return () => tabletQuery.removeEventListener("change", syncAlertsForViewport);
+  }, []);
+
   const tab = normalizeTab(searchParams.get("tab") || activeTab);
   const statusFilter = searchParams.get("status") || initialFilters.status || "all";
   const countryFilter = searchParams.get("country") || initialFilters.country || "all";
@@ -384,7 +392,7 @@ export function MapAdminProposalV2({
   }
 
   return (
-    <div className="min-h-[100dvh] bg-[#07090d] text-[#f5f7fb]">
+    <div className="creator-panel-responsive min-h-[100dvh] bg-[#07090d] text-[#f5f7fb]">
       <div className="grid min-h-[100dvh] grid-cols-1 lg:grid-cols-[96px_minmax(0,1fr)]">
         <AdminSidebar
           payload={payload}

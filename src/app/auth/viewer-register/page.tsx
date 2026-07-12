@@ -129,10 +129,10 @@ function ViewerRegisterContent() {
               </label>
             </div>
 
-            <label className="flex items-start gap-2 text-sm text-muted-foreground">
+            <label className="flex min-h-11 items-start gap-3 text-sm text-muted-foreground">
               <input
                 type="checkbox"
-                className="mt-1"
+                className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
                 checked={hasYouTubeTravelChannel}
                 onChange={(event) => setHasYouTubeTravelChannel(event.target.checked)}
               />
@@ -146,23 +146,23 @@ function ViewerRegisterContent() {
               </label>
             ) : null}
 
-            <label className="flex items-start gap-2 text-sm text-muted-foreground">
-              <input type="checkbox" className="mt-1" checked={acceptTerms} onChange={(event) => setAcceptTerms(event.target.checked)} />
+            <label className="flex min-h-11 items-start gap-3 text-sm text-muted-foreground">
+              <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-primary" checked={acceptTerms} onChange={(event) => setAcceptTerms(event.target.checked)} />
               <span>Acepto términos y política de privacidad para operar mi cuenta (obligatorio).</span>
             </label>
-            <label className="flex items-start gap-2 text-sm text-muted-foreground">
+            <label className="flex min-h-11 items-start gap-3 text-sm text-muted-foreground">
               <input
                 type="checkbox"
-                className="mt-1"
+                className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
                 checked={consentPlatformPromotions}
                 onChange={(event) => setConsentPlatformPromotions(event.target.checked)}
               />
               <span>Acepto promociones y novedades de Travel Your Map.</span>
             </label>
-            <label className="flex items-start gap-2 text-sm text-muted-foreground">
+            <label className="flex min-h-11 items-start gap-3 text-sm text-muted-foreground">
               <input
                 type="checkbox"
-                className="mt-1"
+                className="mt-0.5 h-5 w-5 shrink-0 accent-primary"
                 checked={consentCreatorPromotions}
                 onChange={(event) => setConsentCreatorPromotions(event.target.checked)}
               />

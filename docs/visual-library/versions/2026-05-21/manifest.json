@@ -265,14 +265,6 @@
       "file": "src/components/design-system/chrome.tsx"
     },
     {
-      "name": "Agentation",
-      "file": "src/components/dev/agentation-toolbar.tsx"
-    },
-    {
-      "name": "AgentationToolbar",
-      "file": "src/components/dev/agentation-toolbar.tsx"
-    },
-    {
       "name": "ExplorePageClient",
       "file": "src/components/explore/explore-page-client.tsx"
     },

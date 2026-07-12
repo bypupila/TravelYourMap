@@ -420,6 +420,9 @@ export async function loadPublicMapPayloadByChannelId({
     };
   }
 
+  const viewerUser = viewerUserId ? await getSessionUserById(viewerUserId) : null;
+  const viewerIsSuperAdmin = userIsSuperAdmin(viewerUser?.role);
+
   // Backward compatibility: old links may pass handle/username in channelId.
   // Avoid hitting `where c.id = ...` with non-UUID values, which throws 22P02.
   if (!UUID_PATTERN.test(channelId)) {
@@ -447,6 +450,7 @@ export async function loadPublicMapPayloadByChannelId({
       and (
         c.is_public = true
         or c.user_id = ${viewerUserId || null}
+        or ${viewerIsSuperAdmin}
       )
     limit 1
   `;

@@ -51,7 +51,7 @@ const overallMeta: Record<ReleasePayload["overall_status"], { label: string; cla
   no_go: { label: "NO GO (Bloqueado)", className: "text-rose-400 bg-rose-500/10 border-rose-500/25" },
 };
 
-export function ReleaseReadinessPanel() {
+export function ReleaseReadinessPanel({ qaMode = false }: { qaMode?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<ReleasePayload | null>(null);
@@ -59,6 +59,23 @@ export function ReleaseReadinessPanel() {
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
+    if (qaMode) {
+      setData({
+        generated_at: "2026-07-10T12:00:00.000Z",
+        overall_status: "go_with_warnings",
+        ready: true,
+        blockers: 0,
+        warnings: 1,
+        manual: 1,
+        checks: [
+          { id: "qa-build", group: "quality", label: "Build de produccion", status: "pass", detail: "Compilacion y TypeScript completos." },
+          { id: "qa-responsive", group: "ux", label: "Responsive Mobile y Tablet", status: "pass", detail: "Matriz QA local verificada." },
+          { id: "qa-manual", group: "release", label: "Revision visual final", status: "manual", detail: "Confirmar capturas antes de publicar." },
+        ],
+      });
+      setLoading(false);
+      return;
+    }
     try {
       const response = await fetch("/api/admin/release/go-no-go", { cache: "no-store" });
       const payload = (await response.json().catch(() => null)) as ReleasePayload | { error?: string } | null;
@@ -69,7 +86,7 @@ export function ReleaseReadinessPanel() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [qaMode]);
 
   useEffect(() => {
     void load();

@@ -35,6 +35,7 @@ import { TravelGlobe } from "@/components/travel-globe";
 import { Badge } from "@/components/ui/badge";
 import { DesktopVideoMapCard } from "@/components/map/desktop-video-map-card";
 import { Button } from "@/components/ui/button";
+import { CountryFlag } from "@/components/ui/country-flag";
 import {
   PollEditorFields,
   buildPollEditorCountriesFromVideos,
@@ -123,15 +124,6 @@ type ProposalAnalytics = {
 
 type ProposalVideoWatchState = "watched" | "incomplete" | "none";
 type CountrySortMode = "new" | "alphabetical" | "seen";
-
-function countryCodeToFlag(code: string) {
-  const normalized = code.trim().toUpperCase();
-  if (!/^[A-Z]{2}$/.test(normalized)) return "🌍";
-  return String.fromCodePoint(
-    normalized.charCodeAt(0) + 127397,
-    normalized.charCodeAt(1) + 127397
-  );
-}
 
 function formatCompactMetric(value: number) {
   if (!Number.isFinite(value)) return "0";
@@ -740,8 +732,8 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
       const progress = videoActivity.playbackProgressById[videoId];
       const lastPositionSeconds = Math.round(Number(progress?.lastPositionSeconds || 0));
       const durationSeconds = Math.round(Number(progress?.durationSeconds || video?.duration_seconds || 0));
-      if (lastPositionSeconds < 5) return null;
-      if (durationSeconds > 0 && durationSeconds - lastPositionSeconds <= 15) return null;
+      if (lastPositionSeconds <= 0) return null;
+      if (durationSeconds > 0 && lastPositionSeconds >= durationSeconds) return null;
 
       return lastPositionSeconds;
     },
@@ -842,7 +834,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
     }));
     setVotedCountryCode(normalized);
     setVotePrompt(null);
-    flash(`Voto registrado para ${countryCodeToFlag(normalized)} ${sidebarCountries.find((item) => item.code === normalized)?.name || getCountryNameInSpanish(normalized)}.`);
+    flash(`Voto registrado para ${sidebarCountries.find((item) => item.code === normalized)?.name || getCountryNameInSpanish(normalized)}.`);
   }
 
   function openMapVideo(video: TravelVideoLocation) {
@@ -906,11 +898,11 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
   const isVideoFocusMode = Boolean(pinnedVideo) && isDesktopVideoCard && !isMapFullscreen;
 
   return (
-    <div data-component="MapExperienceCore" className="relative h-screen overflow-hidden bg-[#03060a] text-[#f5f7fb] font-sans antialiased">
+    <div data-component="MapExperienceCore" className="relative h-[100dvh] overflow-hidden bg-[#03060a] font-sans text-[#f5f7fb] antialiased lg:h-screen">
       {/* Background glowing effects */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_26%_18%,rgba(255,90,61,0.08),transparent_35%),linear-gradient(180deg,#04090f,#030508_60%,#010204)] pointer-events-none" />
       <div className={cn(
-        "relative grid h-screen min-h-0 overflow-hidden grid-cols-1",
+        "relative grid h-[100dvh] min-h-0 grid-cols-1 overflow-hidden lg:h-screen",
         !isMapFullscreen && "lg:grid-cols-[220px_minmax(0,1fr)_270px] xl:grid-cols-[230px_minmax(0,1fr)_280px] 2xl:grid-cols-[240px_minmax(0,1fr)_300px] 3xl:grid-cols-[250px_minmax(0,1fr)_320px]"
       )}>
         
@@ -1052,7 +1044,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                 <div className="relative pointer-events-auto">
                   <button
                     type="button"
-                    className="flex h-8 items-center gap-1.5 rounded-full border border-white/20 bg-[#060c12]/60 px-3 text-[11px] font-bold text-white backdrop-blur-md"
+                    className="flex h-11 items-center gap-1.5 rounded-full border border-white/20 bg-[#060c12]/60 px-3 text-[11px] font-bold text-white backdrop-blur-md lg:h-8"
                     onClick={() => setDateMenuOpen((prev) => !prev)}
                   >
                     <SquaresFour size={13} />
@@ -1071,7 +1063,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                           key={id}
                           type="button"
                           className={cn(
-                            "flex h-8 w-full items-center gap-1.5 rounded-lg px-2.5 text-left text-[11px] font-bold transition",
+                            "flex h-11 w-full items-center gap-1.5 rounded-lg px-2.5 text-left text-[11px] font-bold transition lg:h-8",
                             filter === id ? "bg-[#ff5a3d]/12 text-[#ff7d63]" : "text-[#cbd3dc] hover:bg-white/[0.04] hover:text-white"
                           )}
                           onClick={() => {
@@ -1093,7 +1085,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                 <div className="relative pointer-events-auto">
                   <button
                     type="button"
-                    className="flex h-8 items-center gap-1.5 rounded-full border border-white/20 bg-[#060c12]/60 px-3 text-[11px] font-bold text-white backdrop-blur-md"
+                    className="flex h-11 items-center gap-1.5 rounded-full border border-white/20 bg-[#060c12]/60 px-3 text-[11px] font-bold text-white backdrop-blur-md lg:h-8"
                     onClick={() => setActivityMenuOpen((prev) => !prev)}
                   >
                     <FunnelSimple size={13} />
@@ -1107,7 +1099,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                           key={id}
                           type="button"
                           className={cn(
-                            "flex h-8 w-full items-center gap-1.5 rounded-lg px-2.5 text-left text-[11px] font-bold transition",
+                            "flex h-11 w-full items-center gap-1.5 rounded-lg px-2.5 text-left text-[11px] font-bold transition lg:h-8",
                             activityFilter === id ? "bg-[#ff5a3d]/12 text-[#ff7d63]" : "text-[#cbd3dc] hover:bg-white/[0.04] hover:text-white"
                           )}
                           onClick={() => {
@@ -1127,11 +1119,11 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
               </>
               ) : null}
 
-              <div className="absolute bottom-4 left-1/2 z-20 -translate-x-1/2 pointer-events-auto">
+              <div className="pointer-events-auto absolute bottom-4 right-4 z-20 lg:left-1/2 lg:right-auto lg:-translate-x-1/2">
                 {!isMapFullscreen ? (
                   <button
                     type="button"
-                    className="flex h-9 items-center gap-2 rounded-full border border-white/[0.1] bg-[#050b10]/75 px-4 text-[11px] font-bold text-white backdrop-blur-xl hover:bg-[#050b10]/95"
+                    className="flex h-11 items-center gap-2 rounded-full border border-white/[0.1] bg-[#050b10]/75 px-4 text-[11px] font-bold text-white backdrop-blur-xl hover:bg-[#050b10]/95 lg:h-9"
                     onClick={() => setIsMapFullscreen(true)}
                   >
                     <ArrowsOutSimple size={14} />
@@ -1140,7 +1132,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                 ) : (
                   <button
                     type="button"
-                    className="flex h-9 items-center gap-2 rounded-full border border-[#ff5a3d]/55 bg-[#050b10]/82 px-3 text-[11px] font-bold text-[#ff5a3d] backdrop-blur-xl hover:bg-[#050b10]"
+                    className="flex h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/55 bg-[#050b10]/82 px-3 text-[11px] font-bold text-[#ff5a3d] backdrop-blur-xl hover:bg-[#050b10] lg:h-9"
                     onClick={() => setIsMapFullscreen(false)}
                     aria-label="Salir de pantalla completa"
                   >
@@ -1149,6 +1141,26 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                   </button>
                 )}
               </div>
+
+              {!isVideoFocusMode ? (
+                <div className="lg:hidden">
+                  <MapVotePanel2
+                    candidates={hasMounted ? voteCandidates : []}
+                    prompt={votePrompt}
+                    votedCountryCode={votedCountryCode}
+                    variant="overlay"
+                    mode={isCreatorWorkspace ? "creator" : "viewer"}
+                    onSelectCountry={(countryCode) => {
+                      setSelectedCountryCode(countryCode);
+                      openVotePrompt(countryCode);
+                    }}
+                    onConfirmVote={confirmVote}
+                    onCancelVote={() => setVotePrompt(null)}
+                    onOpenAdmin={isCreatorWorkspace ? openAdminPanel : undefined}
+                    onFinalizeVote={isCreatorWorkspace ? () => flash("Votacion finalizada.") : undefined}
+                  />
+                </div>
+              ) : null}
             </div>
 
             {/* Bottom Inspiration Videos */}
@@ -1169,25 +1181,6 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
               />
             ) : null}
 
-            {!isVideoFocusMode ? (
-              <div className="lg:hidden">
-                <MapVotePanel2
-                  candidates={hasMounted ? voteCandidates : []}
-                  prompt={votePrompt}
-                  votedCountryCode={votedCountryCode}
-                  variant="overlay"
-                  mode={isCreatorWorkspace ? "creator" : "viewer"}
-                  onSelectCountry={(countryCode) => {
-                    setSelectedCountryCode(countryCode);
-                    openVotePrompt(countryCode);
-                  }}
-                  onConfirmVote={confirmVote}
-                  onCancelVote={() => setVotePrompt(null)}
-                  onOpenAdmin={isCreatorWorkspace ? openAdminPanel : undefined}
-                  onFinalizeVote={isCreatorWorkspace ? () => flash("Votacion finalizada.") : undefined}
-                />
-              </div>
-            ) : null}
           </div>
         </section>
 
@@ -1299,7 +1292,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                 setShowPlaylistModal(false);
                 flash("Playlist creada con éxito.");
               }}
-              className="w-full h-10 rounded-lg bg-[#ff5a3d] text-sm font-bold text-white transition hover:bg-[#ff6f54]"
+              className="h-11 w-full rounded-lg bg-[#ff5a3d] text-sm font-bold text-white transition hover:bg-[#ff6f54] lg:h-10"
             >
               Crear playlist
             </button>
@@ -1386,15 +1379,15 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
             <div className="space-y-4 mb-5">
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Nombre de la Marca</label>
-                <input type="text" placeholder="Ej. Patagonia Wear" className="w-full h-10 px-3 rounded-lg border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-[#ff5a3d]" />
+                <input type="text" placeholder="Ej. Patagonia Wear" className="h-11 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-white focus:border-[#ff5a3d] focus:outline-none lg:h-10" />
               </div>
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Descripción Corta</label>
-                <input type="text" placeholder="Ej. Ropa y equipamiento de montaña" className="w-full h-10 px-3 rounded-lg border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-[#ff5a3d]" />
+                <input type="text" placeholder="Ej. Ropa y equipamiento de montaña" className="h-11 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-white focus:border-[#ff5a3d] focus:outline-none lg:h-10" />
               </div>
               <div>
                 <label className="block text-xs text-slate-400 mb-1">Enlace del Sitio Web</label>
-                <input type="text" placeholder="Ej. patagonia.com" className="w-full h-10 px-3 rounded-lg border border-white/10 bg-white/[0.04] text-sm text-white focus:outline-none focus:border-[#ff5a3d]" />
+                <input type="text" placeholder="Ej. patagonia.com" className="h-11 w-full rounded-lg border border-white/10 bg-white/[0.04] px-3 text-sm text-white focus:border-[#ff5a3d] focus:outline-none lg:h-10" />
               </div>
             </div>
             <button 
@@ -1402,7 +1395,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                 setShowSponsorModal(false);
                 flash("Patrocinador agregado al canal (simulado).");
               }}
-              className="w-full h-10 rounded-lg bg-[#ff5a3d] text-sm font-bold text-white transition hover:bg-[#ff6f54]"
+              className="h-11 w-full rounded-lg bg-[#ff5a3d] text-sm font-bold text-white transition hover:bg-[#ff6f54] lg:h-10"
             >
               Guardar patrocinador
             </button>
@@ -1519,7 +1512,7 @@ function ProposalSidebar2({
         </Link>
         <button 
           type="button" 
-          className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] lg:hidden hover:bg-white/[0.08]" 
+          className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] lg:hidden"
           onClick={onOpenMenu}
         >
           <List size={20} />
@@ -1619,7 +1612,7 @@ function ProposalSidebar2({
                   />
                 ) : null}
                 <span className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.08),transparent_65%)]" />
-                <span className={cn("relative z-10", toneClasses.text)}>{countryCodeToFlag(country.code)}</span>
+                <CountryFlag code={country.code} size={14} className={cn("relative z-10", toneClasses.text)} />
               </span>
               <span className="relative min-w-0">
                 <span className="block truncate text-[12px] font-bold text-white transition group-hover:text-[#ff7d63]">{country.name}</span>
@@ -1790,12 +1783,12 @@ function ProposalTopbar2({
         </div>
 
         {/* Control buttons & Avatar */}
-        <div className="flex items-center justify-end gap-2 shrink-0">
+        <div className="flex min-w-0 shrink-0 flex-wrap items-center justify-center gap-2 sm:justify-end lg:flex-nowrap">
           {isDemoMode ? (
             <>
               <Link
                 href={viewerRegisterHref}
-                className="hidden h-10 items-center gap-2 rounded-full border border-[#ff5a3d]/55 bg-[#ff5a3d] px-4 text-[12px] font-bold text-white transition hover:bg-[#ff6a50] sm:inline-flex"
+                className="hidden h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/55 bg-[#ff5a3d] px-4 text-[12px] font-bold text-white transition hover:bg-[#ff6a50] sm:inline-flex lg:h-10"
               >
                 Crear cuenta gratis
               </Link>
@@ -1810,7 +1803,7 @@ function ProposalTopbar2({
               {canReturnToCreator ? (
                 <button
                   type="button"
-                  className="flex h-10 items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 text-[12px] font-bold text-white transition hover:bg-white/[0.08]"
+                  className="flex h-11 items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 text-[12px] font-bold text-white transition hover:bg-white/[0.08] lg:h-10"
                   onClick={onReturnToCreator}
                 >
                   <GearSix size={15} />
@@ -1822,7 +1815,7 @@ function ProposalTopbar2({
             <>
               <button
                 type="button"
-                className="flex h-10 items-center gap-2 rounded-full border border-[#ff5a3d]/55 bg-transparent px-4 text-[12px] font-bold text-[#ff5a3d] transition hover:bg-[#ff5a3d]/10"
+                className="flex h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/55 bg-transparent px-4 text-[12px] font-bold text-[#ff5a3d] transition hover:bg-[#ff5a3d]/10 lg:h-10"
                 onClick={onPreviewViewer}
               >
                 <Eye size={15} />
@@ -1849,7 +1842,7 @@ function ProposalTopbar2({
           <div className="relative" ref={shareMenuRef}>
             <button
               type="button"
-              className="flex h-10 w-10 items-center justify-center rounded-full border border-[#ff5a3d]/55 bg-[#ff5a3d] text-white transition hover:bg-[#ff6a50]"
+              className="flex h-11 w-11 items-center justify-center rounded-full border border-[#ff5a3d]/55 bg-[#ff5a3d] text-white transition hover:bg-[#ff6a50] lg:h-10 lg:w-10"
               onClick={() => setShareMenuOpen((current) => !current)}
               aria-label="Compartir"
             >
@@ -1861,7 +1854,7 @@ function ProposalTopbar2({
                   <button
                     key={item.id}
                     type="button"
-                    className="flex h-9 w-full items-center rounded-lg px-3 text-left text-[11px] font-bold text-[#dbe2ea] transition hover:bg-white/[0.06] hover:text-white"
+                    className="flex h-11 w-full items-center rounded-lg px-3 text-left text-[11px] font-bold text-[#dbe2ea] transition hover:bg-white/[0.06] hover:text-white lg:h-9"
                     onClick={() => {
                       window.open(item.href, "_blank", "noopener,noreferrer");
                       setShareMenuOpen(false);
@@ -1872,7 +1865,7 @@ function ProposalTopbar2({
                 ))}
                 <button
                   type="button"
-                  className="mt-1 flex h-9 w-full items-center gap-2 rounded-lg border border-[#ff5a3d] bg-[#ff5a3d] px-3 text-left text-[11px] font-bold text-black transition hover:bg-[#ff6b4f] hover:text-black"
+                  className="mt-1 flex h-11 w-full items-center gap-2 rounded-lg border border-[#ff5a3d] bg-[#ff5a3d] px-3 text-left text-[11px] font-bold text-black transition hover:bg-[#ff6b4f] hover:text-black lg:h-9"
                   onClick={async () => {
                     try {
                       await copyTextToClipboard(shareUrl);
@@ -1911,7 +1904,7 @@ function ProposalTopbar2({
                 <button
                   type="button"
                   onClick={() => setSearchPanelOpen(false)}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/[0.08]"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-white transition hover:bg-white/[0.08] lg:h-9 lg:w-9"
                   aria-label="Cerrar buscador"
                 >
                   <X size={16} />
@@ -1984,6 +1977,22 @@ function MapVotePanel2({
 }) {
   const totalVotes = candidates.reduce((sum, country) => sum + country.votes, 0);
   const isCreator = mode === "creator";
+  const [overlayOpen, setOverlayOpen] = useState(false);
+
+  if (variant === "overlay" && !overlayOpen) {
+    return (
+      <button
+        type="button"
+        data-component="MapVotePanel2Trigger"
+        className="pointer-events-auto absolute bottom-4 left-4 z-[95] flex h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/35 bg-[#050b10]/88 px-4 text-[11px] font-black text-[#ffb4a4] shadow-2xl backdrop-blur-xl"
+        onClick={() => setOverlayOpen(true)}
+        aria-expanded="false"
+      >
+        <List size={15} weight="bold" />
+        Fan vote
+      </button>
+    );
+  }
 
   return (
     <div
@@ -1991,24 +2000,34 @@ function MapVotePanel2({
       className={
         variant === "sidebar"
           ? "w-full"
-          : "pointer-events-none absolute left-4 top-4 z-[95] w-[min(190px,calc(100%-2rem))]"
+          : "pointer-events-none absolute bottom-4 left-4 z-[95] w-[min(220px,calc(100%-2rem))]"
       }
       >
       <section className="pointer-events-auto rounded-xl border border-white/[0.08] bg-[#050b10]/82 p-3 text-white shadow-2xl backdrop-blur-xl">
-        <div className={cn("mb-2 flex items-center gap-3", isCreator ? "justify-between" : "justify-center")}>
-          <div className={cn("min-w-0", !isCreator && "text-center")}>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <div className="min-w-0">
             <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#ff5a3d]">Fan vote</p>
             <h3 className="text-[12px] font-black leading-tight text-white">Próximo destino</h3>
           </div>
           {isCreator ? (
             <button
               type="button"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#ff5a3d]/30 bg-[#ff5a3d]/10 text-[#ff5a3d] transition hover:bg-[#ff5a3d]/18"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-[#ff5a3d]/30 bg-[#ff5a3d]/10 text-[#ff5a3d] transition hover:bg-[#ff5a3d]/18 lg:h-7 lg:w-7"
               onClick={() => onOpenAdmin?.()}
               aria-label="Abrir panel de votaciones"
               title="Abrir panel de votaciones"
             >
               <List size={14} weight="bold" />
+            </button>
+          ) : null}
+          {variant === "overlay" ? (
+            <button
+              type="button"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[#cbd3dc] transition hover:bg-white/[0.08] lg:h-7 lg:w-7"
+              onClick={() => setOverlayOpen(false)}
+              aria-label="Cerrar votacion"
+            >
+              <X size={14} />
             </button>
           ) : null}
         </div>
@@ -2022,7 +2041,7 @@ function MapVotePanel2({
                 key={country.code}
                 type="button"
                 className={cn(
-                  "group relative flex h-10 w-full items-center gap-2 overflow-hidden rounded-lg border px-2 text-left transition",
+                  "group relative flex h-11 w-full items-center gap-2 overflow-hidden rounded-lg border px-2 text-left transition lg:h-10",
                   active
                     ? "border-[#ff5a3d]/55 bg-[#ff5a3d]/10"
                     : "border-white/[0.06] bg-white/[0.035] hover:border-[#ff5a3d]/35 hover:bg-white/[0.06]"
@@ -2034,7 +2053,7 @@ function MapVotePanel2({
                 ) : null}
                 <span className="relative z-10 shrink-0 text-[10px] font-black text-[#ff5a3d]">#{index + 1}</span>
                 <span className="relative z-10 grid h-7 w-7 shrink-0 place-items-center rounded-full border border-white/10 bg-black/25 text-[14px]">
-                  {countryCodeToFlag(country.code)}
+                  <CountryFlag code={country.code} size={14} />
                 </span>
                 <span className="relative z-10 min-w-0 flex-1">
                   <span className="block truncate text-[11px] font-bold text-white">{country.name}</span>
@@ -2051,7 +2070,7 @@ function MapVotePanel2({
           <div className="mt-3">
             <button
               type="button"
-              className="flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-[#ff5a3d]/35 bg-[#ff5a3d]/12 px-3 text-[11px] font-black uppercase tracking-[0.12em] text-[#ffb4a4] transition hover:bg-[#ff5a3d]/20"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[#ff5a3d]/35 bg-[#ff5a3d]/12 px-3 text-[11px] font-black uppercase tracking-[0.12em] text-[#ffb4a4] transition hover:bg-[#ff5a3d]/20 lg:h-9"
               onClick={() => {
                 if (onFinalizeVote) {
                   onFinalizeVote();
@@ -2071,13 +2090,13 @@ function MapVotePanel2({
           <p className="text-[11px] font-bold leading-5 text-[#dce4ed]">
             Votar por{" "}
             <span className="text-white">
-              {countryCodeToFlag(prompt.countryCode)} {prompt.countryName}
+              <CountryFlag code={prompt.countryCode} size={14} /> {prompt.countryName}
             </span>
           </p>
           <div className="mt-2 flex items-center gap-2">
             <button
               type="button"
-              className="flex h-8 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#ff5a3d]/40 bg-[#ff5a3d]/16 px-3 text-[11px] font-black text-[#ff7d63] transition hover:bg-[#ff5a3d]/24"
+              className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-lg border border-[#ff5a3d]/40 bg-[#ff5a3d]/16 px-3 text-[11px] font-black text-[#ff7d63] transition hover:bg-[#ff5a3d]/24 lg:h-8"
               onClick={() => onConfirmVote(prompt.countryCode)}
             >
               <CheckCircle size={14} weight="fill" />
@@ -2085,7 +2104,7 @@ function MapVotePanel2({
             </button>
             <button
               type="button"
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-[#cbd3dc] transition hover:bg-white/[0.08]"
+              className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-[#cbd3dc] transition hover:bg-white/[0.08] lg:h-8 lg:w-8"
               onClick={onCancelVote}
               aria-label="Cancelar voto"
             >
@@ -2286,7 +2305,7 @@ function VideoInspirationRail2({
           <h2 className="text-[14px] font-black uppercase tracking-wider text-white">
             {selectedCountryCode ? (
               <>
-                Videos en {countryCodeToFlag(selectedCountryCode)}{" "}
+                Videos en <CountryFlag code={selectedCountryCode} size={14} />{" "}
                 <span className="text-[#ff5a3d]">{selectedCountryName || selectedCountryCode}</span>
               </>
             ) : (
@@ -2301,14 +2320,14 @@ function VideoInspirationRail2({
           <button
             type="button"
             onClick={onOpenAllVideos}
-            className="h-8 rounded-full border border-violet-400/35 bg-violet-500/12 px-3.5 text-[10px] font-black uppercase tracking-[0.1em] text-violet-100 transition hover:bg-violet-500/18 hover:text-white"
+            className="h-11 rounded-full border border-violet-400/35 bg-violet-500/12 px-3.5 text-[10px] font-black uppercase tracking-[0.1em] text-violet-100 transition hover:bg-violet-500/18 hover:text-white lg:h-8"
           >
             Ver Todos
           </button>
         </div>
       </div>
 
-      <div className="flex gap-4 overflow-x-auto pb-5 scrollbar-thin select-none pr-4">
+      <div className="tym-scroll-row flex select-none gap-4 pb-5 pr-4">
         {railVideos.map((video, index) => {
           const sponsorNames = resolveSponsorNames(video);
 
@@ -2423,7 +2442,7 @@ function ProposalRightRail2({
           <div className="mt-3 grid gap-2">
             <button
               type="button"
-              className="flex h-10 items-center justify-center gap-2 rounded-xl border border-[#ff5a3d]/35 bg-[#ff5a3d]/14 px-3 text-[11px] font-black text-[#ffb4a4] transition hover:bg-[#ff5a3d]/22"
+              className="flex h-11 items-center justify-center gap-2 rounded-xl border border-[#ff5a3d]/35 bg-[#ff5a3d]/14 px-3 text-[11px] font-black text-[#ffb4a4] transition hover:bg-[#ff5a3d]/22 lg:h-10"
               onClick={onExtractVideos}
             >
               <Video size={15} />
@@ -2431,7 +2450,7 @@ function ProposalRightRail2({
             </button>
             <button
               type="button"
-              className="flex h-10 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-[11px] font-black text-white transition hover:bg-white/[0.08]"
+              className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-[11px] font-black text-white transition hover:bg-white/[0.08] lg:h-10"
               onClick={onCreatePoll}
             >
               <Users size={15} />
@@ -2439,7 +2458,7 @@ function ProposalRightRail2({
             </button>
             <button
               type="button"
-              className="flex h-10 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-[11px] font-black text-white transition hover:bg-white/[0.08]"
+              className="flex h-11 items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 text-[11px] font-black text-white transition hover:bg-white/[0.08] lg:h-10"
               onClick={onOpenAdmin}
             >
               <GearSix size={15} />
@@ -2481,24 +2500,20 @@ function ProposalRightRail2({
                   key={sponsor.id}
                   className="flex items-center gap-3 rounded-xl border border-white/[0.03] bg-white/[0.01] p-2 transition group hover:border-white/[0.07]"
                 >
-                  <span className="relative block h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
-                    {sponsor.logo_url ? (
+                  {sponsor.logo_url ? (
+                    <span className="relative block h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
                       <Image src={sponsor.logo_url} alt={sponsor.brand_name} fill sizes="40px" className="object-contain p-1.5" />
-                    ) : (
-                      <span className="flex h-full w-full items-center justify-center text-[11px] font-black text-white">
-                        {sponsor.brand_name.slice(0, 2).toUpperCase()}
-                      </span>
-                    )}
-                  </span>
+                    </span>
+                  ) : null}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[12px] font-black leading-tight text-white transition group-hover:text-[#ff7d63]">{sponsor.brand_name}</p>
+                    <p className="truncate text-[12px] font-black leading-tight text-red-500 transition group-hover:text-[#ff7d63]">{sponsor.brand_name}</p>
                     <p className="mt-0.5 truncate text-[10px] font-semibold leading-normal text-[#818a93]">{sponsor.description || "Sponsor activo en el mapa"}</p>
                     {sponsorHost ? <p className="truncate text-[9px] font-semibold leading-none text-slate-500">{sponsorHost}</p> : null}
                   </div>
                   {sponsor.affiliate_url ? (
                     <button
                       type="button"
-                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.02] text-white transition-all hover:border-white/20 hover:bg-white/[0.07]"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.02] text-white transition-all hover:border-white/20 hover:bg-white/[0.07] lg:h-8 lg:w-8"
                       aria-label={`Ir al sitio de ${sponsor.brand_name}`}
                       title={`Ir al sitio de ${sponsor.brand_name}`}
                       onClick={() => {
@@ -2628,7 +2643,7 @@ function MobileDrawer2({
             <button 
               key={label} 
               type="button" 
-              className="flex h-10 w-full items-center rounded-lg border border-white/[0.04] bg-white/[0.01] hover:bg-white/[0.05] px-3.5 text-left text-[11px] font-bold text-white transition" 
+              className="flex h-11 w-full items-center rounded-lg border border-white/[0.04] bg-white/[0.01] px-3.5 text-left text-[11px] font-bold text-white transition hover:bg-white/[0.05] lg:h-10"
               onClick={() => {
                 onNavigate(label);
                 onClose();

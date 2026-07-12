@@ -24,7 +24,7 @@ export default async function DemoDisenoPage() {
   const { videoLocations } = await loadLuisitoMapData();
 
   return (
-    <main className="min-h-screen bg-[#020509] text-white">
+    <main className="demo-diseno-responsive min-h-[100dvh] overflow-x-hidden bg-[#020509] text-white">
       <DemoDisenoClient videoLocations={videoLocations} />
     </main>
   );

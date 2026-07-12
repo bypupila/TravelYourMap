@@ -298,11 +298,11 @@ export default function ProposalsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#060608] text-white p-8 md:p-12 font-sans selection:bg-emerald-500/30">
+    <div className="country-card-responsive min-h-[100dvh] bg-[#060608] p-4 font-sans text-white selection:bg-emerald-500/30 md:p-12">
       
       <div className="max-w-6xl mx-auto">
-        <header className="mb-16 border-b border-white/5 pb-8">
-          <div className="flex items-center gap-2.5 mb-2">
+        <header className="mb-16 border-b border-white/5 pb-8 text-center lg:text-left">
+          <div className="mb-2 flex items-center justify-center gap-2.5 lg:justify-start">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">Creative Direction / Proposals</span>
           </div>

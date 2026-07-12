@@ -9,6 +9,7 @@ import {
 } from "@/lib/current-user";
 import { loadCreatorAdminPayload, normalizeCreatorAdminTab, type CreatorAdminTab } from "@/lib/creator-admin-data";
 import { sql } from "@/lib/neon";
+import { buildResponsiveQaCreatorPayload, isResponsiveQaFixture } from "@/lib/responsive-qa-fixtures";
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -31,6 +32,7 @@ interface CreatorPanelPageProps {
     country?: string;
     modal?: string;
     id?: string;
+    qa?: string;
   }>;
 }
 
@@ -38,6 +40,23 @@ export const dynamic = "force-dynamic";
 
 export default async function CreatorPanelPage({ searchParams }: CreatorPanelPageProps) {
   const params = await searchParams;
+  if (isResponsiveQaFixture(params.qa)) {
+    return (
+      <main className="min-h-[100dvh] bg-[#07090d] text-[#f5f7fb]">
+        <MapAdminProposalV2
+          payload={buildResponsiveQaCreatorPayload(siteUrl)}
+          activeTab={normalizeCreatorPanelTab(params.tab)}
+          basePath="/creator-panel"
+          initialFilters={{
+            status: params.status || "all",
+            country: params.country || "all",
+            modal: params.modal || null,
+            id: params.id || null,
+          }}
+        />
+      </main>
+    );
+  }
   const sessionUserId = await getValidSessionUserIdFromServerCookies();
   if (!sessionUserId) redirect("/auth");
 

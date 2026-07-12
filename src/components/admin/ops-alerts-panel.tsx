@@ -23,12 +23,23 @@ const alertLabel: Record<"critical" | "high", string> = {
   high: "Alta",
 };
 
-export function OpsAlertsPanel() {
+export function OpsAlertsPanel({ qaMode = false }: { qaMode?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<AlertPayload | null>(null);
 
   useEffect(() => {
+    if (qaMode) {
+      setData({
+        generated_at: "2026-07-10T12:00:00.000Z",
+        alerts: [
+          { id: "qa-alert", severity: "high", title: "Revision de contenido pendiente", detail: "Tres videos necesitan confirmar su destino antes de publicar." },
+        ],
+      });
+      setError(null);
+      setLoading(false);
+      return;
+    }
     let active = true;
     fetch("/api/admin/ops/alerts", { cache: "no-store" })
       .then(async (response) => {
@@ -49,7 +60,7 @@ export function OpsAlertsPanel() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [qaMode]);
 
   return (
     <section className="tm-surface-strong rounded-[2rem] border border-white/10 p-6 shadow-[0_24px_100px_-56px_rgba(0,0,0,0.9)] bg-white/[0.01] backdrop-blur-md transition-all duration-300 hover:border-white/15">

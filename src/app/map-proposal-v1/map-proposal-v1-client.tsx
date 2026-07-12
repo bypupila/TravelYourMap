@@ -21,7 +21,7 @@ export function MapProposalV1Client({ channel, videoLocations }: MapProposalV1Cl
   const [viewMode, setViewMode] = useState<MapViewMode>("demo");
 
   return (
-    <main className="h-screen overflow-hidden bg-[#03080d] text-white">
+    <main className="map-prototype-responsive h-[100dvh] overflow-hidden bg-[#03080d] text-white lg:h-screen">
       <div className="absolute top-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/15 bg-black/65 p-1 backdrop-blur">
         {MODES.map((mode) => {
           const active = mode.id === viewMode;

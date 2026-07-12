@@ -80,12 +80,14 @@ function stableTextCompare(a: string, b: string) {
 
 export function getCountryNameInSpanish(countryCode?: string | null, fallbackName?: string | null) {
   const code = String(countryCode || "").toUpperCase().trim();
+  // API/database labels are stable across the server and browser. Prefer them
+  // over Intl.DisplayNames, whose ICU wording can differ and break hydration.
+  const fallback = String(fallbackName || "").trim();
+  if (fallback && fallback.length > 2) return fallback;
   if (/^[A-Z]{2}$/.test(code) && countryDisplayNamesEs) {
     const display = countryDisplayNamesEs.of(code);
     if (display) return display;
   }
-  const fallback = String(fallbackName || "").trim();
-  if (fallback && fallback.length > 2) return fallback;
   return "País sin nombre";
 }
 

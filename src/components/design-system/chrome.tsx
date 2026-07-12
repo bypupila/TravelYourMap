@@ -32,7 +32,7 @@ export function FloatingTopBar({
   hideSearch = false,
 }: FloatingTopBarProps) {
   return (
-    <div className={cn("mx-auto grid w-full grid-cols-1 gap-3 tym-navbar tm-refraction pointer-events-auto md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center", className)}>
+    <div className={cn("pointer-events-auto mx-auto grid w-full min-w-0 grid-cols-1 gap-3 tym-navbar tm-refraction md:grid-cols-[minmax(0,1fr)_auto] md:items-center lg:grid-cols-[auto_minmax(0,1fr)_auto]", className)}>
       <div className="tym-logo-lockup min-w-0 shrink-0">
         <Link
           href="/"
@@ -48,7 +48,7 @@ export function FloatingTopBar({
       </div>
 
       {centerContent || searchInput || !hideSearch ? (
-        <div className="w-full md:justify-self-center md:px-4">
+        <div className="min-w-0 w-full md:order-3 md:col-span-2 md:justify-self-center md:px-1 lg:order-none lg:col-span-1 lg:px-4">
           {searchInput || centerContent || (
             <div className="tym-search platform-shimmer" aria-hidden="true">
               <div className="flex h-full items-center pl-4 text-[13px] text-muted-foreground">
@@ -62,7 +62,7 @@ export function FloatingTopBar({
         </div>
       ) : null}
 
-      <div className="flex shrink-0 items-center gap-2 md:ml-auto md:justify-self-end">
+      <div className="flex min-w-0 flex-wrap items-center justify-center gap-2 md:ml-auto md:justify-self-end lg:flex-nowrap">
         {actions}
       </div>
     </div>

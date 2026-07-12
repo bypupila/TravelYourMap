@@ -21,6 +21,24 @@ export const metadata: Metadata = {
 export default async function BrandPortalPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const cleanToken = String(token || "").trim();
+  if (process.env.NODE_ENV !== "production" && cleanToken === "responsive-qa-access") {
+    return (
+      <main className="min-h-[100dvh] bg-[#f6f7f2] px-4 py-10 text-[#151515]">
+        <div className="mx-auto flex w-full max-w-6xl flex-col">
+          <BrandPortalAccessForm token={cleanToken} brandName="IATI Seguros" emailHint="m***@iatiseguros.com" />
+          <ContactStrip
+            title="Contacto"
+            description="Fixture local para validar acceso y soporte del portal privado."
+            items={[
+              { label: "Soporte", email: "support" },
+              { label: "Marketing", email: "marketing" },
+            ]}
+            tone="light"
+          />
+        </div>
+      </main>
+    );
+  }
   const cookieStore = await cookies();
   const portalResult = await loadBrandPortalByToken(cleanToken, cookieStore.get(getBrandPortalAccessCookieName(cleanToken))?.value || null);
   if (portalResult.status === "not_found") notFound();

@@ -186,9 +186,11 @@ function clearStoredImportRunId(storageKey: string, legacyStorageKey: string) {
 export function OnboardingProcessing({
   locale,
   user,
+  qaMode = false,
 }: {
   locale: Locale;
   user: SessionUser;
+  qaMode?: boolean;
 }) {
   const router = useRouter();
   const copy = copyByLocale[locale];
@@ -226,6 +228,17 @@ export function OnboardingProcessing({
   }, [copy.loadingFallback, copy.loadingSteps, phraseIndex]);
 
   useEffect(() => {
+    if (qaMode) {
+      setError(null);
+      setRunId("responsive-qa");
+      setRunStatus("running");
+      setProgress(0.64);
+      setStage("mapping");
+      setCountriesMapped(8);
+      setMappedVideos(42);
+      setMappedViews(1_284_700);
+      return;
+    }
     if (runId) return;
     let active = true;
 
@@ -289,9 +302,10 @@ export function OnboardingProcessing({
     return () => {
       active = false;
     };
-  }, [copy.errorFallback, legacyStorageKey, runId, storageKey]);
+  }, [copy.errorFallback, legacyStorageKey, qaMode, runId, storageKey]);
 
   useEffect(() => {
+    if (qaMode) return;
     const currentRunId: string = runId || "";
     if (!currentRunId) return;
     let active = true;
@@ -378,7 +392,7 @@ export function OnboardingProcessing({
       active = false;
       window.clearInterval(interval);
     };
-  }, [copy.errorFallback, legacyStorageKey, runId, storageKey]);
+  }, [copy.errorFallback, legacyStorageKey, qaMode, runId, storageKey]);
 
   const progressLabel = useMemo(() => {
     if (runStatus === "completed") return copy.profileFallback;
@@ -393,6 +407,12 @@ export function OnboardingProcessing({
     setProfileBusy(true);
     setProfileError(null);
     setProfileSuccess(null);
+
+    if (qaMode) {
+      setProfileSuccess(copy.profileFallback);
+      setProfileBusy(false);
+      return;
+    }
 
     try {
       const response = await fetch("/api/auth/profile", {

@@ -234,19 +234,14 @@ export function DesktopVideoMapCard({
               const coupon = sponsor.action_type === "coupon" ? sponsor.action_value || sponsor.discount_code : sponsor.discount_code;
               const ctaLabel = sponsor.cta_label || (coupon ? "Copiar" : "Ver beneficio");
               const cardClassName =
-                "group relative flex min-h-[64px] w-full items-center rounded-xl border border-white/10 bg-white/[0.03] p-2 text-left shadow-sm transition-all duration-300 hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.98]";
+                "group relative flex min-h-[64px] w-full items-center rounded-xl border border-white/10 bg-white/[0.03] p-2 text-center shadow-sm transition-all duration-300 hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.98]";
               const cardContent = (
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1">
-                      <p className="truncate text-[15px] font-bold leading-none text-white">
-                        {categoryText}
-                      </p>
-                      <span className="inline-flex items-center rounded bg-[#ff8a72]/20 px-1 py-0 text-[10px] font-black leading-none text-[#ff8a72] border border-[#ff8a72]/30 shrink-0">
-                        {coupon ? "PROMO" : "LINK"}
-                      </span>
-                  </div>
+                  <p className="truncate text-[15px] font-bold leading-none text-red-500">
+                    {categoryText}
+                  </p>
                   <p
-                    className="line-clamp-2 text-[11px] text-[#cbd5e1] group-hover:text-white transition-colors leading-snug mt-0 overflow-hidden text-ellipsis"
+                    className="line-clamp-2 text-[11px] text-[#cbd5e1] transition-colors leading-snug mt-0 overflow-hidden text-ellipsis group-hover:text-white"
                     title={sponsor.description || ""}
                   >
                     {sponsor.description || "Oferta recomendada"}
@@ -538,13 +533,13 @@ export function DesktopVideoMapCard({
           </div>
 
           <div className="border-t border-zinc-700/60 bg-[#0c0c0c]/85 px-4 py-3">
-            <div className="grid grid-cols-3 items-center divide-x divide-white/[0.08] text-[11px] text-zinc-500">
-              <span className="flex min-w-0 items-center justify-center gap-1 truncate px-2 font-semibold">
-                <MapPin size={11} className="text-red-500" />
+            <div className="grid grid-cols-3 items-center divide-x divide-white/[0.08] text-[11px] text-white">
+              <span className="flex min-w-0 items-center justify-center gap-1 truncate px-2 font-semibold uppercase">
+                <MapPin size={11} className="text-white" />
                 <span className="truncate">{formatVideoPlace(selectedVideo)}</span>
               </span>
-              <span className="flex items-center justify-center gap-1 px-2"><Eye size={11} className="text-red-500" />{formatCompactNumber(Number(selectedVideo.view_count || 0))} vistas</span>
-              <span className="flex items-center justify-center gap-1 px-2"><Clock size={11} className="text-red-500" />{formatVideoDate(selectedVideo.published_at)}</span>
+              <span className="flex items-center justify-center gap-1 px-2 uppercase"><Eye size={11} className="text-white" />{formatCompactNumber(Number(selectedVideo.view_count || 0))} vistas</span>
+              <span className="flex items-center justify-center gap-1 px-2 uppercase"><Clock size={11} className="text-white" />{formatVideoDate(selectedVideo.published_at)}</span>
             </div>
           </div>
           {renderSponsorStrip()}

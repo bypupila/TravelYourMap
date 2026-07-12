@@ -14,20 +14,37 @@ const issuesComponentsDir = path.join(issuesDir, "components");
 const responsiveDir = path.join(outDir, "responsive");
 const VIEWPORT = { width: 1440, height: 1000 };
 const MAP_MAX_COMPONENT_MULTIPLIER = 1.35;
+const RESPONSIVE_PROFILES = [
+  { name: "mobile-390", viewport: { width: 390, height: 844 }, isMobile: true },
+  { name: "tablet-768", viewport: { width: 768, height: 1024 }, isMobile: false },
+];
 
 const routes = [
   { name: "HomePage", path: "/" },
-  { name: "CountryCardProposalsPage", path: "/country-card-proposals" },
-  { name: "DemoDisenoPage", path: "/demo-diseno" },
-  { name: "OnboardingPageDemo", path: "/onboarding?demo=1" },
-  { name: "AuthPage", path: "/auth" },
+  { name: "PricingPage", path: "/pricing" },
   { name: "ExplorePage", path: "/explore" },
+  { name: "MapPageDemo", path: "/map?channelId=demo-channel" },
+  { name: "PublicCreatorMapPage", path: "/u/demo" },
+  { name: "PublicMediaKitPage", path: "/u/demo/media-kit" },
+  { name: "AuthPage", path: "/auth" },
+  { name: "ViewerRegisterPage", path: "/auth/viewer-register" },
+  { name: "AuthConsentsPage", path: "/auth/consents" },
+  { name: "OnboardingPageDemo", path: "/onboarding?demo=1" },
+  { name: "OnboardingProcessingQa", path: "/onboarding/processing?qa=responsive" },
+  { name: "DashboardPageDemo", path: "/dashboard?demo=1" },
+  { name: "CreatorPanelQa", path: "/creator-panel?qa=responsive" },
+  { name: "AdminPageQa", path: "/admin?qa=responsive" },
+  { name: "StatusPage", path: "/status" },
   { name: "TermsPage", path: "/terms" },
   { name: "PrivacyPage", path: "/privacy" },
-  { name: "MapPageDemo", path: "/map?channelId=demo" },
+  { name: "CountryCardProposalsPage", path: "/country-card-proposals" },
+  { name: "DemoDisenoPage", path: "/demo-diseno" },
+  { name: "MapAdminProposalQa", path: "/map-admin-proposal?qa=responsive" },
   { name: "MapProposalPage2", path: "/map-proposal-2" },
   { name: "MapProposalPage", path: "/map-proposal" },
   { name: "MapProposalV1Page", path: "/map-proposal-v1" },
+  { name: "BrandPortalAccessQa", path: "/brand-portal/responsive-qa-access" },
+  { name: "SponsorReportQa", path: "/sponsor-report/responsive-qa" },
 ];
 
 function slugify(value) {
@@ -396,6 +413,69 @@ async function captureMobileMenu(browser) {
   }
 }
 
+async function captureResponsiveRoute(browser, route, profile) {
+  const page = await browser.newPage({ viewport: profile.viewport, isMobile: profile.isMobile });
+  await page.route("**/*", async (requestRoute) => {
+    const parsedUrl = new URL(requestRoute.request().url());
+    if (parsedUrl.pathname.startsWith("/ingest") || parsedUrl.hostname.includes("posthog") || parsedUrl.hostname.includes("sentry.io")) {
+      await requestRoute.abort();
+      return;
+    }
+    await requestRoute.continue();
+  });
+
+  const url = `${baseUrl}${route.path}`;
+  const slug = slugify(`${profile.name}-${route.name}`);
+  const filePath = path.join(responsiveDir, `${slug}.png`);
+  const issuePath = path.join(issuesDir, `${slug}.png`);
+  const likelyMap = route.path.includes("/map") || route.path.includes("/dashboard") || route.path === "/u/demo";
+  const pageErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(error instanceof Error ? error.message : String(error)));
+
+  try {
+    const response = await page.goto(url, { waitUntil: "domcontentloaded", timeout: 45000 });
+    await hideCaptureOverlays(page);
+    await page.waitForLoadState("networkidle", { timeout: 12000 }).catch(() => {});
+    await waitForVisualReadiness(page, route).catch(() => {});
+    const widthAudit = await page.evaluate(() => ({
+      viewportWidth: document.documentElement.clientWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+    }));
+    const issues = [];
+    if ((response?.status() || 0) >= 400) issues.push(`HTTP ${response?.status()}`);
+    if (widthAudit.scrollWidth > widthAudit.viewportWidth + 1) {
+      issues.push(`Overflow horizontal: ${widthAudit.scrollWidth}px > ${widthAudit.viewportWidth}px`);
+    }
+    if (pageErrors.length > 0) issues.push(`Runtime: ${pageErrors[0]}`);
+    const outputPath = issues.length > 0 ? issuePath : filePath;
+    await page.screenshot({ path: outputPath, fullPage: !likelyMap });
+    return {
+      ...route,
+      name: `${route.name} · ${profile.name}`,
+      profile: profile.name,
+      url,
+      finalUrl: page.url(),
+      status: issues.length > 0 ? "visual_issue" : "captured",
+      error: issues.join(" | ") || undefined,
+      screenshot: path.relative(outDir, outputPath),
+    };
+  } catch (error) {
+    await page.screenshot({ path: issuePath, fullPage: !likelyMap }).catch(() => {});
+    return {
+      ...route,
+      name: `${route.name} · ${profile.name}`,
+      profile: profile.name,
+      url,
+      finalUrl: page.url(),
+      status: "visual_issue",
+      error: error instanceof Error ? error.message : String(error),
+      screenshot: path.relative(outDir, issuePath),
+    };
+  } finally {
+    await page.close().catch(() => {});
+  }
+}
+
 function renderIndex(results, responsiveResults, inventory) {
   const capturedComponents = results.flatMap((result) => result.components);
   const issueResults = [...results, ...responsiveResults].filter((result) => result.status === "visual_issue");
@@ -502,8 +582,13 @@ for (const route of routes) {
   results.push(await captureRoute(browser, route));
 }
 
-console.log("Capturing responsive MapPageDemo mobile menu");
-const responsiveResults = [await captureMobileMenu(browser)];
+const responsiveResults = [];
+for (const profile of RESPONSIVE_PROFILES) {
+  for (const route of routes) {
+    console.log(`Capturing responsive ${profile.name} ${route.name}`);
+    responsiveResults.push(await captureResponsiveRoute(browser, route, profile));
+  }
+}
 
 await browser.close();
 

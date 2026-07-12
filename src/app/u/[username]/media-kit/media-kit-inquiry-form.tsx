@@ -49,7 +49,7 @@ export function MediaKitInquiryForm({
   }
 
   return (
-    <form id="sponsor-inquiry" onSubmit={onSubmit} className="rounded-lg border border-[#d7dce4] bg-white p-4 shadow-[0_24px_80px_-60px_rgba(15,23,42,0.55)] sm:p-5">
+    <form id="sponsor-inquiry" onSubmit={onSubmit} className="min-w-0 w-full rounded-lg border border-[#d7dce4] bg-white p-4 shadow-[0_24px_80px_-60px_rgba(15,23,42,0.55)] sm:p-5">
       <p className="text-xs font-black uppercase tracking-[0.16em] text-[#ff5a3d]">Contacto comercial</p>
       <h2 className="mt-2 text-xl font-black text-[#111827]">Solicitar partnership con {creatorName}</h2>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -99,7 +99,7 @@ function Field({
       <span className="mb-1 block text-xs font-bold uppercase tracking-[0.1em] text-[#5b6472]">{label}</span>
       <input
         {...props}
-        className="h-10 w-full rounded-lg border border-[#d7dce4] bg-[#f8fafc] px-3 text-sm text-[#111827] outline-none focus:border-[#ff5a3d] focus:ring-2 focus:ring-[#ff5a3d]/20"
+        className="h-11 w-full min-w-0 rounded-lg border border-[#d7dce4] bg-[#f8fafc] px-3 text-sm text-[#111827] outline-none focus:border-[#ff5a3d] focus:ring-2 focus:ring-[#ff5a3d]/20 lg:h-10"
       />
     </label>
   );

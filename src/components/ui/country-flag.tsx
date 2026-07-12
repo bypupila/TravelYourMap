@@ -13,7 +13,16 @@ interface CountryFlagProps {
 export function CountryFlag({ code, className, size = 16, title }: CountryFlagProps) {
   const normalized = normalizeCountryCode(code);
   if (!normalized) {
-    return <span aria-hidden="true">{title ? "🌐" : "🌐"}</span>;
+    return (
+      <span
+        aria-hidden={title ? undefined : "true"}
+        title={title}
+        className={cn("inline-grid shrink-0 place-items-center rounded-[2px] border border-current/25 text-[7px] font-semibold", className)}
+        style={{ width: size, height: Math.round(size * 0.75) }}
+      >
+        --
+      </span>
+    );
   }
 
   return (

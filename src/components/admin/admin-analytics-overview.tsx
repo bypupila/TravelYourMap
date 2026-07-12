@@ -51,13 +51,41 @@ function countryCodeToFlag(countryCode?: string | null) {
   return String.fromCodePoint(0x1f1e6 + first, 0x1f1e6 + second);
 }
 
-export function AdminAnalyticsOverview() {
+export function AdminAnalyticsOverview({ qaMode = false }: { qaMode?: boolean }) {
   const [days, setDays] = useState<7 | 30 | 90 | 180>(30);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<OverviewPayload | null>(null);
 
   useEffect(() => {
+    if (qaMode) {
+      setData({
+        window_days: days,
+        product: {
+          registered_viewers: 184,
+          registered_creators: 27,
+          monthly_active_viewers: 126,
+          monthly_active_creators: 19,
+          map_views_30d: 3487,
+          video_opens_30d: 1274,
+          votes_30d: 286,
+          sponsor_clicks_30d: 421,
+          saved_30d: 193,
+          favorites_30d: 147,
+          watch_later_30d: 98,
+          watch_time_hours_30d: 372,
+        },
+        creators: [{ channel_id: "qa-channel", channel_name: "Pupila Nomad", owner_username: "demo", videos_count: 125, subscribed_viewers: 84, map_views_30d: 1732, votes_30d: 119 }],
+        sponsors: [{ sponsor_id: "qa-sponsor", brand_name: "IATI Seguros", videos_count: 18, clicks_30d: 241 }],
+        geography: {
+          top_viewer_countries: [{ country_code: "AR", users: 74 }, { country_code: "MX", users: 51 }],
+          top_event_countries: [{ country_code: "PT", events: 684 }, { country_code: "TH", events: 531 }],
+        },
+      });
+      setError(null);
+      setLoading(false);
+      return;
+    }
     let active = true;
     fetch(`/api/admin/analytics/overview?days=${days}`, { cache: "no-store" })
       .then(async (response) => {
@@ -79,7 +107,7 @@ export function AdminAnalyticsOverview() {
     return () => {
       active = false;
     };
-  }, [days]);
+  }, [days, qaMode]);
 
   return (
     <section className="tm-surface-strong rounded-[2rem] border border-white/10 p-6 shadow-[0_24px_100px_-56px_rgba(0,0,0,0.9)] bg-white/[0.01] backdrop-blur-md transition-all duration-300 hover:border-white/15">

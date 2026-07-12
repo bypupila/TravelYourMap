@@ -663,12 +663,12 @@ export function MapProposalPrototype2({ channel, videoLocations }: MapProposalPr
   const isVideoFocusMode = Boolean(pinnedVideo) && isDesktopVideoCard && !isMapFullscreen;
 
   return (
-    <div className="relative h-screen overflow-hidden bg-[#03060a] text-[#f5f7fb] font-sans antialiased">
+    <div className="map-prototype-responsive relative h-[100dvh] overflow-hidden bg-[#03060a] font-sans text-[#f5f7fb] antialiased lg:h-screen">
       {/* Background glowing effects */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_26%_18%,rgba(255,90,61,0.08),transparent_35%),linear-gradient(180deg,#04090f,#030508_60%,#010204)] pointer-events-none" />
       
       <div className={cn(
-        "relative grid h-screen min-h-0 overflow-hidden grid-cols-1",
+        "relative grid h-[100dvh] min-h-0 grid-cols-1 overflow-hidden lg:h-screen",
         !isMapFullscreen && "lg:grid-cols-[220px_minmax(0,1fr)_270px] xl:grid-cols-[230px_minmax(0,1fr)_280px] 2xl:grid-cols-[240px_minmax(0,1fr)_300px] 3xl:grid-cols-[250px_minmax(0,1fr)_320px]"
       )}>
         

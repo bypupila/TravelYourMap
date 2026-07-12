@@ -24,7 +24,7 @@ export default async function MapProposalPage() {
   const { channel, videoLocations } = await loadLuisitoMapData();
 
   return (
-    <main className="min-h-[100dvh] bg-[#03080d] text-white">
+    <main className="map-prototype-responsive min-h-[100dvh] bg-[#03080d] text-white">
       <MapProposalPrototype channel={channel} videoLocations={videoLocations} />
     </main>
   );

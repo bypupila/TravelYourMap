@@ -72,10 +72,10 @@ export function ExplorePageClient() {
 
       <div className="relative z-10 mx-auto max-w-[1400px] px-4 pb-10 pt-6">
         <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
-          <div>
+          <div className="text-center lg:text-left">
             <p className="tym-overline mb-4">Discovery editorial</p>
-            <h1 className="tym-display max-w-[12ch]">Creadores, países y rutas en una sola capa de exploración.</h1>
-            <p className="mt-4 max-w-[58ch] text-base leading-7 text-muted-foreground">
+            <h1 className="tym-display mx-auto max-w-[12ch] lg:mx-0">Creadores, países y rutas en una sola capa de exploración.</h1>
+            <p className="mx-auto mt-4 max-w-[58ch] text-base leading-7 text-muted-foreground lg:mx-0">
               La navegación mezcla mapa, miniaturas y metadata real para que una marca o un fan pueda detectar patrones de viaje sin caer en un grid genérico.
             </p>
           </div>
@@ -85,7 +85,7 @@ export function ExplorePageClient() {
           </div>
         </motion.div>
 
-        <div className="mb-6 mt-8 flex flex-wrap gap-2">
+        <div className="mb-6 mt-8 flex flex-wrap justify-center gap-2 lg:justify-start">
           {filterChips.map((chip) => (
             <button
               key={chip}

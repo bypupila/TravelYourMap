@@ -58,11 +58,11 @@ function DialogContent({
   return (
     <DialogPortal>
       <DialogOverlay />
-      <div className="fixed inset-0 z-[910] flex items-center justify-center p-4 pointer-events-none">
+      <div className="pointer-events-none fixed inset-0 z-[910] flex items-center justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:p-4">
         <DialogPrimitive.Content
           data-slot="dialog-content"
           className={cn(
-            "pointer-events-auto relative grid w-full max-w-[calc(100%-2rem)] max-h-[calc(100dvh-2rem)] gap-4 overflow-y-auto rounded-[2rem] border border-border bg-popover/95 p-5 text-sm text-popover-foreground shadow-[0_34px_90px_-42px_rgba(0,0,0,0.92)] duration-100 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+            "pointer-events-auto relative grid max-h-[calc(100dvh-max(1.5rem,env(safe-area-inset-top))-max(1.5rem,env(safe-area-inset-bottom)))] w-full min-w-0 max-w-full overscroll-contain gap-4 overflow-y-auto rounded-[1.5rem] border border-border bg-popover/95 p-4 text-sm text-popover-foreground shadow-[0_34px_90px_-42px_rgba(0,0,0,0.92)] duration-100 outline-none sm:max-w-sm sm:rounded-[2rem] sm:p-5 lg:max-h-[calc(100dvh-2rem)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
             className
           )}
           {...props}

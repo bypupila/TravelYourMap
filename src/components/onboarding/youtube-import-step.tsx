@@ -108,7 +108,7 @@ export function YoutubeImportStep({
 
       <label className="block">
         <span className="mb-1 block text-[11px] uppercase tracking-[0.18em] text-[#8f8f8f]">{copy.channelUrlLabel}</span>
-        <div className="flex items-center gap-2">
+        <div className="grid gap-2 sm:flex sm:items-center">
           <input
             value={draft.channelUrl}
             onChange={(event) => onChange({ ...draft, channelUrl: event.target.value })}
@@ -119,13 +119,13 @@ export function YoutubeImportStep({
             type="button"
             onClick={onValidateChannel}
             disabled={channelValidationState === "checking" || !draft.channelUrl.trim()}
-            className="inline-flex h-11 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-[#1c1c1c] px-4 text-[12px] font-medium text-[#f1f1f1] transition-colors hover:bg-[#252525] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-11 w-full shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-[#1c1c1c] px-4 text-[12px] font-medium text-[#f1f1f1] transition-colors hover:bg-[#252525] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             {channelValidationState === "checking" ? copy.validatingChannel : copy.validateChannel}
           </button>
           {showValidationBadge ? (
             <span
-              className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border text-[20px] ${validationBadgeClass}`}
+              className={`inline-flex h-11 w-full shrink-0 items-center justify-center rounded-2xl border text-[20px] sm:w-11 ${validationBadgeClass}`}
               title={channelValidationState === "valid" ? copy.channelValid : copy.channelInvalid}
               aria-label={channelValidationState === "valid" ? copy.channelValid : copy.channelInvalid}
             >

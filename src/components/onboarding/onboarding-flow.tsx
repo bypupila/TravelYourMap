@@ -758,7 +758,7 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
   }
 
   const stepper = (
-    <div className="mx-auto flex w-fit max-w-[620px] gap-1.5 overflow-x-auto rounded-full border border-white/10 bg-[#181818]/95 p-1.5 backdrop-blur">
+    <div className="mx-auto flex w-max min-w-full gap-1.5 rounded-full border border-white/10 bg-[#181818]/95 p-1.5 backdrop-blur md:min-w-0">
       {copy.stepLabels.map((item) => {
         const state = stepStateFor(item.step);
         return (
@@ -766,7 +766,7 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
             key={item.step}
             type="button"
             className={cn(
-              "inline-flex h-9 items-center justify-center rounded-full px-3 text-[12px] font-medium transition-colors whitespace-nowrap",
+              "inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full px-3 text-[12px] font-medium transition-colors lg:h-9",
               state === "active" && "bg-white/[0.08] text-[#f3eee7]",
               state === "done" && "bg-transparent text-[#8b8b8b] hover:text-[#b5b5b5]",
               state === "upcoming" && "bg-transparent text-[#ff4040] hover:text-[#ff6a6a]"
@@ -783,26 +783,45 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
   );
 
   return (
-    <main className="relative min-h-[100dvh] overflow-hidden bg-black text-[#f1f1f1]">
-      <div className="pointer-events-none absolute inset-0 bg-black" />
+    <main className="relative min-h-[100dvh] overflow-x-hidden bg-black text-[#f1f1f1]">
+      <div className="pointer-events-none fixed inset-0 bg-black" />
 
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-40 px-4 py-3">
-        <FloatingTopBar
-          eyebrow={copy.topbarEyebrow}
-          title={copy.topbarTitle}
-          centerContent={stepper}
-          hideSearch
-          actions={
-            <>
+      <header className="pointer-events-none fixed inset-x-0 top-0 z-40 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4">
+        <div className="pointer-events-auto mx-auto rounded-[22px] border border-white/10 bg-[#181818]/96 p-2.5 shadow-[0_18px_50px_-30px_rgba(0,0,0,0.95)] backdrop-blur md:hidden">
+          <div className="flex items-center justify-between gap-3 px-1">
+            <Link href="/" className="min-w-0" aria-label="TravelYourMap">
+              <p className="tym-overline truncate text-[#aaaaaa]">{copy.topbarEyebrow}</p>
+              <p className="truncate text-[14px] font-medium text-[#f3eee7]">{copy.topbarTitle}</p>
+            </Link>
+            <Link href={demoMapPath} className="tym-btn-primary min-h-9 shrink-0 px-3 py-2 text-[11px]">
+              {copy.demoMapLabel}
+            </Link>
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-3 rounded-[14px] bg-white/[0.05] px-3 py-2" aria-live="polite">
+            <span className="truncate text-[12px] font-medium text-[#f3eee7]">{copy.stepLabels[step]?.label}</span>
+            <span className="shrink-0 text-[11px] tabular-nums text-[#aaaaaa]">
+              {copy.footerStep} {step + 1} {copy.footerOf} {copy.stepLabels.length}
+            </span>
+          </div>
+        </div>
+        <div className="hidden md:block">
+          <FloatingTopBar
+            eyebrow={copy.topbarEyebrow}
+            title={copy.topbarTitle}
+            centerContent={
+              <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{stepper}</div>
+            }
+            hideSearch
+            actions={
               <Link href={demoMapPath} className="tym-btn-primary">
                 {copy.demoMapLabel}
               </Link>
-            </>
-          }
-        />
+            }
+          />
+        </div>
       </header>
 
-      <section className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-4 pb-24 pt-32">
+      <section className="pointer-events-none relative z-20 flex min-h-[100dvh] items-start justify-center px-3 pb-[calc(6.75rem+env(safe-area-inset-bottom))] pt-[8.25rem] sm:px-4 md:items-center md:pb-28 md:pt-32">
         <div className="w-full max-w-[1040px]">
           <AnimatePresence mode="wait">
             <motion.div
@@ -811,17 +830,17 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -18 }}
               transition={{ duration: 0.35 }}
-              className="pointer-events-auto rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(25,28,31,0.96),rgba(18,21,23,0.92))] shadow-[0_36px_100px_-52px_rgba(0,0,0,0.92)] backdrop-blur"
+              className="pointer-events-auto rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(25,28,31,0.96),rgba(18,21,23,0.92))] shadow-[0_36px_100px_-52px_rgba(0,0,0,0.92)] backdrop-blur sm:rounded-[28px]"
             >
-              <div className="border-b border-white/10 px-6 py-5 text-center sm:px-8">
+              <div className="border-b border-white/10 px-4 py-5 text-left sm:px-8 sm:text-center">
                 <p className="tym-overline text-[#aaaaaa]">{currentMeta.eyebrow}</p>
-                <h1 className="mx-auto mt-2 max-w-3xl text-[30px] leading-[34px] font-bold tracking-tight text-[#f1f1f1] sm:text-[38px] sm:leading-[42px]">
+                <h1 className="mx-auto mt-2 max-w-3xl text-balance text-[26px] leading-[30px] font-bold tracking-tight text-[#f1f1f1] sm:text-[38px] sm:leading-[42px]">
                   {currentMeta.title}
                 </h1>
                 <p className="onboarding-description mx-auto mt-3 max-w-2xl text-[14px] leading-6">{currentMeta.description}</p>
               </div>
 
-              <div className="px-6 py-6 sm:px-8 sm:py-8">
+              <div className="px-4 py-5 sm:px-8 sm:py-8">
                 {renderStepBody(step, {
                   isDemoMode,
                   analytics,
@@ -852,12 +871,12 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
         </div>
       </section>
 
-      <div className="pointer-events-none absolute inset-x-0 bottom-4 z-40 px-4">
-        <div className="mx-auto flex max-w-[1040px] items-center justify-between rounded-full border border-white/10 bg-[#181818]/96 px-4 py-3 pointer-events-auto backdrop-blur">
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 md:bottom-4 md:pb-0">
+        <div className="pointer-events-auto mx-auto grid max-w-[1040px] grid-cols-2 items-center gap-2 rounded-[22px] border border-white/10 bg-[#181818]/96 p-2.5 shadow-[0_-18px_60px_-30px_rgba(0,0,0,0.95)] backdrop-blur sm:flex sm:justify-between sm:rounded-full sm:px-4 sm:py-3">
           <Button
             type="button"
             variant="secondary"
-            className="disabled:pointer-events-auto"
+            className="w-full disabled:pointer-events-auto sm:w-auto"
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -873,7 +892,7 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
           <Button
             type="button"
             onClick={handleNext}
-            className="disabled:pointer-events-auto"
+            className="w-full disabled:pointer-events-auto sm:w-auto"
             disabled={activationState !== "idle" || (step === 1 && channelValidationState === "checking")}
           >
             {activationState === "registering"
@@ -920,11 +939,11 @@ function renderStepBody(
     ] as const;
 
     return (
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {featureCards.map((feature) => {
           const Icon = feature.icon;
           return (
-            <div key={feature.title} className="flex flex-col items-center rounded-[28px] border border-white/10 bg-[#212121] p-6 text-center">
+            <div key={feature.title} className="flex flex-col items-start rounded-[22px] border border-white/10 bg-[#212121] p-5 text-left sm:items-center sm:rounded-[28px] sm:p-6 sm:text-center">
               <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[rgba(255, 90, 61,0.14)] text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
                 <Icon size={30} weight="regular" />
               </div>
@@ -971,7 +990,7 @@ function renderStepBody(
             <p className="mt-2 text-[22px] leading-8 font-semibold text-[#f1f1f1]">{ctx.copy.importStatusTitle}</p>
             <p className="onboarding-description mt-3 text-[14px] leading-6">{ctx.copy.importStatusBody}</p>
           </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <StudioMetric label={ctx.copy.importMetricCountries} value={countries} />
             <StudioMetric label={ctx.copy.importMetricMapped} value={mapped} />
             <StudioMetric label={ctx.copy.importMetricViews} value={views} />
@@ -1013,7 +1032,7 @@ function renderStepBody(
 
   if (step === 4) {
     return (
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {sponsorCards.map((sponsor) => (
           <div key={sponsor.brand} className="flex h-full flex-col items-center rounded-[28px] border border-white/10 bg-[#212121] p-5 text-center">
             <div className="mb-4 aspect-video overflow-hidden rounded-2xl border border-white/10 bg-[#111111]">
@@ -1062,7 +1081,7 @@ function renderStepBody(
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {visiblePlans.map((plan) => {
           const active = ctx.selectedPlan === plan.slug;
           const localizedPlan = localizedPlanDetails[ctx.locale][plan.slug];

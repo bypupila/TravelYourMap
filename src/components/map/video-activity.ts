@@ -184,6 +184,34 @@ function writePlaybackProgressById(value: Record<string, VideoPlaybackProgress>)
   }
 }
 
+function getProgressUpdatedMs(progress?: VideoPlaybackProgress | null) {
+  const ms = Date.parse(progress?.updatedAt || "");
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+function getLatestPlaybackProgress(
+  current: VideoPlaybackProgress | undefined,
+  incoming: VideoPlaybackProgress
+) {
+  if (!current) return incoming;
+
+  const currentMs = getProgressUpdatedMs(current);
+  const incomingMs = getProgressUpdatedMs(incoming);
+  if (incomingMs > currentMs) return incoming;
+  if (currentMs > incomingMs) return current;
+
+  return current;
+}
+
+function shouldUseBeaconForActivitySync() {
+  return (
+    typeof document !== "undefined" &&
+    document.visibilityState === "hidden" &&
+    typeof navigator !== "undefined" &&
+    typeof navigator.sendBeacon === "function"
+  );
+}
+
 function syncViewerVideoActivity(
   channelId: string | null,
   changes: Array<{
@@ -200,10 +228,17 @@ function syncViewerVideoActivity(
   }>
 ) {
   if (!channelId || changes.length === 0) return;
+  const body = JSON.stringify({ channelId, changes });
+
+  if (shouldUseBeaconForActivitySync()) {
+    const payload = new Blob([body], { type: "application/json" });
+    if (navigator.sendBeacon("/api/viewer/video-activity", payload)) return;
+  }
+
   void fetch("/api/viewer/video-activity", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ channelId, changes }),
+    body,
     keepalive: true,
   }).catch(() => undefined);
 }
@@ -307,7 +342,10 @@ export function useLocalVideoActivity(options: UseVideoActivityOptions = {}): Vi
           return next;
         });
         setPlaybackProgressById((current) => {
-          const next = { ...serverPlaybackProgress, ...current };
+          const next = { ...current };
+          for (const [videoId, progress] of Object.entries(serverPlaybackProgress)) {
+            next[videoId] = getLatestPlaybackProgress(current[videoId], progress);
+          }
           playbackProgressByIdRef.current = next;
           writePlaybackProgressById(next);
           return next;

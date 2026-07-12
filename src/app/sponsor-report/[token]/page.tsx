@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ContactStrip } from "@/components/site/contact-strip";
 import { loadSponsorReportByToken, type SponsorReportVideoMetric } from "@/lib/sponsor-reports";
 import { SponsorReportActions } from "./sponsor-report-actions";
+import { buildResponsiveQaSponsorReport } from "@/lib/responsive-qa-fixtures";
 
 export const dynamic = "force-dynamic";
 
@@ -24,13 +25,17 @@ interface SponsorReportPageProps {
 
 export default async function SponsorReportPage({ params }: SponsorReportPageProps) {
   const { token } = await params;
-  const report = await loadSponsorReportByToken(String(token || "").trim());
+  const cleanToken = String(token || "").trim();
+  const report =
+    process.env.NODE_ENV !== "production" && cleanToken === "responsive-qa"
+      ? buildResponsiveQaSponsorReport()
+      : await loadSponsorReportByToken(cleanToken);
   if (!report) notFound();
 
   const maxDaily = Math.max(1, ...report.travel_map.daily.map((entry) => entry.impressions + entry.clicks));
 
   return (
-    <main className="min-h-[100dvh] bg-[#f5f1e8] text-[#16120d]">
+    <main className="sponsor-report-responsive min-h-[100dvh] overflow-x-hidden bg-[#f5f1e8] text-[#16120d]">
       <PrintStyles />
       <section className="report-shell mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8">
         <div className="no-print flex items-center justify-between gap-3 rounded-lg border border-[#d7cbbb] bg-white/55 p-3">
@@ -254,7 +259,7 @@ function MetricCard({ label, value, detail }: { label: string; value: string; de
 
 function Panel({ title, eyebrow, children }: { title: string; eyebrow: string; children: ReactNode }) {
   return (
-    <section className="report-panel rounded-lg border border-[#d7cbbb] bg-white/70 p-4 sm:p-5">
+    <section className="report-panel min-w-0 w-full rounded-lg border border-[#d7cbbb] bg-white/70 p-4 sm:p-5">
       <p className="text-xs font-black uppercase tracking-[0.14em] text-[#8b6b4a]">{eyebrow}</p>
       <h2 className="mt-1 text-lg font-black text-[#16120d]">{title}</h2>
       <div className="mt-4">{children}</div>

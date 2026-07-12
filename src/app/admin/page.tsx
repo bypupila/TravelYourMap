@@ -11,6 +11,7 @@ import { OpsAlertsPanel } from "@/components/admin/ops-alerts-panel";
 import { getRecentRoleChanges } from "@/lib/admin-role-audit";
 import { getSessionUserById, getValidSessionUserIdFromServerCookies, userIsSuperAdmin } from "@/lib/current-user";
 import { loadAdminUsersPageData } from "@/lib/admin-users";
+import { buildResponsiveQaAdminData, isResponsiveQaFixture } from "@/lib/responsive-qa-fixtures";
 
 export const dynamic = "force-dynamic";
 export const metadata = {
@@ -25,11 +26,15 @@ interface AdminPageProps {
   searchParams: Promise<{
     q?: string;
     page?: string;
+    qa?: string;
   }>;
 }
 
 export default async function AdminPage({ searchParams }: AdminPageProps) {
   const resolvedSearchParams = await searchParams;
+  if (isResponsiveQaFixture(resolvedSearchParams.qa)) {
+    return <AdminResponsiveQaPage />;
+  }
   const sessionUserId = (await getValidSessionUserIdFromServerCookies()) || "";
   if (!sessionUserId) redirect("/auth");
 
@@ -43,7 +48,7 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   const recentRoleChanges = await getRecentRoleChanges(12);
 
   return (
-    <main className="relative min-h-[100dvh] overflow-hidden text-foreground">
+    <main className="admin-responsive relative min-h-[100dvh] overflow-hidden text-foreground">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(225, 84, 58,0.2),transparent_34%),linear-gradient(180deg,rgba(11,13,15,0.98),rgba(17,20,22,0.96))]" />
       <div className="relative mx-auto max-w-[1440px] px-4 py-6 lg:px-6 lg:py-8">
         <header className="tm-surface-strong flex flex-wrap items-center justify-between gap-4 rounded-[2rem] border border-white/10 px-5 py-4 shadow-[0_30px_120px_-60px_rgba(0,0,0,0.92)]">
@@ -115,6 +120,55 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
                 </p>
               </div>
             </section>
+          </div>
+        </section>
+      </div>
+    </main>
+  );
+}
+
+function AdminResponsiveQaPage() {
+  const fixture = buildResponsiveQaAdminData();
+  return (
+    <main className="admin-responsive relative min-h-[100dvh] overflow-hidden text-foreground">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(225,84,58,0.2),transparent_34%),linear-gradient(180deg,rgba(11,13,15,0.98),rgba(17,20,22,0.96))]" />
+      <div className="relative mx-auto max-w-[1440px] px-4 py-6 lg:px-6 lg:py-8">
+        <header className="tm-surface-strong flex flex-col items-center gap-4 rounded-[2rem] border border-white/10 px-5 py-4 text-center shadow-[0_30px_120px_-60px_rgba(0,0,0,0.92)] md:flex-row md:justify-between md:text-left">
+          <div>
+            <p className="tym-overline text-[#8ff0ff]">Fixture QA local</p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#f5f7fb]">Administración global</h1>
+            <p className="mt-1 text-sm text-[#aab2bc]">Estado determinista sin permisos ni escrituras de producción.</p>
+          </div>
+          <Badge variant="outline" className="border-[#8ff0ff]/20 bg-[#8ff0ff]/10 text-[#b9f7ff]">
+            <ShieldCheck className="h-3 w-3" />
+            <span>Superadmin QA</span>
+          </Badge>
+        </header>
+
+        <section className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <SummaryCard label="Usuarios" value={fixture.users.length} />
+          <SummaryCard label="Creators" value={fixture.users.filter((user) => user.role === "creator").length} />
+          <SummaryCard label="Viewers" value={fixture.users.filter((user) => user.role === "viewer").length} />
+          <SummaryCard label="Superadmins" value={fixture.users.filter((user) => user.role === "superadmin").length} />
+        </section>
+
+        <section className="mt-6">
+          <AdminAnalyticsOverview qaMode />
+        </section>
+        <section className="mt-6">
+          <ReleaseReadinessPanel qaMode />
+        </section>
+        <section className="mt-6">
+          <OpsAlertsPanel qaMode />
+        </section>
+
+        <section className="mt-6 grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(380px,0.85fr)]">
+          <div className="min-w-0">
+            <AdminUsersPanel users={fixture.users} query="" page={1} totalPages={1} totalCount={fixture.users.length} />
+          </div>
+          <div className="min-w-0 space-y-6">
+            <RoleManagementCard />
+            <RoleAuditPanel items={fixture.audit} />
           </div>
         </section>
       </div>

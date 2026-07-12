@@ -8,6 +8,7 @@ import {
   MapPin,
   Play,
   RocketLaunch,
+  SignIn,
   Users,
   UsersThree,
   Video,
@@ -123,30 +124,49 @@ export async function CinematicLanding() {
 
 function CreatorNav() {
   return (
-    <header className="sticky top-3 z-30 rounded-full border border-white/10 bg-[#080b0e]/80 px-3 py-3 shadow-[0_18px_80px_-44px_rgba(0,0,0,0.9)] backdrop-blur-2xl">
-      <nav className="flex items-center justify-between gap-4">
-        <Link href="/" className="flex min-w-0 items-center gap-3" aria-label="Travel Your Map home">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[#ff473b]/40 bg-[#151719] text-[#ff4f42] shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
-            <GlobeHemisphereWest size={22} weight="fill" />
-          </span>
-          <span className="leading-none">
-            <span className="block text-[9px] font-bold uppercase tracking-[0.24em] text-white/60">BY PUPILA</span>
-            <span className="block text-[13px] font-extrabold uppercase tracking-[0.08em] text-white">Travel Your Map</span>
-          </span>
-        </Link>
-        <div className="hidden items-center gap-8 text-[13px] font-medium text-white/72 lg:flex">
-          <a href="#features" className="transition hover:text-white">Funciones</a>
-          <a href="#pricing" className="transition hover:text-white">Precios</a>
-          <a href="#examples" className="transition hover:text-white">Ejemplos</a>
-          <a href="#faq" className="transition hover:text-white">Recursos</a>
-          <Link href="/explore" className="transition hover:text-white">Explorar</Link>
-        </div>
-        <div className="flex items-center gap-2 text-[13px] font-semibold">
-          <span className="hidden rounded-full border border-[#ff473b]/65 px-3 py-2 text-white/85 md:inline-flex">ES</span>
-          <Link href="/auth" className="hidden rounded-full px-4 py-2 text-white/75 transition hover:text-white md:inline-flex">Iniciar sesión</Link>
-          <Link href="/onboarding?lang=es" className="rounded-full bg-[#ff473b] px-5 py-3 text-white shadow-[0_18px_38px_-22px_rgba(255,71,59,0.85)] transition hover:-translate-y-0.5 hover:bg-[#ff594e] active:translate-y-0 active:scale-[0.98]">
-            Crear mi mapa
+    <header className="sticky top-3 z-30 rounded-[26px] border border-white/10 bg-[#080b0e]/88 p-2 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:rounded-full sm:p-2.5">
+      <nav>
+        <div className="flex items-center justify-between gap-2 sm:gap-3">
+          <Link href="/" className="group flex min-w-0 items-center gap-2 px-1 sm:gap-3 sm:px-0" aria-label="Travel Your Map home">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#ff6258]/35 bg-[radial-gradient(circle_at_35%_25%,#2a2424,#111417_70%)] text-[#ff5147] shadow-[0_10px_28px_-14px_rgba(255,71,59,0.8),inset_0_1px_0_rgba(255,255,255,0.12)] transition-transform duration-300 group-hover:rotate-[-8deg] group-hover:scale-105 sm:h-10 sm:w-10">
+              <GlobeHemisphereWest size={20} weight="fill" className="sm:h-[22px] sm:w-[22px]" />
+            </span>
+            <span className="leading-none">
+              <span className="mb-[5px] block whitespace-nowrap text-[11px] font-extrabold uppercase tracking-[0.08em] text-white sm:text-[13px]">Travel Your Map</span>
+              <span className="block text-[8px] font-bold uppercase tracking-[0.26em] text-white/48 sm:text-[9px]">BY PUPILA</span>
+            </span>
           </Link>
+          <div role="group" aria-label="Seleccionar idioma" className="inline-flex shrink-0 items-center rounded-[13px] border border-white/10 bg-[#090c0f]/55 p-1 text-[10px] font-extrabold tracking-[0.08em] sm:hidden">
+            <Link href="/onboarding?lang=en" className="rounded-[9px] px-2.5 py-1.5 text-white/48 transition duration-200 hover:text-white" aria-label="Cambiar a inglés">EN</Link>
+            <Link href="/onboarding?lang=es" className="rounded-[9px] bg-[#ff5147] px-2.5 py-1.5 text-white shadow-[0_6px_16px_-8px_rgba(255,71,59,0.9)] transition active:scale-95" aria-current="page" aria-label="Español seleccionado">ES</Link>
+          </div>
+          <div className="hidden items-center gap-7 text-[13px] font-medium text-white/68 xl:flex">
+            <a href="#features" className="transition hover:text-white">Funciones</a>
+            <a href="#pricing" className="transition hover:text-white">Precios</a>
+            <a href="#examples" className="transition hover:text-white">Ejemplos</a>
+            <a href="#faq" className="transition hover:text-white">Recursos</a>
+            <Link href="/explore" className="transition hover:text-white">Explorar</Link>
+          </div>
+          <div className="hidden items-center gap-1.5 text-[13px] font-semibold sm:flex sm:gap-2">
+            <div role="group" aria-label="Seleccionar idioma" className="hidden items-center rounded-full border border-white/10 bg-white/[0.045] p-1 text-[10px] font-extrabold tracking-[0.08em] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:inline-flex">
+              <Link href="/onboarding?lang=en" className="rounded-full px-2.5 py-1.5 text-white/48 transition duration-200 hover:bg-white/[0.06] hover:text-white" aria-label="Cambiar a inglés">EN</Link>
+              <Link href="/onboarding?lang=es" className="rounded-full bg-[#ff5147] px-2.5 py-1.5 text-white shadow-[0_6px_16px_-8px_rgba(255,71,59,0.9)] transition active:scale-95" aria-current="page" aria-label="Español seleccionado">ES</Link>
+            </div>
+            <Link href="/auth" className="hidden min-h-10 items-center gap-2 rounded-full px-3.5 py-2 text-white/68 transition duration-200 hover:bg-white/[0.055] hover:text-white sm:inline-flex">
+              <SignIn size={15} weight="bold" aria-hidden="true" />
+              Iniciar sesión
+            </Link>
+            <Link href="/onboarding?lang=es" className="inline-flex min-h-10 items-center whitespace-nowrap rounded-full bg-[#ff5147] px-3.5 py-2 text-[11px] leading-5 text-white shadow-[0_14px_30px_-18px_rgba(255,71,59,0.95),inset_0_1px_0_rgba(255,255,255,0.18)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#ff5d54] active:translate-y-0 active:scale-[0.97] sm:px-4 sm:text-[12px] lg:px-5 lg:text-[13px]">
+              Crear mi mapa
+            </Link>
+          </div>
+        </div>
+        <div className="mt-2 grid grid-cols-2 items-center gap-2 rounded-[18px] border border-white/[0.06] bg-white/[0.035] p-1.5 sm:hidden">
+          <Link href="/auth" className="inline-flex min-h-9 items-center gap-2 rounded-[13px] px-2.5 py-1.5 text-[12px] font-semibold text-white/72 transition duration-200 hover:bg-white/[0.06] hover:text-white active:scale-[0.98]">
+            <SignIn size={16} weight="bold" aria-hidden="true" />
+            Iniciar sesión
+          </Link>
+          <Link href="/onboarding?lang=es" className="inline-flex min-h-9 items-center justify-center rounded-[13px] bg-[#ff5147] px-2.5 py-1.5 text-[12px] font-bold text-white shadow-[0_10px_22px_-14px_rgba(255,71,59,0.95),inset_0_1px_0_rgba(255,255,255,0.18)] transition duration-200 hover:bg-[#ff5d54] active:scale-[0.98]">Crear mi mapa</Link>
         </div>
       </nav>
     </header>
@@ -159,17 +179,17 @@ function HeroSection({
   videoLocations: TravelVideoLocation[];
 }) {
   return (
-    <section className="relative mt-[30px] grid min-h-[720px] items-start gap-10 pb-6 pt-20 lg:min-h-[680px] lg:grid-cols-[0.92fr_1.08fr] lg:pt-4">
-      <div className="relative z-10 max-w-[620px]">
+    <section className="relative mt-8 grid min-h-0 items-start gap-8 pb-10 pt-20 sm:mt-[30px] sm:gap-10 sm:pb-14 sm:pt-16 lg:min-h-[680px] lg:grid-cols-[0.92fr_1.08fr] lg:pb-6 lg:pt-4">
+      <div className="relative z-10 mx-auto max-w-[620px] text-center lg:mx-0 lg:text-left">
         <p className="mb-5 text-[12px] font-extrabold uppercase tracking-[0.2em] text-[#ff473b]">El media kit interactivo para creadores de viajes</p>
-        <h1 className="max-w-[11ch] text-[46px] font-extrabold leading-[0.98] tracking-[-0.055em] text-white sm:text-[68px] lg:text-[76px]">
+        <h1 className="mx-auto max-w-[11ch] text-[46px] font-extrabold leading-[0.98] tracking-[-0.055em] text-white sm:text-[68px] lg:mx-0 lg:text-[76px]">
           Convierte tu canal en un mapa que <span className="text-[#ff473b]">abre puertas.</span>
         </h1>
-        <p className="mt-7 max-w-[48ch] text-[16px] leading-8 text-white/66">
+        <p className="mx-auto mt-7 max-w-[48ch] text-[16px] leading-8 text-white/66 lg:mx-0">
           Importa tu canal de YouTube, detectamos destinos y crea tu página web interactiva lista para marcas y sponsors.
         </p>
         <div className="mt-10 flex flex-col gap-4">
-          <div className="flex items-center -space-x-3.5">
+          <div className="flex items-center justify-center -space-x-3.5 lg:justify-start">
             {CREATOR_AVATARS.map((creator, index) => (
               <div
                 key={creator.alt}
@@ -180,7 +200,7 @@ function HeroSection({
               </div>
             ))}
           </div>
-          <div className="max-w-[310px]">
+          <div className="mx-auto max-w-[310px] lg:mx-0">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#ff473b]/35 bg-[#ff473b]/12 px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.1em] text-[#ff6a60]">
               <RocketLaunch size={14} weight="fill" />
               Creator Mode
@@ -192,9 +212,9 @@ function HeroSection({
         </div>
       </div>
 
-      <div className="relative min-h-[560px] lg:min-h-[760px]">
+      <div className="relative min-h-[600px] sm:min-h-[720px] lg:min-h-[760px]">
         <CreatorGlobe videoLocations={videoLocations} />
-        <div className="absolute right-0 top-10 z-20 flex w-full max-w-[430px] flex-col gap-4 sm:right-4 lg:right-0">
+        <div className="absolute right-0 top-8 z-20 flex w-full max-w-[430px] flex-col gap-4 sm:right-4 sm:top-10 lg:right-0">
           <div className="grid w-full max-w-[410px] grid-cols-2 gap-4 self-end lg:w-[410px]">
             {creatorStats.map((stat) => <MetricCard key={stat.label} {...stat} />)}
           </div>
@@ -223,7 +243,7 @@ function CreatorGlobe({ videoLocations }: { videoLocations: TravelVideoLocation[
 
 function MetricCard({ value, label, icon: Icon }: { value: string; label: string; icon: typeof YoutubeLogo }) {
   return (
-    <div className="rounded-[22px] border border-white/12 bg-[#101419]/82 p-7 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_28px_70px_-44px_rgba(0,0,0,0.95)] backdrop-blur-xl">
+    <div className="rounded-[22px] border border-white/12 bg-[#101419]/82 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_28px_70px_-44px_rgba(0,0,0,0.95)] backdrop-blur-xl sm:p-7">
       <Icon size={29} weight="fill" className="text-[#ff473b]" />
       <p className="mt-5 font-mono text-[34px] font-bold leading-none tracking-[-0.05em] text-[#ff473b]">{value}</p>
       <p className="mt-2 text-[13px] text-white/55">{label}</p>
@@ -234,7 +254,7 @@ function MetricCard({ value, label, icon: Icon }: { value: string; label: string
 function DestinationCard() {
   return (
     <div className="w-full rounded-[24px] border border-white/13 bg-[#101419]/90 p-4 shadow-[0_32px_90px_-44px_rgba(0,0,0,0.95)] backdrop-blur-xl">
-      <div className="relative h-[170px] overflow-hidden rounded-[16px]">
+      <div className="relative h-[150px] overflow-hidden rounded-[16px] sm:h-[170px]">
         <Image
           src={DESTINATION_PREVIEW_IMAGE}
           alt="Vista previa creada de TravelYourMap"
@@ -279,7 +299,7 @@ function BrandStrip() {
             const Icon = keyFeatureIcons[index] ?? GlobeHemisphereWest;
 
             return (
-              <div key={feature} className="grid min-h-20 w-full place-items-center rounded-[16px] border border-white/9 bg-white/[0.035] px-4 py-4 text-center text-[14px] font-extrabold leading-5 tracking-[-0.03em] text-white/78 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
+              <div key={feature} className="grid min-h-20 w-full place-items-center rounded-[16px] border border-white/9 bg-white/[0.035] px-4 py-4 text-center text-[14px] font-extrabold leading-5 tracking-[-0.03em] text-white/78 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] last:col-span-2 last:w-1/2 last:justify-self-center md:last:col-span-1 md:last:w-full">
                 <Icon size={28} weight="fill" className="mb-3 text-[#ff473b]" />
                 {feature}
               </div>
@@ -318,7 +338,7 @@ function FeatureGrid() {
   return (
     <section id="features" className="py-16">
       <div className="mx-auto max-w-[760px] text-center">
-        <h2 className="text-[34px] font-extrabold leading-[1.03] tracking-[-0.05em] text-white sm:text-[44px]">Todo lo que necesitas para<br /><span className="text-[#ff473b]">crecer</span> como creador de viajes</h2>
+        <h2 className="text-[34px] font-extrabold leading-[1.03] tracking-[-0.05em] text-white sm:text-[44px]">Todo lo que necesitas para<br className="hidden sm:block" /><span className="text-[#ff473b]"> crecer</span> como creador de viajes</h2>
         <p className="mt-3 text-[14px] text-white/55">Una plataforma, todas las herramientas para mostrar tu mundo.</p>
       </div>
       <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -363,7 +383,7 @@ function SponsorComparison() {
 
 function ComparisonPanel({ title, items, bad = false }: { title: string; items: string[]; bad?: boolean }) {
   return (
-    <div className="p-8">
+    <div className="p-6 sm:p-8">
       <h3 className={`text-[15px] font-extrabold ${bad ? "text-white" : "text-[#ff473b]"}`}>{title}</h3>
       <div className="mt-6 grid gap-3">
         {items.map((item) => (
@@ -384,7 +404,7 @@ function FaqSection() {
       <div className="grid gap-3 md:grid-cols-2">
         {faqs.map((question) => (
           <details key={question} className="group rounded-[10px] border border-white/10 bg-white/[0.03] px-5 py-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[13px] font-bold text-white/78">{question}<span className="text-xl leading-none text-white/62 group-open:rotate-45">+</span></summary>
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 text-[13px] font-bold text-white/78">{question}<span aria-hidden="true" className="text-xl leading-none text-white/62 transition-transform group-open:rotate-45">+</span></summary>
             <p className="mt-3 text-[13px] leading-6 text-white/58">Sí. La plataforma se configura sobre tu contenido existente, mantiene YouTube como fuente oficial y ordena tu valor por destino.</p>
           </details>
         ))}
@@ -398,7 +418,7 @@ function FinalCta() {
     <section className="relative mt-8 min-h-[360px] overflow-hidden border-t border-white/8 bg-[linear-gradient(90deg,rgba(7,10,13,0.34),rgba(7,10,13,0.96)_52%),linear-gradient(145deg,#4a3424,#101820_45%,#070a0d)]">
       <div className="absolute left-[8%] top-[18%] h-[220px] w-[340px] rounded-[48%] bg-[radial-gradient(circle,#f3b46f,transparent_68%)] opacity-18 blur-3xl" />
       <div className="mx-auto grid max-w-[1500px] gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1fr_1fr] lg:px-14">
-        <div className="relative min-h-[260px] overflow-hidden rounded-[40px] border border-white/10 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.8)] lg:min-h-[320px]">
+        <div className="relative min-h-[260px] overflow-hidden rounded-[24px] border border-white/10 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.8)] lg:min-h-[320px] lg:rounded-[40px]">
           <Image
             src={FINAL_CTA_IMAGE}
             alt="Influencer de viaje grabando en una montaña"
@@ -411,9 +431,9 @@ function FinalCta() {
         <div className="max-w-[620px] self-center">
           <h2 className="text-[34px] font-extrabold leading-[1.04] tracking-[-0.05em] text-white sm:text-[46px]">Tu contenido ya existe.<br />Ahora necesita <span className="text-[#ff473b]">verse profesional.</span></h2>
           <p className="mt-5 text-[15px] leading-7 text-white/65">Transforma tu canal en un media kit interactivo listo para sponsors, marcas y partnerships.</p>
-          <div className="mt-8 flex flex-wrap gap-4">
-            <Link href="/onboarding?lang=es" className="rounded-[9px] bg-[#ff473b] px-10 py-4 text-[14px] font-extrabold text-white shadow-[0_20px_46px_-24px_rgba(255,71,59,0.85)]">Crear mi mapa gratis</Link>
-            <Link href={DEMO_MAP_HREF} className="inline-flex items-center gap-4 rounded-[9px] border border-white/20 px-10 py-4 text-[14px] font-extrabold text-white">Ver demo en vivo <Play size={15} weight="fill" /></Link>
+          <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
+            <Link href="/onboarding?lang=es" className="inline-flex min-h-11 items-center justify-center rounded-[9px] bg-[#ff473b] px-6 py-3 text-center text-[14px] font-extrabold text-white shadow-[0_20px_46px_-24px_rgba(255,71,59,0.85)] sm:px-10 sm:py-4">Crear mi mapa gratis</Link>
+            <Link href={DEMO_MAP_HREF} className="inline-flex min-h-11 items-center justify-center gap-4 rounded-[9px] border border-white/20 px-6 py-3 text-[14px] font-extrabold text-white sm:px-10 sm:py-4">Ver demo en vivo <Play size={15} weight="fill" /></Link>
           </div>
           <div className="mt-5 flex flex-wrap gap-6 text-[12px] text-white/52"><span>Requiere tarjeta de crédito</span><span>Configuración en minutos</span></div>
         </div>
