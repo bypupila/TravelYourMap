@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { ExplorePageClient } from "@/components/explore/explore-page-client";
+import { LOCALE_COOKIE_NAME, normalizeLocale, type Locale } from "@/lib/i18n";
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -16,6 +18,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function ExplorePage() {
-  return <ExplorePageClient />;
+export default async function ExplorePage({ searchParams }: { searchParams: Promise<{ lang?: string }> }) {
+  const locale: Locale = normalizeLocale((await searchParams).lang || (await cookies()).get(LOCALE_COOKIE_NAME)?.value);
+  return <ExplorePageClient locale={locale} />;
 }

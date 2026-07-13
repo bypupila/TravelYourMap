@@ -6,14 +6,20 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { readViewerAuthAttributionFromLocation } from "@/lib/viewer-auth-attribution";
+import { buildLocalizedHref, normalizeLocale, type Locale } from "@/lib/i18n";
+
+const viewerRegisterCopy = {
+  es: { eyebrow: "Cuenta Viewer", title: "Registro gratuito", description: "Regístrate para votar, guardar favoritos y participar en mapas. Solicitamos permisos de lectura y no publicamos ni editamos tu canal de YouTube.", name: "Nombre", namePlaceholder: "Tu nombre", email: "Email", emailPlaceholder: "tu@email.com", password: "Contraseña", passwordPlaceholder: "Mínimo 8 caracteres", country: "País (ISO-2)", city: "Ciudad", channelCheck: "Tengo canal de YouTube de viajes.", channelUrl: "URL del canal", acceptTerms: "Acepto términos y política de privacidad para operar mi cuenta (obligatorio).", platformPromotions: "Acepto promociones y novedades de Travel Your Map.", creatorPromotions: "Acepto promociones de creadores dentro de la plataforma.", creating: "Creando cuenta...", create: "Crear cuenta viewer", existing: "¿Ya tienes cuenta?", signIn: "Inicia sesión", channelPlaceholder: "https://youtube.com/@tu-canal" },
+  en: { eyebrow: "Viewer account", title: "Free registration", description: "Register to vote, save favorites and participate in maps. We request read-only permissions and never publish or edit your YouTube channel.", name: "Name", namePlaceholder: "Your name", email: "Email", emailPlaceholder: "you@email.com", password: "Password", passwordPlaceholder: "At least 8 characters", country: "Country (ISO-2)", city: "City", channelCheck: "I have a travel YouTube channel.", channelUrl: "Channel URL", acceptTerms: "I accept the terms and privacy policy required to operate my account.", platformPromotions: "I accept Travel Your Map promotions and updates.", creatorPromotions: "I accept promotions from creators on the platform.", creating: "Creating account...", create: "Create viewer account", existing: "Already have an account?", signIn: "Sign in", channelPlaceholder: "https://youtube.com/@your-channel" },
+} satisfies Record<Locale, Record<string, string>>;
 
 function ViewerRegisterFallback() {
   return (
     <main className="relative grid min-h-[100dvh] place-items-center overflow-hidden px-4 text-foreground">
       <div className="platform-grid-glow pointer-events-none absolute inset-0" />
       <section className="tm-surface-strong relative z-10 w-full max-w-[32rem] rounded-[2rem] p-6 text-center">
-        <p className="tym-overline">Cuenta Viewer</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.05em]">Cargando registro...</h1>
+        <p className="tym-overline">Viewer account</p>
+        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.05em]">Loading registration...</h1>
       </section>
     </main>
   );
@@ -22,6 +28,8 @@ function ViewerRegisterFallback() {
 function ViewerRegisterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const locale = normalizeLocale(searchParams.get("lang"));
+  const copy = viewerRegisterCopy[locale];
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,7 +82,7 @@ function ViewerRegisterContent() {
       });
       const payload = (await response.json().catch(() => null)) as { error?: string } | null;
       if (!response.ok) throw new Error(payload?.error || "No se pudo crear la cuenta viewer.");
-      router.push(submitAttribution.safeNext || "/");
+      router.push(buildLocalizedHref(submitAttribution.safeNext || "/", locale));
       router.refresh();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "No se pudo crear la cuenta viewer.");
@@ -87,7 +95,7 @@ function ViewerRegisterContent() {
     <main className="relative min-h-[100dvh] overflow-hidden text-foreground">
       <div className="absolute inset-0">
         <iframe
-          title="Vista previa del mapa"
+          title={locale === "en" ? "Map preview" : "Vista previa del mapa"}
           src={backgroundMapHref}
           className="absolute inset-0 h-full w-full scale-[1.01] border-0 opacity-55 saturate-[0.8] blur-[1px]"
           aria-hidden="true"
@@ -98,33 +106,31 @@ function ViewerRegisterContent() {
       </div>
       <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[760px] items-center px-4 py-8">
         <section className="tm-surface-strong w-full rounded-[2rem] border border-white/10 p-6 shadow-[0_30px_120px_-60px_rgba(0,0,0,0.95)] backdrop-blur-xl sm:p-8">
-          <p className="tym-overline">Cuenta Viewer</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-foreground">Registro gratuito</h1>
-          <p className="mt-3 text-sm text-muted-foreground">
-            Regístrate para votar, guardar favoritos y participar en mapas. Solicitamos permisos de lectura y no publicamos ni editamos tu canal de YouTube.
-          </p>
+          <p className="tym-overline">{copy.eyebrow}</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-foreground">{copy.title}</h1>
+          <p className="mt-3 text-sm text-muted-foreground">{copy.description}</p>
 
           <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
             <label className="grid gap-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Nombre</span>
-              <Input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder="Tu nombre" />
+              <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{copy.name}</span>
+              <Input value={displayName} onChange={(event) => setDisplayName(event.target.value)} placeholder={copy.namePlaceholder} />
             </label>
             <label className="grid gap-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Email</span>
-              <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="tu@email.com" />
+              <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{copy.email}</span>
+              <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder={copy.emailPlaceholder} />
             </label>
             <label className="grid gap-2">
-              <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Contraseña</span>
-              <Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Mínimo 8 caracteres" />
+              <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{copy.password}</span>
+              <Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder={copy.passwordPlaceholder} />
             </label>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="grid gap-2">
-                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">País (ISO-2)</span>
+                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{copy.country}</span>
                 <Input value={countryCode} onChange={(event) => setCountryCode(event.target.value)} placeholder="AR" maxLength={2} />
               </label>
               <label className="grid gap-2">
-                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">Ciudad</span>
+                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{copy.city}</span>
                 <Input value={city} onChange={(event) => setCity(event.target.value)} placeholder="Buenos Aires" />
               </label>
             </div>
@@ -136,19 +142,19 @@ function ViewerRegisterContent() {
                 checked={hasYouTubeTravelChannel}
                 onChange={(event) => setHasYouTubeTravelChannel(event.target.checked)}
               />
-              <span>Tengo canal de YouTube de viajes.</span>
+              <span>{copy.channelCheck}</span>
             </label>
 
             {hasYouTubeTravelChannel ? (
               <label className="grid gap-2">
-                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">URL del canal</span>
-                <Input value={youtubeChannelUrl} onChange={(event) => setYouTubeChannelUrl(event.target.value)} placeholder="https://youtube.com/@tu-canal" />
+                <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">{copy.channelUrl}</span>
+                <Input value={youtubeChannelUrl} onChange={(event) => setYouTubeChannelUrl(event.target.value)} placeholder={copy.channelPlaceholder} />
               </label>
             ) : null}
 
             <label className="flex min-h-11 items-start gap-3 text-sm text-muted-foreground">
               <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-primary" checked={acceptTerms} onChange={(event) => setAcceptTerms(event.target.checked)} />
-              <span>Acepto términos y política de privacidad para operar mi cuenta (obligatorio).</span>
+              <span>{copy.acceptTerms}</span>
             </label>
             <label className="flex min-h-11 items-start gap-3 text-sm text-muted-foreground">
               <input
@@ -157,7 +163,7 @@ function ViewerRegisterContent() {
                 checked={consentPlatformPromotions}
                 onChange={(event) => setConsentPlatformPromotions(event.target.checked)}
               />
-              <span>Acepto promociones y novedades de Travel Your Map.</span>
+              <span>{copy.platformPromotions}</span>
             </label>
             <label className="flex min-h-11 items-start gap-3 text-sm text-muted-foreground">
               <input
@@ -166,7 +172,7 @@ function ViewerRegisterContent() {
                 checked={consentCreatorPromotions}
                 onChange={(event) => setConsentCreatorPromotions(event.target.checked)}
               />
-              <span>Acepto promociones de creadores dentro de la plataforma.</span>
+              <span>{copy.creatorPromotions}</span>
             </label>
 
             <Button
@@ -181,16 +187,16 @@ function ViewerRegisterContent() {
                 !acceptTerms
               }
             >
-              {loading ? "Creando cuenta..." : "Crear cuenta viewer"}
+              {loading ? copy.creating : copy.create}
             </Button>
           </form>
 
           {error ? <p className="mt-3 text-sm text-[#ffb0a7]">{error}</p> : null}
 
           <p className="mt-4 text-xs text-muted-foreground">
-            Ya tienes cuenta?{" "}
-            <Link href="/auth?intent=viewer" className="underline underline-offset-2">
-              Inicia sesión
+            {copy.existing}{" "}
+            <Link href={buildLocalizedHref("/auth?intent=viewer", locale)} className="underline underline-offset-2">
+              {copy.signIn}
             </Link>
             .
           </p>

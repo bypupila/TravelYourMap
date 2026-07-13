@@ -1,8 +1,12 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { JetBrains_Mono, Outfit } from "next/font/google";
+import { cookies } from "next/headers";
 import "@/app/globals.css";
 import { cn } from "@/lib/utils";
+import { LOCALE_COOKIE_NAME, normalizeLocale } from "@/lib/i18n";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { LocaleDocumentSync } from "@/components/site/locale-document-sync";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -58,10 +62,15 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const locale = normalizeLocale((await cookies()).get(LOCALE_COOKIE_NAME)?.value);
+
   return (
-    <html lang="es" className={cn(outfit.variable, jetbrainsMono.variable, "font-sans dark")} suppressHydrationWarning>
+    <html lang={locale} className={cn(outfit.variable, jetbrainsMono.variable, "font-sans dark")} suppressHydrationWarning>
       <body className="travel-shell" suppressHydrationWarning>
         <TooltipProvider>
+          <Suspense fallback={null}>
+            <LocaleDocumentSync />
+          </Suspense>
           {children}
         </TooltipProvider>
       </body>

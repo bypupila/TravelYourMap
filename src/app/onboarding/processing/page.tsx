@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { OnboardingProcessing } from "@/components/onboarding/onboarding-processing";
 import { getSessionUserById, getValidSessionUserIdFromServerCookies } from "@/lib/current-user";
 import { sql } from "@/lib/neon";
 import { DEMO_USER } from "@/lib/demo-data";
 import { isResponsiveQaFixture } from "@/lib/responsive-qa-fixtures";
+import { LOCALE_COOKIE_NAME, buildLocalizedHref, normalizeLocale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +20,7 @@ interface OnboardingProcessingPageProps {
 
 export default async function OnboardingProcessingPage({ searchParams }: OnboardingProcessingPageProps) {
   const resolvedSearchParams = await searchParams;
-  const locale = resolvedSearchParams.lang === "en" ? "en" : "es";
+  const locale = normalizeLocale(resolvedSearchParams.lang || (await cookies()).get(LOCALE_COOKIE_NAME)?.value);
   if (isResponsiveQaFixture(resolvedSearchParams.qa)) {
     return (
       <OnboardingProcessing
@@ -36,12 +38,12 @@ export default async function OnboardingProcessingPage({ searchParams }: Onboard
   }
   const userId = await getValidSessionUserIdFromServerCookies();
   if (!userId) {
-    redirect("/auth");
+    redirect(buildLocalizedHref("/auth", locale));
   }
 
   const user = await getSessionUserById(userId);
   if (!user) {
-    redirect("/auth");
+    redirect(buildLocalizedHref("/auth", locale));
   }
 
   const stateRows = await sql<Array<{ is_complete: boolean | null }>>`
@@ -52,7 +54,7 @@ export default async function OnboardingProcessingPage({ searchParams }: Onboard
   `;
   const onboardingState = stateRows[0] || null;
   if (onboardingState?.is_complete) {
-    redirect("/dashboard");
+    redirect(buildLocalizedHref("/dashboard", locale));
   }
 
   return <OnboardingProcessing locale={locale} user={user} />;

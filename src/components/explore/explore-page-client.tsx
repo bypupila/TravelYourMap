@@ -9,17 +9,23 @@ import { CountryFlag } from "@/components/ui/country-flag";
 import { DEMO_VIDEO_LOCATIONS } from "@/lib/demo-data";
 import { toCompactYouTubeThumbnail } from "@/lib/youtube-thumbnails";
 import { cn } from "@/lib/utils";
+import { buildLocalizedHref, type Locale } from "@/lib/i18n";
 
-const filterChips = ["Todos", "Latinoamérica", "Asia", "City Walks", "Food", "Recientes"];
+const filterChipsByLocale = {
+  es: ["Todos", "Latinoamérica", "Asia", "City Walks", "Food", "Recientes"],
+  en: ["All", "Latin America", "Asia", "City Walks", "Food", "Recent"],
+} as const;
 
-export function ExplorePageClient() {
+export function ExplorePageClient({ locale }: { locale: Locale }) {
   const videos = DEMO_VIDEO_LOCATIONS.slice(0, 9);
-  const [activeFilter, setActiveFilter] = useState<string>("Todos");
+  const filterChips = filterChipsByLocale[locale];
+  const allFilter = locale === "en" ? "All" : "Todos";
+  const [activeFilter, setActiveFilter] = useState<string>(allFilter);
 
   const filteredVideos = useMemo(() => {
-    if (activeFilter === "Todos") return videos;
+    if (activeFilter === allFilter) return videos;
 
-    if (activeFilter === "Latinoamérica") {
+    if (activeFilter === (locale === "en" ? "Latin America" : "Latinoamérica")) {
       const codes = new Set(["AR", "CL", "UY", "PE", "CO", "MX", "EC", "BR"]);
       return videos.filter((video) => codes.has(String(video.country_code || "").toUpperCase()));
     }
@@ -41,7 +47,7 @@ export function ExplorePageClient() {
       );
     }
 
-    if (activeFilter === "Recientes") {
+    if (activeFilter === (locale === "en" ? "Recent" : "Recientes")) {
       return videos
         .slice()
         .sort((left, right) => new Date(right.published_at || 0).getTime() - new Date(left.published_at || 0).getTime())
@@ -49,7 +55,7 @@ export function ExplorePageClient() {
     }
 
     return videos;
-  }, [activeFilter, videos]);
+  }, [activeFilter, allFilter, locale, videos]);
 
   return (
     <main className="relative min-h-[100dvh] text-foreground">
@@ -57,13 +63,13 @@ export function ExplorePageClient() {
 
       <header className="sticky top-0 z-40 px-4 py-3 backdrop-blur">
         <FloatingTopBar
-          eyebrow="Atlas de viajes"
-          title="Explorar por destino"
+          eyebrow={locale === "en" ? "Travel atlas" : "Atlas de viajes"}
+          title={locale === "en" ? "Explore by destination" : "Explorar por destino"}
           actions={
             <>
-              <MetricPill text={`${filteredVideos.length} videos`} />
+              <MetricPill text={`${filteredVideos.length} ${locale === "en" ? "videos" : "videos"}`} />
               <Button asChild variant="ghost" size="sm">
-                <Link href="/onboarding">Empieza gratis</Link>
+                <Link href={buildLocalizedHref("/onboarding", locale)}>{locale === "en" ? "Start free" : "Empieza gratis"}</Link>
               </Button>
             </>
           }
@@ -73,15 +79,15 @@ export function ExplorePageClient() {
       <div className="relative z-10 mx-auto max-w-[1400px] px-4 pb-10 pt-6">
         <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div className="text-center lg:text-left">
-            <p className="tym-overline mb-4">Discovery editorial</p>
-            <h1 className="tym-display mx-auto max-w-[12ch] lg:mx-0">Creadores, países y rutas en una sola capa de exploración.</h1>
+            <p className="tym-overline mb-4">{locale === "en" ? "Editorial discovery" : "Discovery editorial"}</p>
+            <h1 className="tym-display mx-auto max-w-[12ch] lg:mx-0">{locale === "en" ? "Creators, countries and routes in one exploration layer." : "Creadores, países y rutas en una sola capa de exploración."}</h1>
             <p className="mx-auto mt-4 max-w-[58ch] text-base leading-7 text-muted-foreground lg:mx-0">
-              La navegación mezcla mapa, miniaturas y metadata real para que una marca o un fan pueda detectar patrones de viaje sin caer en un grid genérico.
+              {locale === "en" ? "The experience mixes maps, thumbnails and real metadata so a brand or fan can spot travel patterns without falling into a generic grid." : "La navegación mezcla mapa, miniaturas y metadata real para que una marca o un fan pueda detectar patrones de viaje sin caer en un grid genérico."}
             </p>
           </div>
           <div className="tm-surface rounded-[2rem] p-5">
-            <p className="tym-overline">Selección curada</p>
-            <p className="mt-3 text-lg font-medium">Cada tarjeta conserva contexto geográfico, fecha y señales de rendimiento para que el catálogo no se vea como un feed indiferenciado.</p>
+            <p className="tym-overline">{locale === "en" ? "Curated selection" : "Selección curada"}</p>
+            <p className="mt-3 text-lg font-medium">{locale === "en" ? "Each card keeps geographic context, date and performance signals so the catalog does not look like an undifferentiated feed." : "Cada tarjeta conserva contexto geográfico, fecha y señales de rendimiento para que el catálogo no se vea como un feed indiferenciado."}</p>
           </div>
         </motion.div>
 
@@ -101,10 +107,10 @@ export function ExplorePageClient() {
 
         {filteredVideos.length === 0 ? (
           <section className="tm-surface-strong rounded-[2rem] p-8 text-center">
-            <p className="tym-overline">Empty state</p>
-            <h2 className="mt-3 text-2xl font-medium">Todavía no hay videos explorables.</h2>
+            <p className="tym-overline">{locale === "en" ? "Empty state" : "Empty state"}</p>
+            <h2 className="mt-3 text-2xl font-medium">{locale === "en" ? "There are no videos to explore yet." : "Todavía no hay videos explorables."}</h2>
             <p className="mx-auto mt-3 max-w-[52ch] text-sm leading-6 text-muted-foreground">
-              Conecta un canal o termina la importación para poblar esta vista con países, miniaturas y navegación por destino.
+              {locale === "en" ? "Connect a channel or finish the import to populate this view with countries, thumbnails and destination navigation." : "Conecta un canal o termina la importación para poblar esta vista con países, miniaturas y navegación por destino."}
             </p>
           </section>
         ) : (
@@ -127,7 +133,7 @@ export function ExplorePageClient() {
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-[#212121] text-muted-foreground">Miniatura no disponible</div>
+                  <div className="flex h-full w-full items-center justify-center bg-[#212121] text-muted-foreground">{locale === "en" ? "Thumbnail unavailable" : "Miniatura no disponible"}</div>
                     )}
                   </div>
                 </Link>
@@ -143,7 +149,7 @@ export function ExplorePageClient() {
                     </div>
                     <h2 className="mt-2 line-clamp-2 text-[18px] leading-[1.25] font-medium text-foreground">{video.title}</h2>
                     <p className="mt-2 text-[13px] leading-5 text-muted-foreground">
-                      {formatViews(video.view_count || 0)} vistas · {formatDate(video.published_at)}
+                      {formatViews(video.view_count || 0)} {locale === "en" ? "views" : "vistas"} · {formatDate(video.published_at, locale)}
                     </p>
                   </div>
                 </div>
@@ -171,9 +177,9 @@ function formatViews(value: number) {
   return String(value);
 }
 
-function formatDate(value?: string | null) {
-  if (!value) return "Sin fecha";
+function formatDate(value: string | null | undefined, locale: Locale) {
+  if (!value) return locale === "en" ? "No date" : "Sin fecha";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Sin fecha";
-  return date.toLocaleDateString("es-AR", { month: "short", day: "numeric", year: "numeric" });
+  if (Number.isNaN(date.getTime())) return locale === "en" ? "No date" : "Sin fecha";
+  return date.toLocaleDateString(locale === "en" ? "en-US" : "es-AR", { month: "short", day: "numeric", year: "numeric" });
 }

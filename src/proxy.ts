@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE_NAMES } from "@/lib/auth-session";
+import { LOCALE_COOKIE_NAME, normalizeLocale } from "@/lib/i18n";
 
 const CANONICAL_HOST = "travelyourmap.bypupila.com";
 const LEGACY_HOST_BASENAME = ["you", "map.bypupila.com"].join("");
@@ -30,33 +31,46 @@ export async function proxy(request: NextRequest) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.host = CANONICAL_HOST;
     redirectUrl.protocol = "https";
-    return NextResponse.redirect(redirectUrl, 308);
+    return withLocaleCookie(NextResponse.redirect(redirectUrl, 308), request);
   }
 
   if (process.env.NODE_ENV === "production" && LOCAL_ONLY_ROUTES.has(pathname)) {
     const notFoundUrl = request.nextUrl.clone();
     notFoundUrl.pathname = "/404";
     notFoundUrl.search = "";
-    return NextResponse.rewrite(notFoundUrl);
+    return withLocaleCookie(NextResponse.rewrite(notFoundUrl), request);
   }
 
   if (VANITY_HOSTS.has(host) && !RESERVED_PATHS.has(firstSegment) && !pathname.startsWith("/favicon")) {
     const rewriteUrl = request.nextUrl.clone();
     rewriteUrl.pathname = `/u/${firstSegment}`;
-    return NextResponse.rewrite(rewriteUrl);
+    return withLocaleCookie(NextResponse.rewrite(rewriteUrl), request);
   }
 
   const isDemoMode = request.nextUrl.searchParams.get("demo") === "1";
-  if (isDemoMode) return NextResponse.next();
+  if (isDemoMode) return withLocaleCookie(NextResponse.next(), request);
 
   const hasSession = SESSION_COOKIE_NAMES.some((cookieName) => Boolean(request.cookies.get(cookieName)?.value));
   if (pathname.startsWith("/dashboard") && !hasSession) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth";
-    return NextResponse.redirect(url);
+    return withLocaleCookie(NextResponse.redirect(url), request);
   }
 
-  return NextResponse.next();
+  return withLocaleCookie(NextResponse.next(), request);
+}
+
+function withLocaleCookie(response: NextResponse, request: NextRequest) {
+  if (request.nextUrl.searchParams.has("lang")) {
+    response.cookies.set(LOCALE_COOKIE_NAME, normalizeLocale(request.nextUrl.searchParams.get("lang")), {
+      httpOnly: false,
+      maxAge: 60 * 60 * 24 * 365,
+      path: "/",
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+  }
+  return response;
 }
 
 export const config = {

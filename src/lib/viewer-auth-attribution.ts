@@ -36,14 +36,23 @@ export function readViewerAuthAttributionFromLocation(fallback?: string | URLSea
   return readViewerAuthAttribution(window.location.search);
 }
 
-export function buildViewerRegisterHref(attribution: ViewerAuthAttribution) {
+function buildAuthQuery(attribution: ViewerAuthAttribution, intent: ViewerAuthIntent) {
   const params = new URLSearchParams();
-  params.set("intent", "viewer");
+  if (intent === "viewer") params.set("intent", "viewer");
   if (attribution.registrationChannelId) params.set("channelId", attribution.registrationChannelId);
   if (attribution.safeNext) params.set("next", attribution.safeNext);
   if (attribution.utmSource) params.set("utm_source", attribution.utmSource);
   if (attribution.utmMedium) params.set("utm_medium", attribution.utmMedium);
   if (attribution.utmCampaign) params.set("utm_campaign", attribution.utmCampaign);
-  const query = params.toString();
+  return params.toString();
+}
+
+export function buildAuthHref(attribution: ViewerAuthAttribution, intent: ViewerAuthIntent) {
+  const query = buildAuthQuery(attribution, intent);
+  return `/auth${query ? `?${query}` : ""}`;
+}
+
+export function buildViewerRegisterHref(attribution: ViewerAuthAttribution) {
+  const query = buildAuthQuery(attribution, "viewer");
   return `/auth/viewer-register${query ? `?${query}` : ""}`;
 }
