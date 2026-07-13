@@ -63,6 +63,7 @@ export function MapExperience({
   const [syncState, setSyncState] = useState<"idle" | "running" | "success" | "error">("idle");
   const [syncError, setSyncError] = useState<string | null>(null);
   const [lastSyncSummary, setLastSyncSummary] = useState<SyncSummary | null>(null);
+  const [filterReferenceTime] = useState(() => Date.now());
   const [manualDrafts, setManualDrafts] = useState<Record<string, { country_code: string; city: string }>>({});
   const rootRef = useRef<HTMLDivElement | null>(null);
 
@@ -92,12 +93,12 @@ export function MapExperience({
   const timeFilteredVideos = useMemo(() => {
     if (windowFilter === "all") return items;
     const days = Number(windowFilter);
-    const threshold = Date.now() - days * 24 * 60 * 60 * 1000;
+    const threshold = filterReferenceTime - days * 24 * 60 * 60 * 1000;
     return items.filter((video) => {
       const publishedAt = video.published_at ? new Date(video.published_at).getTime() : 0;
       return publishedAt > threshold;
     });
-  }, [items, windowFilter]);
+  }, [filterReferenceTime, items, windowFilter]);
 
   const searchFilteredVideos = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();

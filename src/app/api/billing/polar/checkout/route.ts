@@ -30,7 +30,7 @@ export async function GET(request: Request) {
       .eq("slug", plan)
       .maybeSingle();
 
-    if (planError || !planRow?.polar_price_id) {
+    if (planError || !planRow?.polar_product_id) {
       return NextResponse.redirect(new URL("/pricing?error=plan_unavailable", url.origin));
     }
 
@@ -42,11 +42,18 @@ export async function GET(request: Request) {
 
     const polar = getPolarClient();
     const checkout = await polar.checkouts.create({
-      productPriceId: planRow.polar_price_id,
+      products: [planRow.polar_product_id],
       successUrl: channelRow?.id
         ? `${url.origin}/dashboard?channelId=${channelRow.id}&checkout=success`
         : `${url.origin}/dashboard?checkout=success`,
+      returnUrl: `${url.origin}/pricing`,
       customerEmail: user.email || undefined,
+      externalCustomerId: user.id,
+      metadata: {
+        user_id: user.id,
+        plan_id: planRow.id,
+        plan_slug: planRow.slug,
+      },
     });
 
     if (!checkout.url) {

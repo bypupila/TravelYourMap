@@ -19,12 +19,13 @@ interface SponsorRow {
 
 export async function GET(
   request: Request,
-  { params }: { params: { channelId: string } }
+  { params }: { params: Promise<{ channelId: string }> }
 ) {
+  const { channelId } = await params;
   const countryCode = new URL(request.url).searchParams.get("country")?.toUpperCase() || null;
 
   try {
-    if (isDemoChannelId(params.channelId)) {
+    if (isDemoChannelId(channelId)) {
       return NextResponse.json({ sponsor: getDemoSponsorByCountry(countryCode) });
     }
 
@@ -33,7 +34,7 @@ export async function GET(
     const { data: channel, error: channelError } = await supabase
       .from("channels")
       .select("id,user_id")
-      .eq("id", params.channelId)
+      .eq("id", channelId)
       .maybeSingle();
 
     if (channelError || !channel) {
