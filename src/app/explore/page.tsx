@@ -9,6 +9,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "Explorar creadores por destino | TravelYourMap",
   description: "Explora países, creadores y videos con una vista editorial centrada en destinos y rutas.",
+  alternates: { canonical: `${siteUrl}/explore` },
   openGraph: {
     title: "Explorar creadores por destino | TravelYourMap",
     description: "Directorio visual de creadores y videos por destino para discovery y SEO.",

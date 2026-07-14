@@ -28,6 +28,10 @@ export default function AuthConsentsPage() {
     let active = true;
     fetch("/api/auth/consents", { cache: "no-store" })
       .then(async (response) => {
+        if (response.status === 401) {
+          router.replace("/auth?next=%2Fauth%2Fconsents");
+          throw new Error("Tu sesión venció. Volvé a iniciar sesión.");
+        }
         if (!response.ok) throw new Error("No se pudo cargar consentimientos.");
         return response.json() as Promise<ConsentState>;
       })
@@ -47,7 +51,7 @@ export default function AuthConsentsPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [router]);
 
   async function saveConsents() {
     setSaving(true);
@@ -64,6 +68,10 @@ export default function AuthConsentsPage() {
         }),
       });
       const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (response.status === 401) {
+        router.replace("/auth?next=%2Fauth%2Fconsents");
+        throw new Error("Tu sesión venció. Volvé a iniciar sesión.");
+      }
       if (!response.ok) throw new Error(payload?.error || "No se pudieron guardar consentimientos.");
       setMessage("Preferencias guardadas correctamente.");
     } catch (saveError) {

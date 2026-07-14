@@ -1073,13 +1073,13 @@ export function CreatorAdminPanel({
               {/* Toolbar */}
               <div className="flex flex-col md:flex-row items-center gap-2 mb-4 bg-white/[0.02] p-2 rounded-xl border border-white/5">
                 <div className="flex items-center px-3 py-1.5 md:border-r border-white/10 w-full md:w-auto md:flex-1">
-                  <select value={bulkCountryFilter} onChange={(e) => { setBulkCountryFilter(e.target.value); setBulkPage(1); }} className="w-full bg-transparent text-xs font-medium text-white outline-none cursor-pointer">
+                  <select aria-label="Filtrar videos por país" value={bulkCountryFilter} onChange={(e) => { setBulkCountryFilter(e.target.value); setBulkPage(1); }} className="w-full bg-transparent text-xs font-medium text-white outline-none cursor-pointer">
                     <option value="all" className="bg-[#0a0a0b]">🌍 Todos los países</option>
                     {bulkCountryOptions.map((c) => <option key={c.code} value={c.code} className="bg-[#0a0a0b]">{c.name}</option>)}
                   </select>
                 </div>
                 <div className="flex items-center px-3 py-1.5 md:border-r border-white/10 w-full md:w-auto md:flex-1">
-                  <select value={bulkStatusFilter} onChange={(e) => { setBulkStatusFilter(e.target.value as BulkSponsorFilter); setBulkPage(1); }} className="w-full bg-transparent text-xs font-medium text-white outline-none cursor-pointer">
+                  <select aria-label="Filtrar videos por estado de sponsor" value={bulkStatusFilter} onChange={(e) => { setBulkStatusFilter(e.target.value as BulkSponsorFilter); setBulkPage(1); }} className="w-full bg-transparent text-xs font-medium text-white outline-none cursor-pointer">
                     <option value="all" className="bg-[#0a0a0b]">⚪️ Cualquier estado</option>
                     <option value="confirmado" className="bg-[#0a0a0b]">🟢 Confirmado</option>
                     <option value="detectado_automaticamente" className="bg-[#0a0a0b]">🟡 Detectado</option>
@@ -1095,7 +1095,7 @@ export function CreatorAdminPanel({
               {/* Action Bar */}
               <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 rounded-xl border border-indigo-500/20 bg-indigo-500/[0.03] mb-4">
                 <div className="flex items-center gap-3 w-full md:w-auto">
-                  <select value={bulkSelectedSponsorId} onChange={(e) => setBulkSelectedSponsorId(e.target.value)} className="h-9 w-full md:w-56 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 text-xs font-bold text-indigo-300 outline-none cursor-pointer transition-colors hover:bg-indigo-500/20">
+                  <select aria-label="Seleccionar sponsor para la acción masiva" value={bulkSelectedSponsorId} onChange={(e) => setBulkSelectedSponsorId(e.target.value)} className="h-9 w-full md:w-56 rounded-lg border border-indigo-500/30 bg-indigo-500/10 px-3 text-xs font-bold text-indigo-300 outline-none cursor-pointer transition-colors hover:bg-indigo-500/20">
                     <option value="" className="bg-[#0a0a0b] text-white">Seleccionar Sponsor...</option>
                     {sponsors.map((s) => <option key={s.id} value={s.id} className="bg-[#0a0a0b] text-white">{s.brand_name}</option>)}
                   </select>

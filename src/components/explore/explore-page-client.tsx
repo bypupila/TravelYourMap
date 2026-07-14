@@ -10,9 +10,10 @@ import { DEMO_VIDEO_LOCATIONS } from "@/lib/demo-data";
 import { toCompactYouTubeThumbnail } from "@/lib/youtube-thumbnails";
 import { cn } from "@/lib/utils";
 import { buildLocalizedHref, type Locale } from "@/lib/i18n";
+import { getCountryNameInSpanish } from "@/components/map/video-viewer-utils";
 
 const filterChipsByLocale = {
-  es: ["Todos", "Latinoamérica", "Asia", "City Walks", "Food", "Recientes"],
+  es: ["Todos", "Latinoamérica", "Asia", "Caminatas urbanas", "Gastronomía", "Recientes"],
   en: ["All", "Latin America", "Asia", "City Walks", "Food", "Recent"],
 } as const;
 
@@ -35,13 +36,13 @@ export function ExplorePageClient({ locale }: { locale: Locale }) {
       return videos.filter((video) => codes.has(String(video.country_code || "").toUpperCase()));
     }
 
-    if (activeFilter === "City Walks") {
+    if (activeFilter === (locale === "en" ? "City Walks" : "Caminatas urbanas")) {
       return videos.filter((video) =>
         normalizeSearchText([video.title, video.description].join(" ")).match(/\b(city|walk|calle|centro|downtown|barrio|mercado)\b/)
       );
     }
 
-    if (activeFilter === "Food") {
+    if (activeFilter === (locale === "en" ? "Food" : "Gastronomía")) {
       return videos.filter((video) =>
         normalizeSearchText([video.title, video.description].join(" ")).match(/\b(food|comida|street food|gastronomia|restaurante|cocina)\b/)
       );
@@ -79,7 +80,7 @@ export function ExplorePageClient({ locale }: { locale: Locale }) {
       <div className="relative z-10 mx-auto max-w-[1400px] px-4 pb-10 pt-6">
         <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
           <div className="text-center lg:text-left">
-            <p className="tym-overline mb-4">{locale === "en" ? "Editorial discovery" : "Discovery editorial"}</p>
+            <p className="tym-overline mb-4">{locale === "en" ? "Editorial discovery" : "Exploración editorial"}</p>
             <h1 className="tym-display mx-auto max-w-[12ch] lg:mx-0">{locale === "en" ? "Creators, countries and routes in one exploration layer." : "Creadores, países y rutas en una sola capa de exploración."}</h1>
             <p className="mx-auto mt-4 max-w-[58ch] text-base leading-7 text-muted-foreground lg:mx-0">
               {locale === "en" ? "The experience mixes maps, thumbnails and real metadata so a brand or fan can spot travel patterns without falling into a generic grid." : "La navegación mezcla mapa, miniaturas y metadata real para que una marca o un fan pueda detectar patrones de viaje sin caer en un grid genérico."}
@@ -107,7 +108,7 @@ export function ExplorePageClient({ locale }: { locale: Locale }) {
 
         {filteredVideos.length === 0 ? (
           <section className="tm-surface-strong rounded-[2rem] p-8 text-center">
-            <p className="tym-overline">{locale === "en" ? "Empty state" : "Empty state"}</p>
+            <p className="tym-overline">{locale === "en" ? "Empty state" : "Sin resultados"}</p>
             <h2 className="mt-3 text-2xl font-medium">{locale === "en" ? "There are no videos to explore yet." : "Todavía no hay videos explorables."}</h2>
             <p className="mx-auto mt-3 max-w-[52ch] text-sm leading-6 text-muted-foreground">
               {locale === "en" ? "Connect a channel or finish the import to populate this view with countries, thumbnails and destination navigation." : "Conecta un canal o termina la importación para poblar esta vista con países, miniaturas y navegación por destino."}
@@ -145,7 +146,7 @@ export function ExplorePageClient({ locale }: { locale: Locale }) {
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <CountryFlag code={video.country_code} size={14} className="platform-country-code" />
-                      <span className="text-[12px] text-muted-foreground">{video.country_name || video.country_code}</span>
+                      <span className="text-[12px] text-muted-foreground">{locale === "en" ? video.country_name || video.country_code : getCountryNameInSpanish(video.country_code, video.country_name)}</span>
                     </div>
                     <h2 className="mt-2 line-clamp-2 text-[18px] leading-[1.25] font-medium text-foreground">{video.title}</h2>
                     <p className="mt-2 text-[13px] leading-5 text-muted-foreground">

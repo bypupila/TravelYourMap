@@ -79,3 +79,7 @@ _Avoid_: contabilidad fiscal, reporte publico de marca, rate card
 **Sponsor Kit**:
 A private, tokenized commercial presentation shared with potential sponsors, separate from the public viewer profile and public Media Kit.
 _Avoid_: perfil publico viewer, reporte financiero interno
+
+**Plan canónico**:
+The single commercial definition of a subscription tier, including its price, availability, trial period, benefits, and checkout identity across landing, pricing, onboarding, and billing.
+_Avoid_: plan de landing, plan de onboarding, precio de pantalla

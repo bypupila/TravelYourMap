@@ -124,7 +124,7 @@ export function DemoDisenoClient({ videoLocations }: DemoDisenoClientProps) {
     setCurrentVideo(sampleVideos[nextIndex]);
   }
 
-  function handleDemoCta(event: MouseEvent<HTMLAnchorElement>) {
+  function handleDemoCta(event: MouseEvent<HTMLButtonElement>) {
     event.preventDefault();
   }
 
@@ -1852,14 +1852,14 @@ export function DemoDisenoClient({ videoLocations }: DemoDisenoClientProps) {
                         <h4 className="mt-1 text-sm font-extrabold leading-tight text-white">
                           Alojamientos cerca de {destinationName}
                         </h4>
-                        <a
-                          href="#"
+                        <button
+                          type="button"
                           onClick={handleDemoCta}
                           className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 text-[10px] font-extrabold uppercase tracking-wider text-white transition-all hover:bg-white/[0.08] active:scale-95"
                         >
                           Ver opciones
                           <ArrowSquareOut size={11} />
-                        </a>
+                        </button>
                         <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-zinc-600">
                           por Stay Partner
                         </p>
@@ -1877,14 +1877,14 @@ export function DemoDisenoClient({ videoLocations }: DemoDisenoClientProps) {
                         <h4 className="mt-1 text-sm font-extrabold leading-tight text-white">
                           Tours y entradas recomendadas
                         </h4>
-                        <a
-                          href="#"
+                        <button
+                          type="button"
                           onClick={handleDemoCta}
                           className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-md border border-white/[0.08] bg-white/[0.04] px-3 text-[10px] font-extrabold uppercase tracking-wider text-white transition-all hover:bg-white/[0.08] active:scale-95"
                         >
                           Explorar
                           <ArrowSquareOut size={11} />
-                        </a>
+                        </button>
                         <p className="mt-2 text-[9px] font-semibold uppercase tracking-[0.12em] text-zinc-600">
                           por Experience Partner
                         </p>
@@ -2373,14 +2373,14 @@ export function DemoDisenoClient({ videoLocations }: DemoDisenoClientProps) {
                     </div>
                   </div>
 
-                  <a
-                    href="#"
+                  <button
+                    type="button"
                     onClick={handleDemoCta}
                     className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#ff5a3d] px-4 text-[11px] font-extrabold uppercase tracking-wider text-white transition-all hover:bg-[#ff735c] active:scale-95"
                   >
                     Reclamar beneficio
                     <ArrowSquareOut size={13} />
-                  </a>
+                  </button>
                 </div>
               </div>
             )}

@@ -40,6 +40,18 @@ type OverviewPayload = {
     top_viewer_countries: Array<{ country_code: string; users: number }>;
     top_event_countries: Array<{ country_code: string; events: number }>;
   };
+  coming_soon: {
+    unique_people: number;
+    total_clicks: number;
+    interactions: Array<{
+      feature_id: string;
+      feature_label: string;
+      surface_id: string;
+      surface_label: string;
+      unique_people: number;
+      total_clicks: number;
+    }>;
+  };
 };
 
 function countryCodeToFlag(countryCode?: string | null) {
@@ -80,6 +92,14 @@ export function AdminAnalyticsOverview({ qaMode = false }: { qaMode?: boolean })
         geography: {
           top_viewer_countries: [{ country_code: "AR", users: 74 }, { country_code: "MX", users: 51 }],
           top_event_countries: [{ country_code: "PT", events: 684 }, { country_code: "TH", events: 531 }],
+        },
+        coming_soon: {
+          unique_people: 42,
+          total_clicks: 67,
+          interactions: [
+            { feature_id: "agency_plan", feature_label: "Agency", surface_id: "pricing", surface_label: "Pricing", unique_people: 28, total_clicks: 41 },
+            { feature_id: "map_live", feature_label: "En vivo", surface_id: "map_sidebar", surface_label: "Mapa · Navegación", unique_people: 14, total_clicks: 26 },
+          ],
         },
       });
       setError(null);
@@ -195,6 +215,35 @@ export function AdminAnalyticsOverview({ qaMode = false }: { qaMode?: boolean })
               ])}
             />
           </div>
+
+          <section className="rounded-2xl border border-[#d8cf70]/20 bg-[#d8cf70]/[0.035] p-4 sm:p-5">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#d8cf70]">Interés en funciones próximas</p>
+                <h3 className="mt-1 text-sm font-semibold text-white">Personas y clics por función</h3>
+              </div>
+              <div className="flex gap-2">
+                <span className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white">
+                  <strong className="font-mono text-[#d8cf70]">{n(data.coming_soon.unique_people)}</strong> personas
+                </span>
+                <span className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white">
+                  <strong className="font-mono text-[#d8cf70]">{n(data.coming_soon.total_clicks)}</strong> clics
+                </span>
+              </div>
+            </div>
+            <div className="mt-4">
+              <SimpleTable
+                title={`Desglose de interés (${data.window_days}d)`}
+                headers={["Función", "Superficie", "Personas únicas", "Clics totales"]}
+                rows={data.coming_soon.interactions.map((item) => [
+                  item.feature_label,
+                  item.surface_label,
+                  n(item.unique_people),
+                  n(item.total_clicks),
+                ])}
+              />
+            </div>
+          </section>
         </div>
       ) : null}
     </section>

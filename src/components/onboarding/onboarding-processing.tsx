@@ -500,7 +500,7 @@ export function OnboardingProcessing({
 
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 <MiniMetric label={locale === "es" ? "Países" : "Countries"} value={countriesMapped} />
-                <MiniMetric label={locale === "es" ? "Videos mapeados" : "Mapped videos"} value={mappedVideos} />
+                <MiniMetric label={locale === "es" ? "Videos" : "Videos"} value={mappedVideos} />
                 <MiniMetric label={locale === "es" ? "Views" : "Views"} value={mappedViews} />
               </div>
             </div>
@@ -628,7 +628,7 @@ function ImportPlanet({ progress, mappedVideos, locale }: { progress: number; ma
 
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
           <p className="text-[38px] leading-none font-semibold tracking-tight text-[#f1f1f1] sm:text-[44px]">{progressPercent}%</p>
-          <p className="mt-2 text-[12px] uppercase tracking-[0.16em] text-[#c9c9c9]">{locale === "es" ? "Videos mapeados" : "Mapped videos"}</p>
+          <p className="mt-2 text-[12px] uppercase tracking-[0.16em] text-[#c9c9c9]">{locale === "es" ? "Videos" : "Videos"}</p>
           <p className="mt-1 text-[22px] leading-none font-medium text-[#f1f1f1]">{formatCompactNumber(mappedVideos)}</p>
         </div>
       </div>

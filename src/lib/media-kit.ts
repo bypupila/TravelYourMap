@@ -1,6 +1,6 @@
 import { normalizeUsername } from "@/lib/auth-identifiers";
 import { columnExists, tableExists } from "@/lib/db-schema";
-import { DEMO_CHANNEL, DEMO_CHANNEL_ID, DEMO_USERNAME, isDemoUsername } from "@/lib/demo-data";
+import { DEMO_CHANNEL, DEMO_CHANNEL_ID, DEMO_USERNAME, DEMO_VIDEO_LOCATIONS, isDemoUsername } from "@/lib/demo-data";
 import { buildPublicMapUrl } from "@/lib/map-urls";
 import { normalizeCountryCode } from "@/lib/map-polls";
 import { sql } from "@/lib/neon";
@@ -214,6 +214,10 @@ async function loadChannelById(channelId: string) {
 }
 
 async function buildMediaKitPayload(channel: MediaKitPayload["channel"]): Promise<MediaKitPayload> {
+  if (channel.id === DEMO_CHANNEL_ID) {
+    return buildDemoMediaKitPayload(channel);
+  }
+
   const [settings, summaryRows, countryRows, sponsorRows] = await Promise.all([
     loadMediaKitSettings(channel),
     loadSummaryRows(channel.id),
@@ -268,6 +272,56 @@ async function buildMediaKitPayload(channel: MediaKitPayload["channel"]): Promis
   };
 }
 
+function buildDemoMediaKitPayload(channel: MediaKitPayload["channel"]): MediaKitPayload {
+  const countries = new Map<string, MediaKitCountry>();
+  for (const video of DEMO_VIDEO_LOCATIONS) {
+    const code = String(video.country_code || "").toUpperCase();
+    if (!code) continue;
+    const current = countries.get(code) || {
+      country_code: code,
+      country_name: video.country_name || code,
+      videos_count: 0,
+      youtube_views: 0,
+      map_events: 0,
+    };
+    current.videos_count += 1;
+    current.youtube_views += Number(video.view_count || 0);
+    countries.set(code, current);
+  }
+
+  const topCountries = Array.from(countries.values()).sort(
+    (left, right) => right.youtube_views - left.youtube_views || right.videos_count - left.videos_count
+  );
+  const settings = buildDefaultSettings(channel);
+  const activeSponsors: MediaKitSponsor[] = [
+    { id: "demo-booking", brand_name: "Booking.com", logo_url: "/brands/booking.svg", category_name: "Alojamiento" },
+    { id: "demo-getyourguide", brand_name: "GetYourGuide", logo_url: "/brands/getyourguide.svg", category_name: "Experiencias" },
+    { id: "demo-iati", brand_name: "IATI Seguros", logo_url: "/brands/iati.svg", category_name: "Seguros de viaje" },
+  ];
+
+  return {
+    channel,
+    settings,
+    urls: {
+      mediaKitUrl: `/u/${encodeURIComponent(channel.canonicalHandle)}/media-kit`,
+      mapUrl: `/u/${encodeURIComponent(channel.canonicalHandle)}`,
+    },
+    summary: {
+      videos: DEMO_VIDEO_LOCATIONS.length,
+      countries: countries.size,
+      cities: new Set(DEMO_VIDEO_LOCATIONS.map((video) => String(video.city || "").trim()).filter(Boolean)).size,
+      youtube_views: DEMO_VIDEO_LOCATIONS.reduce((sum, video) => sum + Number(video.view_count || 0), 0),
+      youtube_likes: DEMO_VIDEO_LOCATIONS.reduce((sum, video) => sum + Number(video.like_count || 0), 0),
+      map_events_30d: 0,
+      sponsor_clicks_30d: 0,
+      inquiries_30d: 0,
+      active_sponsors: activeSponsors.length,
+    },
+    topCountries: topCountries.slice(0, 8),
+    activeSponsors,
+  };
+}
+
 async function loadMediaKitSettings(channel: MediaKitPayload["channel"]): Promise<MediaKitSettings> {
   const fallback = buildDefaultSettings(channel);
   if (!(await mediaKitSettingsTableExists())) return fallback;
@@ -303,7 +357,7 @@ async function loadMediaKitSettings(channel: MediaKitPayload["channel"]): Promis
 function buildDefaultSettings(channel: MediaKitPayload["channel"]): MediaKitSettings {
   return {
     public_enabled: true,
-    headline: `${channel.channel_name}: viajes, destinos y audiencias listas para descubrir marcas`,
+    headline: `${channel.channel_name}: viajes, destinos y audiencias listas para conectar con marcas`,
     bio:
       channel.description ||
       `Media kit interactivo de ${channel.channel_name}, creado desde su mapa de viajes, videos geolocalizados, sponsors activos y senales first-party de TravelYourMap.`,

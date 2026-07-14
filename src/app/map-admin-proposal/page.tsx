@@ -35,6 +35,13 @@ export const dynamic = "force-dynamic";
 
 export default async function MapAdminProposalPage({ searchParams }: MapAdminProposalPageProps) {
   const params = await searchParams;
+  if (process.env.NODE_ENV === "production") {
+    const nextParams = new URLSearchParams();
+    for (const [key, value] of Object.entries(params)) {
+      if (key !== "qa" && value) nextParams.set(key, value);
+    }
+    redirect(`/creator-panel${nextParams.size ? `?${nextParams.toString()}` : ""}`);
+  }
   if (isResponsiveQaFixture(params.qa)) {
     return (
       <main className="min-h-[100dvh] bg-[#07090d] text-[#f5f7fb]">

@@ -15,6 +15,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: "Mapa global de videos | TravelYourMap",
   description: "Mapa fullscreen con un punto por video extraido del canal seleccionado.",
+  alternates: { canonical: `${siteUrl}/map` },
   openGraph: {
     title: "Mapa global de videos | TravelYourMap",
     description: "Visualiza todos los videos extraidos como puntos sobre el globo.",
@@ -77,6 +78,7 @@ export default async function MapPage({ searchParams }: MapPageProps) {
 
   return (
     <main className="relative min-h-[100dvh] overflow-hidden text-foreground">
+      <h1 className="sr-only">Mapa de viajes de {payload.channel.channel_name}</h1>
       <div className="absolute inset-0">
         <MapExperienceV2
           channel={payload.channel}

@@ -54,6 +54,8 @@ import { MapVideoCard } from "@/components/map/map-video-card";
 import { isDemoChannelId } from "@/lib/demo-data";
 import type { SponsorBannerColors } from "@/lib/sponsor-banner-colors";
 import { useSubscription } from "@/lib/use-subscription";
+import { useComingSoon } from "@/components/site/coming-soon-provider";
+import type { ComingSoonFeatureId } from "@/lib/coming-soon";
 
 type ContentFilterWindow = "all" | "365" | "90" | "30";
 type ActivityFilter = "all" | "favorites" | "saved" | "watched" | "watch_later" | "incomplete";
@@ -195,13 +197,25 @@ const ACTIVITY_FILTER_OPTIONS: Array<{ id: ActivityFilter; label: string; Icon: 
   { id: "incomplete", label: "Incompletos", Icon: Clock },
 ];
 
+const MAP_NAV_COMING_SOON_FEATURES: Record<string, ComingSoonFeatureId> = {
+  "En vivo": "map_live",
+  "Videos en vivo": "map_live",
+  Destinos: "map_destinations",
+  Creadores: "map_creators",
+  Guardados: "map_saved",
+  Historial: "map_history",
+  Comunidad: "map_community",
+};
+
 export function MapExperienceCore({ channel, videoLocations, sponsors = [], viewMode = "viewer", isDemoMode = false, viewer }: MapExperienceCoreProps) {
+  const { showComingSoon } = useComingSoon();
   const useDemoMapEmbedPreviews = isDemoMode && isDemoChannelId(String(channel.id || ""));
   const [activeMapMode, setActiveMapMode] = useState<ProposalMapMode>(viewMode);
   const [filter, setFilter] = useState<ContentFilterWindow>("all");
   const [activityFilter, setActivityFilter] = useState<ActivityFilter>("all");
   const [dateMenuOpen, setDateMenuOpen] = useState(false);
   const [activityMenuOpen, setActivityMenuOpen] = useState(false);
+  const [mobileVoteOpen, setMobileVoteOpen] = useState(false);
   const [isMapFullscreen, setIsMapFullscreen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSidebarItem, setActiveSidebarItem] = useState("Explorar");
@@ -240,6 +254,14 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
   const [countrySortMode, setCountrySortMode] = useState<CountrySortMode>("new");
   const [hasMounted, setHasMounted] = useState(false);
   const [activePlatformAd, setActivePlatformAd] = useState<ActivePlatformAd | null>(null);
+  const updateSearchQuery = useCallback((value: string) => {
+    setSearchQuery(value);
+    if (value.trim()) {
+      setSelectedCountryCode(null);
+      setVotePrompt(null);
+      setMobileVoteOpen(false);
+    }
+  }, []);
   const viewerSubscription = useSubscription({ demo: isDemoMode });
   const isCreatorWorkspace = activeMapMode === "creator";
   const hidePlatformAds = activeMapMode === "viewer" && viewerSubscription.active;
@@ -916,12 +938,15 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
               countrySortMode={countrySortMode}
               onChangeCountrySortMode={setCountrySortMode}
               setActiveItem={(item) => {
-                setActiveSidebarItem(item);
-                flash(`Sección activa: ${item}`);
+                if (item === "Explorar") {
+                  setActiveSidebarItem(item);
+                  return;
+                }
+                const featureId = MAP_NAV_COMING_SOON_FEATURES[item];
+                if (featureId) showComingSoon(featureId, "map_sidebar");
               }}
               onOpenMenu={() => setMenuOpen(true)}
               onSelectCountry={(countryCode, countryName) => {
-                setActiveSidebarItem("Destinos");
                 setSelectedCountryCode(countryCode);
                 flash(`País seleccionado: ${countryName}`);
               }}
@@ -940,7 +965,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
           <ProposalTopbar2
             activeMapMode={activeMapMode}
             searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
+            setSearchQuery={updateSearchQuery}
             isDemoMode={isDemoMode}
             shareUrl={shareUrl}
             viewerRegisterHref={viewerRegisterHref}
@@ -948,8 +973,9 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
             onPreviewViewer={() => setActiveMapMode("viewer")}
             onReturnToCreator={() => setActiveMapMode("creator")}
             canReturnToCreator={viewMode === "creator"}
-            onExtractVideos={() => flash("Extraccion de videos iniciada (simulada).")}
+            onExtractVideos={() => showComingSoon("map_video_extraction", "map_creator_tools")}
             onOpenAdmin={openAdminPanel}
+            onOpenMenu={() => setMenuOpen(true)}
             lastExtractionAt={channel.last_synced_at || null}
           />
           ) : null}
@@ -1045,7 +1071,11 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                   <button
                     type="button"
                     className="flex h-11 items-center gap-1.5 rounded-full border border-white/20 bg-[#060c12]/60 px-3 text-[11px] font-bold text-white backdrop-blur-md lg:h-8"
-                    onClick={() => setDateMenuOpen((prev) => !prev)}
+                    onClick={() => {
+                      setActivityMenuOpen(false);
+                      setMobileVoteOpen(false);
+                      setDateMenuOpen((prev) => !prev);
+                    }}
                   >
                     <SquaresFour size={13} />
                     {dateFilterLabel}
@@ -1086,7 +1116,11 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                   <button
                     type="button"
                     className="flex h-11 items-center gap-1.5 rounded-full border border-white/20 bg-[#060c12]/60 px-3 text-[11px] font-bold text-white backdrop-blur-md lg:h-8"
-                    onClick={() => setActivityMenuOpen((prev) => !prev)}
+                    onClick={() => {
+                      setDateMenuOpen(false);
+                      setMobileVoteOpen(false);
+                      setActivityMenuOpen((prev) => !prev);
+                    }}
                   >
                     <FunnelSimple size={13} />
                     Filtros
@@ -1149,6 +1183,12 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                     prompt={votePrompt}
                     votedCountryCode={votedCountryCode}
                     variant="overlay"
+                    overlayOpen={mobileVoteOpen}
+                    onOverlayOpenChange={(open) => {
+                      setDateMenuOpen(false);
+                      setActivityMenuOpen(false);
+                      setMobileVoteOpen(open);
+                    }}
                     mode={isCreatorWorkspace ? "creator" : "viewer"}
                     onSelectCountry={(countryCode) => {
                       setSelectedCountryCode(countryCode);
@@ -1190,9 +1230,9 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
             <ProposalRightRail2
               sponsors={sponsors}
               onBecomePatron={() => window.location.assign("/onboarding")}
-              onManageSponsors={() => setShowSponsorModal(true)}
-              onCreatePoll={() => setShowPollModal(true)}
-              onExtractVideos={() => flash("Extraccion de videos iniciada (simulada).")}
+              onManageSponsors={() => showComingSoon("map_sponsor_management", "map_creator_tools")}
+              onCreatePoll={() => showComingSoon("map_poll_creation", "map_creator_tools")}
+              onExtractVideos={() => showComingSoon("map_video_extraction", "map_creator_tools")}
               onOpenAdmin={openAdminPanel}
               onAction={flash}
               analytics={proposalAnalytics}
@@ -1223,15 +1263,12 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         onNavigate={(label) => {
-          if (label === "Sponsors" && isCreatorWorkspace) {
-            setShowSponsorModal(true);
+          if (label === "Explorar") {
+            setActiveSidebarItem("Explorar");
             return;
           }
-          if (label === "Patrocinadores" && !isCreatorWorkspace) {
-            setShowCheckoutModal(true);
-            return;
-          }
-          setActiveSidebarItem(label === "Videos en vivo" ? "En vivo" : label);
+          const featureId = MAP_NAV_COMING_SOON_FEATURES[label];
+          if (featureId) showComingSoon(featureId, "map_sidebar");
         }}
       />
 
@@ -1523,7 +1560,7 @@ function ProposalSidebar2({
       <div className="mt-0 hidden rounded-xl p-1.5 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-hidden">
         <div className="mb-1.5 shrink-0 text-center">
           <div className="whitespace-nowrap text-[10px] font-black uppercase tracking-[0.08em] text-[#8f98a3]">
-            <span className="text-[#ff5a3d]">{formatCompactMetric(totalCountryCount)}</span> paises ·{" "}
+            <span className="text-[#ff5a3d]">{formatCompactMetric(totalCountryCount)}</span> países ·{" "}
             <span className="text-[#ff5a3d]">{formatCompactMetric(totalVideoCount)}</span> videos
           </div>
         </div>
@@ -1674,6 +1711,7 @@ function ProposalTopbar2({
   canReturnToCreator,
   onExtractVideos,
   onOpenAdmin,
+  onOpenMenu,
   lastExtractionAt
 }: {
   activeMapMode: ProposalMapMode;
@@ -1688,6 +1726,7 @@ function ProposalTopbar2({
   canReturnToCreator: boolean;
   onExtractVideos: () => void;
   onOpenAdmin: () => void;
+  onOpenMenu: () => void;
   lastExtractionAt: string | null;
 }) {
   const lastExtractionLabel = formatStableDateTime(lastExtractionAt);
@@ -1759,6 +1798,14 @@ function ProposalTopbar2({
       <header data-component="ProposalTopbar2" className="relative z-[120] grid gap-3 lg:grid-cols-[minmax(0,0.5fr)_auto] items-center">
         {/* Search trigger */}
         <div className="relative flex min-w-0 items-center gap-3">
+          <button
+            type="button"
+            onClick={onOpenMenu}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/[0.09] bg-white/[0.035] text-white transition hover:bg-white/[0.07] lg:hidden"
+            aria-label="Abrir menú principal"
+          >
+            <List size={19} />
+          </button>
           <button
             type="button"
             className="flex h-11 min-w-0 w-full items-center gap-3 rounded-full border border-white/[0.07] bg-white/[0.035] px-4 text-left text-[#cbd3dc] shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)] transition-all hover:border-white/[0.12] hover:bg-white/[0.05] focus-visible:border-[#ff5a3d]/40 focus-visible:outline-none"
@@ -1957,6 +2004,8 @@ function MapVotePanel2({
   prompt,
   votedCountryCode,
   variant = "overlay",
+  overlayOpen = false,
+  onOverlayOpenChange,
   mode = "viewer",
   onSelectCountry,
   onConfirmVote,
@@ -1968,6 +2017,8 @@ function MapVotePanel2({
   prompt: LocalVotePrompt | null;
   votedCountryCode: string | null;
   variant?: "overlay" | "sidebar";
+  overlayOpen?: boolean;
+  onOverlayOpenChange?: (open: boolean) => void;
   mode?: "viewer" | "creator";
   onSelectCountry: (countryCode: string) => void;
   onConfirmVote: (countryCode: string) => void;
@@ -1977,15 +2028,13 @@ function MapVotePanel2({
 }) {
   const totalVotes = candidates.reduce((sum, country) => sum + country.votes, 0);
   const isCreator = mode === "creator";
-  const [overlayOpen, setOverlayOpen] = useState(false);
-
   if (variant === "overlay" && !overlayOpen) {
     return (
       <button
         type="button"
         data-component="MapVotePanel2Trigger"
         className="pointer-events-auto absolute bottom-4 left-4 z-[95] flex h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/35 bg-[#050b10]/88 px-4 text-[11px] font-black text-[#ffb4a4] shadow-2xl backdrop-blur-xl"
-        onClick={() => setOverlayOpen(true)}
+        onClick={() => onOverlayOpenChange?.(true)}
         aria-expanded="false"
       >
         <List size={15} weight="bold" />
@@ -2024,7 +2073,7 @@ function MapVotePanel2({
             <button
               type="button"
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[#cbd3dc] transition hover:bg-white/[0.08] lg:h-7 lg:w-7"
-              onClick={() => setOverlayOpen(false)}
+              onClick={() => onOverlayOpenChange?.(false)}
               aria-label="Cerrar votacion"
             >
               <X size={14} />
@@ -2057,7 +2106,7 @@ function MapVotePanel2({
                 </span>
                 <span className="relative z-10 min-w-0 flex-1">
                   <span className="block truncate text-[11px] font-bold text-white">{country.name}</span>
-                  <span className="text-[9px] font-semibold text-[#8d98a5]">{country.votes} votos</span>
+                  <span className="text-[9px] font-semibold text-[#8d98a5]">{country.votes} {country.votes === 1 ? "voto" : "votos"}</span>
                 </span>
               </button>
             );
@@ -2639,7 +2688,7 @@ function MobileDrawer2({
         </div>
 
         <div className="space-y-1.5 mt-4">
-          {["Explorar", "Videos en vivo", "Destinos", "Sponsors", "Guardados", "Patrocinadores"].map((label) => (
+          {["Explorar", "En vivo", "Destinos", "Creadores", "Guardados", "Historial", "Comunidad"].map((label) => (
             <button 
               key={label} 
               type="button" 

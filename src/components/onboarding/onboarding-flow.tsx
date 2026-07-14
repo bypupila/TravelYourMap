@@ -1,17 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { AirplaneTilt, Handshake, MapPin } from "@phosphor-icons/react";
+import { AirplaneTilt, ArrowLeft, ChartLineUp, Check, CreditCard, Handshake, MapPin, UploadSimple, UsersThree, YoutubeLogo } from "@phosphor-icons/react";
 import posthog from "posthog-js";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FloatingTopBar } from "@/components/design-system/chrome";
 import { YoutubeImportStep, type ChannelDraft } from "@/components/onboarding/youtube-import-step";
+import { useComingSoon } from "@/components/site/coming-soon-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DEMO_ANALYTICS, DEMO_CHANNEL, DEMO_CHANNEL_SLUG, DEMO_USER, DEMO_VIDEO_LOCATIONS } from "@/lib/demo-data";
-import { PLAN_DEFINITIONS, resolveCanonicalPlanSlug, resolveCheckoutPlanSlug, type PlanDefinition } from "@/lib/plans";
+import { getLocalizedPlan, PLAN_DEFINITIONS, resolveCanonicalPlanSlug, resolveCheckoutPlanSlug } from "@/lib/plans";
+import { buildLocalizedHref } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 import type { ChannelAnalytics } from "@/lib/analytics";
@@ -31,22 +33,13 @@ type ChannelValidationMetrics = {
   videosSampled: number;
 };
 
-type LocalizedPlanDetails = {
-  name: string;
-  price: string;
-  description: string;
-  features: string[];
-  badge?: string;
-  trialCopy: string;
-};
-
 type OnboardingCopy = {
   topbarEyebrow: string;
   topbarTitle: string;
   searchPlaceholder: string;
   workflowPill: string;
   stepLabels: Array<{ step: OnboardingStep; label: string }>;
-  stepMeta: Record<OnboardingStep, { eyebrow: string; title: string; description: string }>;
+  stepMeta: Record<OnboardingStep, { eyebrow: string; title: string; description: string; icon: typeof AirplaneTilt }>;
   footerBack: string;
   footerStep: string;
   footerOf: string;
@@ -54,9 +47,6 @@ type OnboardingCopy = {
   footerReviewAccount: string;
   footerOpenDashboard: string;
   overviewFeatures: Array<{ title: string; copy: string }>;
-  importStatusEyebrow: string;
-  importStatusTitle: string;
-  importStatusBody: string;
   importMetricCountries: string;
   importMetricMapped: string;
   importMetricViews: string;
@@ -70,6 +60,8 @@ type OnboardingCopy = {
   fanVoteEyebrow: string;
   fanVoteTitle: string;
   fanVoteDescription: string;
+  fanVoteVotesLabel: string;
+  fanVoteTotalLabel: string;
   accountSetup: string;
   accountDisplayNamePlaceholder: string;
   accountEmailPlaceholder: string;
@@ -96,80 +88,10 @@ type OnboardingCopy = {
   trialNote: string;
   processingPhrases: string[];
   unavailablePlanBadge: string;
-  unavailablePlanCopy: string;
   importRealStatsNote: string;
   importDemoStatsNote: string;
   acceptTermsLabel: string;
   acceptTermsRequired: string;
-};
-
-const localizedPlanDetails: Record<OnboardingLocale, Record<PlanDefinition["slug"], LocalizedPlanDetails>> = {
-  es: {
-    free: {
-      name: "Free",
-      price: "$0",
-      description: "Gancho de conversión para validar el canal y abrir el mapa.",
-      features: ["1 canal", "Hasta 50 videos", "Mapa público", "Importación básica"],
-      trialCopy: "Incluye 7 días de prueba",
-    },
-    creator: {
-      name: "Creator",
-      price: "$29/mes",
-      description: "Plan core para creadores individuales.",
-      features: ["Videos ilimitados", "1 sponsor", "Analytics básicos", "Mapa limpio"],
-      badge: "Recomendado",
-      trialCopy: "7 dias gratis",
-    },
-    creator_pro: {
-      name: "Creator Pro",
-      price: "$79/mes",
-      description: "Sponsor hub y analytics más vendible.",
-      features: ["Videos ilimitados", "Competitor analytics", "Sponsor hub", "Sync prioritaria"],
-      badge: "Más vendido",
-      trialCopy: "7 dias gratis",
-    },
-    agency: {
-      name: "Agency",
-      price: "$199/mes",
-      description: "Para agencias y marcas con portafolios.",
-      features: ["Portafolio de canales", "API", "Portal de marcas", "Soporte dedicado"],
-      badge: "Próximamente",
-      trialCopy: "",
-    },
-  },
-  en: {
-    free: {
-      name: "Free",
-      price: "$0",
-      description: "Conversion hook to validate the channel and open the map.",
-      features: ["1 channel", "Up to 50 videos", "Public map", "Basic import"],
-      trialCopy: "Includes a 7-day trial",
-    },
-    creator: {
-      name: "Creator",
-      price: "$29/mo",
-      description: "Core plan for individual creators.",
-      features: ["Unlimited videos", "1 sponsor", "Basic analytics", "Clean map"],
-      badge: "Recommended",
-      trialCopy: "7 days included",
-    },
-    creator_pro: {
-      name: "Creator Pro",
-      price: "$79/mo",
-      description: "Sponsor hub and stronger analytics.",
-      features: ["Unlimited videos", "Competitor analytics", "Sponsor hub", "Priority sync"],
-      badge: "Best seller",
-      trialCopy: "7 days included",
-    },
-    agency: {
-      name: "Agency",
-      price: "$199/mo",
-      description: "For agencies and brands with portfolios.",
-      features: ["Channel portfolio", "API", "Brand portal", "Dedicated support"],
-      badge: "Coming soon",
-      trialCopy: "",
-    },
-  },
 };
 
 const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
@@ -192,36 +114,43 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
         eyebrow: "Flujo del canal",
         title: "Convierte tu canal en una experiencia viva.",
         description: "Setup, importación, analítica, sponsors y pago en un recorrido corto y claro.",
+        icon: AirplaneTilt,
       },
       1: {
         eyebrow: "Tu canal",
         title: "Conecta el canal que vas a publicar.",
         description: "en 5 minutos, tienes tu mapa interactivo.",
+        icon: YoutubeLogo,
       },
       2: {
         eyebrow: "Importación",
         title: "Filtramos y ordenamos tu catálogo.",
         description: "La vista muestra datos de ejemplo mientras el loader ejecuta la importación real.",
+        icon: UploadSimple,
       },
       3: {
         eyebrow: "Analítica por país",
         title: "Lee dónde rinde mejor tu contenido.",
         description: "Detecta países fuertes, huecos y destinos con mayor tracción.",
+        icon: ChartLineUp,
       },
       4: {
         eyebrow: "Brand deals",
-        title: "Muestras tus sponsors en tu mapa",
-        description: "Genera mas dinero promocionando empresas.",
+        title: "Muestra tus sponsors en tu mapa",
+        description: "Genera más ingresos promocionando empresas.",
+        icon: Handshake,
       },
       5: {
         eyebrow: "Señal de audiencia",
         title: "Tu audiencia vota el siguiente destino.",
         description: "Una capa simple para convertir demanda en planificación.",
+        icon: UsersThree,
       },
       6: {
         eyebrow: "Planes",
         title: "Elige tu plan y empieza la prueba de 7 días.",
         description: "Todos los planes incluyen el trial y luego cobran el plan elegido.",
+        icon: CreditCard,
       },
     },
     footerBack: "Atrás",
@@ -235,22 +164,21 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
       { title: "Mapea países", copy: "Asocia cada video válido a un país real y explorable." },
       { title: "Monetiza destinos", copy: "Activa sponsors y votación sin romper el flujo." },
     ],
-    importStatusEyebrow: "Analítica en progreso",
-    importStatusTitle: "Tu rendimiento ya se está preparando.",
-    importStatusBody: "Filtramos, ubicamos y ordenamos tus videos para resaltar qué destinos empujan mejor tu canal.",
     importMetricCountries: "Países",
-    importMetricMapped: "Videos mapeados",
+    importMetricMapped: "Videos",
     importMetricViews: "Views",
     analyticsCountryPerformance: "Rendimiento por país",
     metricCountries: "Países",
-    metricMappedVideos: "Videos mapeados",
+    metricMappedVideos: "Videos",
     metricViews: "Views",
     sponsorsEyebrow: "Sponsors",
-    sponsorsDescription: "Placements por destino y cards patrocinadas por país.",
-    sponsorsConnect: "Conectar",
+    sponsorsDescription: "Integraciones por destino y tarjetas patrocinadas por país.",
+    sponsorsConnect: "Ejemplo de integración",
     fanVoteEyebrow: "Voto fan",
     fanVoteTitle: "Tu audiencia decide el próximo país.",
     fanVoteDescription: "Convierte interés en señal y la señal en calendario de viaje.",
+    fanVoteVotesLabel: "votos",
+    fanVoteTotalLabel: "Total de votos",
     accountSetup: "Perfil final",
     accountDisplayNamePlaceholder: "Nombre público",
     accountEmailPlaceholder: "Email",
@@ -268,12 +196,12 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
     creatingAccount: "Creando cuenta...",
     preparingCheckout: "Abriendo Polar...",
     startTrial: "Empezar prueba de 7 días",
-    payWithPolar: "Continuar con Polar",
+    payWithPolar: "Crear mi Mapa",
     testWithoutPayment: "TEST · Sin pago",
     testWithoutPaymentHint: "Usa este modo para QA interno. Crea cuenta trialing sin checkout y sigue al procesamiento.",
     testWithoutPaymentAction: "Procesar sin pago (TEST)",
     testWithoutPaymentProcessing: "Preparando modo test...",
-    trialBadge: "7 dias gratis",
+    trialBadge: "7 días gratis",
     trialNote: "Todos los planes arrancan con una prueba de 7 días.",
     processingPhrases: [
       "Conectando tu canal...",
@@ -283,7 +211,6 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
       "Afinando sponsors y crecimiento...",
     ],
     unavailablePlanBadge: "Próximamente",
-    unavailablePlanCopy: "No disponible por el momento.",
     importRealStatsNote: "Videos y views vienen del canal real vía YouTube Data API oficial. Países se mantienen demo hasta completar importación.",
     importDemoStatsNote: "La vista usa ejemplo visual. El loader ejecuta la importación real después de Polar.",
     acceptTermsLabel: "Acepto los Términos y la Política de Privacidad de TravelYourMap, y reconozco que el producto usa YouTube API Services.",
@@ -308,36 +235,43 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
         eyebrow: "Channel workflow",
         title: "Turn your channel into a living experience.",
         description: "Setup, import, analytics, sponsors, and payment in one short flow.",
+        icon: AirplaneTilt,
       },
       1: {
         eyebrow: "Your channel",
         title: "Connect the channel you want to publish.",
         description: "Name, email, and a real channel URL are enough to continue.",
+        icon: YoutubeLogo,
       },
       2: {
         eyebrow: "Import",
         title: "We filter and sort your catalog.",
         description: "This view uses example data while the loader runs the real import.",
+        icon: UploadSimple,
       },
       3: {
         eyebrow: "Country analytics",
         title: "See where your content performs best.",
         description: "Find strong countries, gaps, and destinations with momentum.",
+        icon: ChartLineUp,
       },
       4: {
         eyebrow: "Brand deals",
         title: "Turn destinations into inventory.",
         description: "Brands attach to countries and routes, not generic placement.",
+        icon: Handshake,
       },
       5: {
         eyebrow: "Audience signal",
         title: "Let your audience vote next.",
         description: "A simple layer that turns demand into planning.",
+        icon: UsersThree,
       },
       6: {
         eyebrow: "Plans",
         title: "Choose a plan and start the 7-day trial.",
         description: "Every plan begins with the trial and then bills the selected tier.",
+        icon: CreditCard,
       },
     },
     footerBack: "Back",
@@ -351,15 +285,12 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
       { title: "Map countries", copy: "Attach each valid video to a real, explorable country." },
       { title: "Monetize destinations", copy: "Unlock sponsors and audience voting without breaking flow." },
     ],
-    importStatusEyebrow: "Analytics in progress",
-    importStatusTitle: "Your performance is being prepared.",
-    importStatusBody: "We filter, map, and sort your videos so the best-performing destinations are easier to see.",
     importMetricCountries: "Countries",
-    importMetricMapped: "Mapped videos",
+    importMetricMapped: "Videos",
     importMetricViews: "Views",
     analyticsCountryPerformance: "Country performance",
     metricCountries: "Countries",
-    metricMappedVideos: "Mapped videos",
+    metricMappedVideos: "Videos",
     metricViews: "Views",
     sponsorsEyebrow: "Sponsors",
     sponsorsDescription: "Destination placements and sponsored country cards.",
@@ -367,6 +298,8 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
     fanVoteEyebrow: "Fan vote",
     fanVoteTitle: "Your audience picks the next country.",
     fanVoteDescription: "Turn interest into signal and signal into your travel calendar.",
+    fanVoteVotesLabel: "votes",
+    fanVoteTotalLabel: "Total votes",
     accountSetup: "Final profile",
     accountDisplayNamePlaceholder: "Display name",
     accountEmailPlaceholder: "Email",
@@ -384,7 +317,7 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
     creatingAccount: "Creating account...",
     preparingCheckout: "Opening Polar...",
     startTrial: "Start 7-day trial",
-    payWithPolar: "Continue with Polar",
+    payWithPolar: "Create my Map",
     testWithoutPayment: "TEST · No payment",
     testWithoutPaymentHint: "Use this for internal QA. It creates a trialing account without checkout and continues to processing.",
     testWithoutPaymentAction: "Process without payment (TEST)",
@@ -399,7 +332,6 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
       "Sharpening sponsors and growth...",
     ],
     unavailablePlanBadge: "Coming soon",
-    unavailablePlanCopy: "Not available for now.",
     importRealStatsNote: "Videos and views come from the real channel via the official YouTube Data API. Countries stay demo until import finishes.",
     importDemoStatsNote: "This view uses visual sample data while real import runs after Polar.",
     acceptTermsLabel: "I accept TravelYourMap Terms and Privacy Policy, and acknowledge that this product uses YouTube API Services.",
@@ -415,14 +347,14 @@ const sponsorCards = [
 ] as const;
 
 const visiblePlans = PLAN_DEFINITIONS.filter((plan) => plan.slug !== "free");
-const unavailablePlanSlugs = new Set<PlanDefinition["slug"]>(["agency"]);
 const showTestNoPaymentPlan = process.env.NEXT_PUBLIC_ENABLE_TEST_NO_PAYMENT === "1";
 
 export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; locale: OnboardingLocale }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showComingSoon } = useComingSoon();
   const [step, setStep] = useState<OnboardingStep>(0);
-  const [selectedPlan, setSelectedPlan] = useState<string>("creator_pro");
+  const [selectedPlan, setSelectedPlan] = useState<string>(() => resolveCanonicalPlanSlug(searchParams.get("plan") || "") || "creator_pro");
   const [channelDraft, setChannelDraft] = useState<ChannelDraft>(() => ({
     displayName: isDemoMode ? DEMO_USER.displayName : "",
     email: isDemoMode ? DEMO_USER.email : "",
@@ -435,11 +367,17 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
   const [activationState, setActivationState] = useState<ActivationState>("idle");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const didHydrateQueryState = useRef(false);
+  const contentScrollRef = useRef<HTMLElement>(null);
 
   const copy = onboardingCopy[locale];
   const analytics = DEMO_ANALYTICS as ChannelAnalytics;
+  const selectedPlanAvailable = PLAN_DEFINITIONS.some((plan) => plan.slug === selectedPlan && plan.available);
 
   const currentMeta = copy.stepMeta[step];
+
+  useEffect(() => {
+    contentScrollRef.current?.scrollTo({ top: 0 });
+  }, [step]);
 
   useEffect(() => {
     if (didHydrateQueryState.current) return;
@@ -504,7 +442,7 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
       return;
     }
 
-    if (unavailablePlanSlugs.has(selectedPlan as PlanDefinition["slug"])) {
+    if (!PLAN_DEFINITIONS.some((plan) => plan.slug === selectedPlan && plan.available)) {
       setStepError(copy.planUnavailableError);
       return;
     }
@@ -575,7 +513,7 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
       return;
     }
 
-    if (unavailablePlanSlugs.has(selectedPlan as PlanDefinition["slug"])) {
+    if (!PLAN_DEFINITIONS.some((plan) => plan.slug === selectedPlan && plan.available)) {
       setStepError(copy.planUnavailableError);
       return;
     }
@@ -787,23 +725,34 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
       })}
     </div>
   );
+  const StepIcon = currentMeta.icon;
 
   return (
-    <main className="relative min-h-[100dvh] overflow-x-hidden bg-black text-[#f1f1f1]">
-      <div className="pointer-events-none fixed inset-0 bg-black" />
+    <main className="relative grid h-[100dvh] grid-rows-[71px_minmax(0,1fr)_98px] overflow-hidden bg-[#0d0f10] text-[#f1f1f1] md:block md:min-h-[100dvh] md:overflow-x-hidden md:overflow-y-visible">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_8%,rgba(255,255,255,0.035),transparent_28%),linear-gradient(180deg,#0d0f10_0%,#0a0c0d_100%)]" />
 
-      <header className="pointer-events-none fixed inset-x-0 top-0 z-40 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-4">
-        <div className="pointer-events-auto mx-auto rounded-[22px] border border-white/10 bg-[#181818]/96 p-2.5 shadow-[0_18px_50px_-30px_rgba(0,0,0,0.95)] backdrop-blur md:hidden">
-          <div className="flex items-center justify-between gap-3 px-1">
-            <Link href="/" className="min-w-0" aria-label="TravelYourMap">
-              <p className="tym-overline truncate text-[#aaaaaa]">{copy.topbarEyebrow}</p>
-              <p className="truncate text-[14px] font-medium text-[#f3eee7]">{copy.topbarTitle}</p>
+      <header className="pointer-events-none relative px-[13px] md:fixed md:inset-x-0 md:top-0 md:z-40 md:px-4 md:pt-[max(0.75rem,env(safe-area-inset-top))]">
+        <div className="pointer-events-auto relative mx-auto grid h-[71px] grid-cols-[44px_minmax(0,1fr)_112px] items-center gap-2 md:hidden">
+          <button
+            type="button"
+            onClick={handleBack}
+            disabled={activationState !== "idle"}
+            className="inline-flex h-11 w-10 items-center justify-center rounded-[14px] border border-white/10 bg-[linear-gradient(145deg,#2a2c2e,#202224)] text-[#f3f3f3] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_12px_30px_-24px_rgba(0,0,0,0.95)] transition-[transform,background-color] duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6552]/70 disabled:opacity-50"
+            aria-label={copy.footerBack}
+          >
+            <ArrowLeft size={24} weight="regular" aria-hidden="true" />
+          </button>
+
+          <div className="absolute top-1/2 left-1/2 flex w-[190px] -translate-x-1/2 -translate-y-1/2 flex-col items-center text-center">
+            <Link href="/" className="min-w-0 text-center" aria-label="TravelYourMap">
+              <p className="truncate text-[11px] leading-4 font-normal tracking-[-0.01em] text-[#bebdc0]">{copy.topbarTitle}</p>
+              <p className="truncate text-[9px] leading-3 font-semibold tracking-[0.18em] text-[#a8a8aa] uppercase">{copy.topbarEyebrow}</p>
             </Link>
-          </div>
-          <div className="mt-2 flex items-center justify-between gap-3 rounded-[14px] bg-white/[0.05] px-3 py-2" aria-live="polite">
-            <span className="truncate text-[12px] font-medium text-[#f3eee7]">{copy.stepLabels[step]?.label}</span>
-            <span className="shrink-0 text-[11px] tabular-nums text-[#aaaaaa]">
-              {copy.footerStep} {step + 1} {copy.footerOf} {copy.stepLabels.length}
+            <span className={cn(
+              "block max-w-full truncate text-[15px] leading-[18px] font-medium tracking-[-0.02em] tabular-nums",
+              step === 6 ? "text-[#ff8173]" : "text-[#f5f5f5]"
+            )} aria-live="polite">
+              {copy.stepLabels[step]?.label} · {step + 1} {copy.footerOf} {copy.stepLabels.length}
             </span>
           </div>
         </div>
@@ -819,31 +768,48 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
         </div>
       </header>
 
-      <section className="pointer-events-none relative z-20 flex min-h-[100dvh] items-start justify-center px-3 pb-[calc(6.75rem+env(safe-area-inset-bottom))] pt-[8.25rem] sm:px-4 md:items-center md:pb-28 md:pt-32">
-        <div className="w-full max-w-[1040px]">
+      <section
+        ref={contentScrollRef}
+        className={cn(
+          "relative min-h-0 overscroll-contain",
+          step === 6 ? "overflow-y-auto pb-4" : "overflow-hidden",
+          "md:pointer-events-none md:z-20 md:flex md:min-h-[100dvh] md:items-center md:justify-center md:overflow-visible md:px-4 md:pb-28 md:pt-32"
+        )}
+      >
+        <div className="h-full w-full max-w-[1040px] md:h-auto">
           <AnimatePresence mode="wait">
             <motion.div
               key={step}
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -18 }}
-              transition={{ duration: 0.35 }}
-              className="pointer-events-auto rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(25,28,31,0.96),rgba(18,21,23,0.92))] shadow-[0_36px_100px_-52px_rgba(0,0,0,0.92)] backdrop-blur sm:rounded-[28px]"
+              onAnimationComplete={() => contentScrollRef.current?.scrollTo({ top: 0 })}
+              transition={{ type: "spring", stiffness: 100, damping: 20 }}
+              data-onboarding-step={step + 1}
+              className={cn(
+                "pointer-events-auto rounded-t-[28px] border border-b-0 border-white/[0.12] bg-[radial-gradient(circle_at_70%_20%,rgba(255,255,255,0.025),transparent_36%),linear-gradient(180deg,rgba(20,23,25,0.98),rgba(15,18,20,0.98))] shadow-[inset_0_1px_0_rgba(255,255,255,0.035)]",
+                step === 6 ? "min-h-full overflow-visible" : "h-full overflow-hidden",
+                "md:h-auto md:min-h-0 md:rounded-[28px] md:border-b md:bg-[linear-gradient(180deg,rgba(25,28,31,0.96),rgba(18,21,23,0.92))] md:shadow-[0_36px_100px_-52px_rgba(0,0,0,0.92)] md:backdrop-blur"
+              )}
             >
-              <div className="border-b border-white/10 px-4 py-5 text-left sm:px-8 sm:text-center">
-                <p className="tym-overline text-[#aaaaaa]">{currentMeta.eyebrow}</p>
-                <h1 className="mx-auto mt-2 max-w-3xl text-balance text-[26px] leading-[30px] font-bold tracking-tight text-[#f1f1f1] sm:text-[38px] sm:leading-[42px]">
+              <div className="px-[30px] pt-[33px] text-center md:border-b md:border-white/10 md:px-8 md:py-5">
+                <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(255,90,61,0.28)] bg-[rgba(255,90,61,0.12)] text-[#ff8b78]" aria-hidden="true">
+                  <StepIcon size={22} weight="duotone" />
+                </div>
+                <p className="text-[11px] leading-4 font-semibold tracking-[0.2em] text-[#a9a9aa] uppercase md:tym-overline md:text-[#aaaaaa]">{currentMeta.eyebrow}</p>
+                <h1 className="mx-auto mt-2 max-w-[290px] text-[28px] leading-[32px] font-bold tracking-[-0.035em] text-[#f4f4f4] md:max-w-3xl md:text-balance md:text-[38px] md:leading-[42px] md:tracking-tight">
                   {currentMeta.title}
                 </h1>
-                <p className="onboarding-description mx-auto mt-3 max-w-2xl text-[14px] leading-6">{currentMeta.description}</p>
+                <p className="mx-auto mt-3 max-w-[320px] text-[14px] leading-5 font-normal tracking-[-0.01em] text-[#ff8173] md:max-w-2xl md:text-[14px] md:leading-6 md:text-[#b7b0a6]">{currentMeta.description}</p>
               </div>
 
-              <div className="px-4 py-5 sm:px-8 sm:py-8">
+              <div className="px-[30px] pt-[25px] pb-3 md:px-8 md:py-8">
                 {renderStepBody(step, {
                   isDemoMode,
                   analytics,
                   selectedPlan,
                   setSelectedPlan,
+                  onUnavailablePlanSelected: () => showComingSoon("agency_plan", "onboarding_plans"),
                   validateChannelDraft,
                   locale,
                   copy,
@@ -869,12 +835,34 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
         </div>
       </section>
 
-      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-4 md:bottom-4 md:pb-0">
-        <div className="pointer-events-auto mx-auto grid max-w-[1040px] grid-cols-2 items-center gap-2 rounded-[22px] border border-white/10 bg-[#181818]/96 p-2.5 shadow-[0_-18px_60px_-30px_rgba(0,0,0,0.95)] backdrop-blur sm:flex sm:justify-between sm:rounded-full sm:px-4 sm:py-3">
+      <div className="relative border-t border-white/[0.12] bg-[#0b0d0e] px-[13px] pt-[13px] md:hidden">
+        <Button
+          type="button"
+          onClick={handleNext}
+          className="h-[50px] w-full rounded-[7px] border-0 bg-[linear-gradient(110deg,#ff5a46,#ff654d)] text-[16px] font-semibold tracking-[-0.02em] text-white shadow-none hover:bg-[linear-gradient(110deg,#ff5a46,#ff654d)] disabled:pointer-events-auto"
+          disabled={
+            activationState !== "idle" ||
+            (step === 1 && channelValidationState === "checking") ||
+            (step === 6 && (!selectedPlanAvailable || (!isDemoMode && !acceptTerms)))
+          }
+        >
+          {activationState === "registering"
+            ? copy.creatingAccount
+            : activationState === "checkout"
+              ? copy.preparingCheckout
+              : step === 6
+                ? copy.payWithPolar
+                : copy.footerContinue}
+        </Button>
+        <span aria-hidden="true" className="mx-auto mt-[23px] block h-[5px] w-[137px] rounded-full bg-[#f3f3f3]" />
+      </div>
+
+      <div className="pointer-events-none fixed inset-x-0 bottom-4 z-40 hidden px-4 md:block">
+        <div className="pointer-events-auto mx-auto flex max-w-[1040px] items-center justify-between gap-2 rounded-full border border-white/10 bg-[#181818]/96 px-4 py-3 shadow-[0_-18px_60px_-30px_rgba(0,0,0,0.95)] backdrop-blur">
           <Button
             type="button"
             variant="secondary"
-            className="w-full disabled:pointer-events-auto sm:w-auto"
+            className="disabled:pointer-events-auto"
             onClick={(event) => {
               event.preventDefault();
               event.stopPropagation();
@@ -884,14 +872,18 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
           >
             {copy.footerBack}
           </Button>
-          <p className="hidden text-[12px] text-[#aaaaaa] sm:block">
+          <p className="text-[12px] text-[#aaaaaa]">
             {copy.footerStep} {step + 1} {copy.footerOf} {copy.stepLabels.length}
           </p>
           <Button
             type="button"
             onClick={handleNext}
-            className="w-full disabled:pointer-events-auto sm:w-auto"
-            disabled={activationState !== "idle" || (step === 1 && channelValidationState === "checking")}
+            className="disabled:pointer-events-auto"
+            disabled={
+              activationState !== "idle" ||
+              (step === 1 && channelValidationState === "checking") ||
+              (step === 6 && (!selectedPlanAvailable || (!isDemoMode && !acceptTerms)))
+            }
           >
             {activationState === "registering"
               ? copy.creatingAccount
@@ -914,6 +906,7 @@ function renderStepBody(
     analytics: ChannelAnalytics;
     selectedPlan: string;
     setSelectedPlan: (value: string) => void;
+    onUnavailablePlanSelected: () => void;
     validateChannelDraft: () => Promise<boolean>;
     locale: OnboardingLocale;
     copy: OnboardingCopy;
@@ -937,16 +930,18 @@ function renderStepBody(
     ] as const;
 
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-2 md:grid-cols-2 md:gap-4 lg:grid-cols-3">
         {featureCards.map((feature) => {
           const Icon = feature.icon;
           return (
-            <div key={feature.title} className="flex flex-col items-start rounded-[22px] border border-white/10 bg-[#212121] p-5 text-left sm:items-center sm:rounded-[28px] sm:p-6 sm:text-center">
-              <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[rgba(255, 90, 61,0.14)] text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                <Icon size={30} weight="regular" />
+            <div key={feature.title} className="grid grid-cols-[44px_minmax(0,1fr)] items-center gap-3 rounded-[18px] border border-white/10 bg-[#212121] p-3 text-left md:flex md:flex-col md:items-center md:rounded-[28px] md:p-6 md:text-center">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(255, 90, 61,0.14)] text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] md:mb-5 md:h-16 md:w-16">
+                <Icon size={24} weight="regular" className="md:h-[30px] md:w-[30px]" />
               </div>
-              <p className="text-[16px] leading-[22px] font-medium text-[#f1f1f1]">{feature.title}</p>
-              <p className="onboarding-description mt-2 text-[14px] leading-6">{feature.copy}</p>
+              <div>
+                <p className="text-[14px] leading-5 font-medium text-[#f1f1f1] md:text-[16px] md:leading-[22px]">{feature.title}</p>
+                <p className="onboarding-description mt-2 hidden text-[14px] leading-6 md:block">{feature.copy}</p>
+              </div>
             </div>
           );
         })}
@@ -981,19 +976,10 @@ function renderStepBody(
     const countries = new Set(DEMO_VIDEO_LOCATIONS.map((video) => video.country_code)).size;
     const views = ctx.channelValidationMetrics?.totalViews ?? DEMO_VIDEO_LOCATIONS.reduce((sum, video) => sum + Number(video.view_count || 0), 0);
     return (
-      <div className="space-y-5">
-        <div className="rounded-[28px] border border-white/10 bg-[#212121] p-5">
-          <div className="mx-auto max-w-3xl text-center">
-            <p className="tym-overline text-[#aaaaaa]">{ctx.copy.importStatusEyebrow}</p>
-            <p className="mt-2 text-[22px] leading-8 font-semibold text-[#f1f1f1]">{ctx.copy.importStatusTitle}</p>
-            <p className="onboarding-description mt-3 text-[14px] leading-6">{ctx.copy.importStatusBody}</p>
-          </div>
-          <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <StudioMetric label={ctx.copy.importMetricCountries} value={countries} />
-            <StudioMetric label={ctx.copy.importMetricMapped} value={mapped} />
-            <StudioMetric label={ctx.copy.importMetricViews} value={views} />
-          </div>
-        </div>
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <StudioMetric label={ctx.copy.importMetricCountries} value={countries} />
+        <StudioMetric label={ctx.copy.importMetricMapped} value={mapped} />
+        <StudioMetric label={ctx.copy.importMetricViews} value={views} />
       </div>
     );
   }
@@ -1001,9 +987,9 @@ function renderStepBody(
   if (step === 3) {
     return (
       <div className="grid gap-4 lg:grid-cols-[1.25fr_0.75fr]">
-        <div className="rounded-[28px] border border-white/10 bg-[#212121] p-5">
+        <div className="rounded-[22px] border border-white/10 bg-[#212121] p-4 md:rounded-[28px] md:p-5">
           <p className="tym-overline text-[#aaaaaa]">{ctx.copy.analyticsCountryPerformance}</p>
-          <div className="mt-5 space-y-4">
+          <div className="mt-4 space-y-3 md:mt-5 md:space-y-4">
             {ctx.analytics.top_countries.slice(0, 5).map((country, index) => (
               <div key={country.country_name}>
                 <div className="mb-2 flex items-center justify-between">
@@ -1019,7 +1005,7 @@ function renderStepBody(
             ))}
           </div>
         </div>
-        <div className="space-y-3">
+        <div className="grid grid-cols-3 gap-2 lg:block lg:space-y-3">
           <StudioMetric label={ctx.copy.metricCountries} value={ctx.analytics.total_countries} />
           <StudioMetric label={ctx.copy.metricMappedVideos} value={ctx.analytics.total_mapped_videos} />
           <StudioMetric label={ctx.copy.metricViews} value={ctx.analytics.total_views} />
@@ -1030,16 +1016,16 @@ function renderStepBody(
 
   if (step === 4) {
     return (
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 md:gap-4 lg:grid-cols-4">
         {sponsorCards.map((sponsor) => (
-          <div key={sponsor.brand} className="flex h-full flex-col items-center rounded-[28px] border border-white/10 bg-[#212121] p-5 text-center">
-            <div className="mb-4 aspect-video overflow-hidden rounded-2xl border border-white/10 bg-[#111111]">
+          <div key={sponsor.brand} className="flex h-full flex-col items-center rounded-[18px] border border-white/10 bg-[#212121] p-3 text-center md:rounded-[28px] md:p-5">
+            <div className="mb-2 flex h-14 w-full items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[#111111] md:mb-4 md:aspect-video md:h-auto md:rounded-2xl">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={sponsor.image} alt={sponsor.brand} className="h-full w-full object-contain p-4" />
+              <img src={sponsor.image} alt={sponsor.brand} className="h-full w-full object-contain p-2 md:p-4" />
             </div>
-            <p className="text-[16px] font-medium text-[#f1f1f1]">{sponsor.brand}</p>
-            <p className="onboarding-description mt-2 text-[13px] leading-5">{ctx.copy.sponsorsDescription}</p>
-            <span className="tym-btn-secondary mt-5 w-full border border-black/10 bg-white text-black hover:bg-white hover:text-black">
+            <p className="text-[13px] font-medium text-[#f1f1f1] md:text-[16px]">{sponsor.brand}</p>
+            <p className="onboarding-description mt-2 hidden text-[13px] leading-5 md:block">{ctx.copy.sponsorsDescription}</p>
+            <span className="mt-5 hidden min-h-10 w-full items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-4 text-[12px] font-semibold text-[#c7c7c7] md:inline-flex">
               {ctx.copy.sponsorsConnect}
             </span>
           </div>
@@ -1049,26 +1035,31 @@ function renderStepBody(
   }
 
   if (step === 5) {
+    const fanVoteOptions = ctx.locale === "en"
+      ? [{ country: "Japan", votes: 42 }, { country: "Mexico", votes: 31 }, { country: "Italy", votes: 27 }]
+      : [{ country: "Japón", votes: 42 }, { country: "México", votes: 31 }, { country: "Italia", votes: 27 }];
+    const totalVotes = fanVoteOptions.reduce((total, option) => total + option.votes, 0);
+
     return (
       <div className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-[28px] border border-[rgba(255, 90, 61,0.24)] bg-[rgba(255, 90, 61,0.12)] p-6">
+        <div className="hidden rounded-[28px] border border-[rgba(255, 90, 61,0.24)] bg-[rgba(255, 90, 61,0.12)] p-6 text-center md:block lg:text-left">
           <p className="tym-overline text-[#ff8b8b]">{ctx.copy.fanVoteEyebrow}</p>
           <h3 className="mt-2 text-[26px] leading-[30px] font-bold text-[#f1f1f1]">{ctx.copy.fanVoteTitle}</h3>
-          <p className="onboarding-description mt-3 max-w-xl text-[14px] leading-6">{ctx.copy.fanVoteDescription}</p>
+          <p className="onboarding-description mx-auto mt-3 max-w-xl text-[14px] leading-6 lg:mx-0">{ctx.copy.fanVoteDescription}</p>
         </div>
         <div className="space-y-3">
-          {[
-            ["Japan", 42],
-            ["Mexico", 31],
-            ["Italy", 27],
-          ].map(([country, score]) => (
-            <div key={country} className="rounded-[28px] border border-white/10 bg-[#212121] p-4">
+          <div className="flex items-center justify-between rounded-[14px] border border-white/10 bg-white/[0.04] px-3 py-2">
+            <span className="text-[12px] font-medium text-[#aaaaaa]">{ctx.copy.fanVoteTotalLabel}</span>
+            <span className="text-[12px] font-semibold text-[#f1f1f1]">{totalVotes} {ctx.copy.fanVoteVotesLabel}</span>
+          </div>
+          {fanVoteOptions.map(({ country, votes }) => (
+            <div key={country} className="rounded-[18px] border border-white/10 bg-[#212121] p-3 md:rounded-[28px] md:p-4">
               <div className="mb-2 flex items-center justify-between">
                 <span className="text-[14px] font-medium text-[#f1f1f1]">{country}</span>
-                <span className="text-[12px] text-[#aaaaaa]">{score}%</span>
+                <span className="text-[12px] text-[#aaaaaa]">{votes} {ctx.copy.fanVoteVotesLabel} · {votes}%</span>
               </div>
               <div className="tym-progress">
-                <span style={{ width: `${score}%` }} />
+                <span style={{ width: `${votes}%` }} />
               </div>
             </div>
           ))}
@@ -1078,80 +1069,120 @@ function renderStepBody(
   }
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="mx-0 space-y-[11px] md:space-y-4">
+      <div className="grid gap-[13px] md:grid-cols-2 md:gap-4 lg:grid-cols-3">
         {visiblePlans.map((plan) => {
           const active = ctx.selectedPlan === plan.slug;
-          const localizedPlan = localizedPlanDetails[ctx.locale][plan.slug];
-          const unavailable = unavailablePlanSlugs.has(plan.slug);
-          const badgeLabel = unavailable ? ctx.copy.unavailablePlanBadge : localizedPlan.badge;
+          const localizedPlan = getLocalizedPlan(plan, ctx.locale);
+          const unavailable = !plan.available;
+          const badgeLabel = unavailable ? ctx.copy.unavailablePlanBadge : plan.badge;
 
           return (
             <button
               key={plan.slug}
               type="button"
               onClick={() => {
-                if (!unavailable) {
-                  ctx.setSelectedPlan(plan.slug);
-                  posthog.capture("onboarding_plan_selected", {
-                    plan: plan.slug,
-                  });
+                ctx.setSelectedPlan(plan.slug);
+                posthog.capture("onboarding_plan_selected", {
+                  plan: plan.slug,
+                  available: !unavailable,
+                });
+                if (unavailable) {
+                  ctx.onUnavailablePlanSelected();
                 }
               }}
-              disabled={unavailable}
+              aria-pressed={active}
               className={cn(
-                "h-full rounded-[28px] border p-5 text-left transition-colors",
-                unavailable && "cursor-not-allowed border-white/10 bg-[#1b1b1b] opacity-70",
-                !unavailable && active && "border-[rgba(255, 90, 61,0.36)] bg-[rgba(255, 90, 61,0.12)]",
-                !unavailable && !active && "border-white/10 bg-[#212121] hover:bg-[#272727]"
+                "relative h-full rounded-[24px] border-[1.5px] px-[16px] py-[17px] text-left transition-[transform,border-color,background-color] duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] active:scale-[0.995] md:rounded-[28px] md:border md:p-5",
+                unavailable && !active && "border-white/10 bg-[#1b1b1b] opacity-70 hover:border-white/20 hover:opacity-90",
+                unavailable && active && "border-[#ff6c5b] bg-[#15181a] opacity-90",
+                !unavailable && active && "min-h-[243px] border-[#ff6c5b] bg-[#15181a] md:min-h-0 md:border-[rgba(255,90,61,0.36)] md:bg-[rgba(255,90,61,0.12)]",
+                !unavailable && !active && "min-h-[140px] border-white/[0.14] bg-[#171a1c] hover:bg-[#1c1f21] md:min-h-0 md:border-white/10 md:bg-[#212121] md:hover:bg-[#272727]"
               )}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="tym-overline text-[#aaaaaa]">{localizedPlan.name}</p>
-                  <p className="mt-2 text-[24px] leading-[26px] font-bold text-[#f1f1f1]">{localizedPlan.price}</p>
+              <div className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-[12px] md:block">
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "mt-0.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#4a4d50]",
+                    active && "border-[#424548] bg-[#1c1f21]"
+                  )}
+                >
+                  {active ? <span className="h-3 w-3 rounded-full bg-[#ff624f] shadow-[0_0_0_2px_rgba(255,98,79,0.12)]" /> : null}
+                </span>
+
+                <div className="min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="text-[12px] leading-4 font-semibold tracking-[0.2em] text-[#a9a9aa] uppercase md:tym-overline md:text-[#aaaaaa]">{localizedPlan.name}</p>
+                      <p className="mt-1 text-[24px] leading-7 font-bold tracking-[-0.035em] text-[#f4f4f4] md:mt-2 md:text-[24px] md:leading-[26px]">{localizedPlan.price}</p>
+                    </div>
+                    {badgeLabel ? (
+                      <>
+                        <span className="mt-0.5 inline-flex min-h-7 items-center rounded-full bg-white/[0.08] px-3 text-[10px] leading-none font-medium tracking-[0.15em] text-[#bebdc0] uppercase md:hidden">
+                          {badgeLabel}
+                        </span>
+                        <Badge className="hidden md:inline-flex" variant={unavailable ? "outline" : "secondary"}>{badgeLabel}</Badge>
+                      </>
+                    ) : null}
+                  </div>
+
+                  <p className="mt-[11px] text-[14px] leading-[21px] font-normal tracking-[-0.01em] text-[#ff8173] md:mt-3 md:text-[13px] md:leading-5 md:text-[#b7b0a6]">{localizedPlan.description}</p>
+
+                  {localizedPlan.trialLabel && !unavailable ? <p className={cn("mt-[12px] text-[14px] leading-5 font-medium text-[#ff8173] md:mt-3 md:block md:text-[12px] md:text-[#ff6a6a]", !active && "hidden")}>{localizedPlan.trialLabel}</p> : null}
+
+                  <ul className={cn("mt-[11px] grid grid-flow-col grid-cols-[0.78fr_1.22fr] grid-rows-2 gap-x-3 gap-y-[8px] border-t border-white/[0.13] pt-[12px] text-[10.5px] leading-4 tracking-[-0.015em] text-[#dedede] md:mt-4 md:block md:space-y-1.5 md:border-0 md:pt-0 md:text-[12px] md:leading-5 md:tracking-normal", !active && "hidden md:block")}>
+                    {localizedPlan.features.map((feature) => (
+                      <li key={`${plan.slug}-${feature}`} className="flex items-start gap-[8px]">
+                        <span className="mt-[5px] inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#f1f1f1]" />
+                        <span className="whitespace-nowrap md:whitespace-normal">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                {badgeLabel ? <Badge variant={unavailable ? "outline" : "secondary"}>{badgeLabel}</Badge> : null}
               </div>
-              <p className="onboarding-description mt-3 text-[13px] leading-5">{localizedPlan.description}</p>
-              {localizedPlan.trialCopy ? <p className="mt-3 text-[12px] font-medium text-[#ff6a6a]">{localizedPlan.trialCopy}</p> : null}
-              <ul className="mt-4 space-y-1.5 text-[12px] leading-5 text-[#d5d5d5]">
-                {localizedPlan.features.map((feature) => (
-                  <li key={`${plan.slug}-${feature}`} className="flex items-start gap-2">
-                    <span className="mt-[6px] inline-block h-1.5 w-1.5 shrink-0 rounded-full bg-[#f1f1f1]" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              {unavailable ? <p className="mt-4 text-[12px] font-medium text-[#ff8b8b]">{ctx.copy.unavailablePlanCopy}</p> : null}
             </button>
           );
         })}
       </div>
-      <div className="rounded-2xl border border-[rgba(255, 90, 61,0.16)] bg-[rgba(255, 90, 61,0.08)] px-4 py-3 text-[13px] text-[#f1f1f1]">
+      <div className="hidden rounded-xl border border-[rgba(255, 90, 61,0.16)] bg-[rgba(255, 90, 61,0.08)] px-3 py-2 text-[11px] leading-4 text-[#f1f1f1] md:block md:rounded-2xl md:px-4 md:py-3 md:text-[13px]">
         {ctx.copy.trialBadge} · {ctx.copy.trialNote}
       </div>
-      <label className="flex items-start gap-2 rounded-xl border border-white/10 bg-[#1b1b1b] px-3 py-2 text-[12px] text-[#d8dee6]">
-        <input
-          type="checkbox"
-          checked={ctx.acceptTerms}
-          onChange={(event) => ctx.setAcceptTerms(event.target.checked)}
-          className="mt-0.5 h-4 w-4 rounded border-white/20 bg-[#0d1015]"
-        />
-        <span>
+      <label className="flex min-h-[58px] items-center gap-[10px] rounded-[23px] border border-white/[0.14] bg-[#171a1c] px-[15px] py-3 text-[11px] leading-4 text-[#dedede] md:min-h-11 md:items-start md:gap-2 md:rounded-xl md:border-white/10 md:bg-[#1b1b1b] md:px-3 md:py-2 md:text-[12px]">
+        <span className="relative grid h-[22px] w-[22px] shrink-0 place-items-center md:mt-0.5 md:h-4 md:w-4">
+          <input
+            type="checkbox"
+            checked={ctx.acceptTerms}
+            onChange={(event) => ctx.setAcceptTerms(event.target.checked)}
+            className="absolute inset-0 h-full w-full appearance-none rounded-[5px] border-2 border-[#c6c8ca] bg-[#15181a] checked:border-[#ff6552] checked:bg-[#ff6552] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff6552]/50 md:rounded"
+          />
+          {ctx.acceptTerms ? <Check size={14} weight="bold" className="pointer-events-none relative text-white md:h-3 md:w-3" aria-hidden="true" /> : null}
+        </span>
+        <span className="md:hidden">
+          {ctx.locale === "en" ? "I accept the " : "Acepto los "}
+          <Link href={buildLocalizedHref("/terms", ctx.locale)} className="text-[#ff7665]">
+            {ctx.locale === "en" ? "Terms of service" : "Términos de servicio"}
+          </Link>{" "}
+          {ctx.locale === "en" ? "and the " : "y la "}
+          <Link href={buildLocalizedHref("/privacy", ctx.locale)} className="text-[#ff7665]">
+            {ctx.locale === "en" ? "Privacy policy" : "Política de privacidad"}
+          </Link>
+          .
+        </span>
+        <span className="hidden md:inline">
           {ctx.copy.acceptTermsLabel}{" "}
-          <Link href="/terms" className="text-[#f5f7fb] underline underline-offset-2">
-            Terms
+          <Link href={buildLocalizedHref("/terms", ctx.locale)} className="text-[#f5f7fb] underline underline-offset-2">
+            {ctx.locale === "en" ? "Terms" : "Términos"}
           </Link>{" "}
           /{" "}
-          <Link href="/privacy" className="text-[#f5f7fb] underline underline-offset-2">
-            Privacy
+          <Link href={buildLocalizedHref("/privacy", ctx.locale)} className="text-[#f5f7fb] underline underline-offset-2">
+            {ctx.locale === "en" ? "Privacy" : "Privacidad"}
           </Link>
           .
         </span>
       </label>
       {showTestNoPaymentPlan ? (
-        <div className="rounded-xl border border-[#ffd27a]/25 bg-[rgba(255,210,122,0.08)] px-3 py-2">
+        <div className="hidden rounded-xl border border-[#ffd27a]/25 bg-[rgba(255,210,122,0.08)] px-3 py-2 md:block">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="tym-overline text-[#ffd27a]">{ctx.copy.testWithoutPayment}</p>
@@ -1179,9 +1210,9 @@ function renderStepBody(
 
 function StudioMetric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-[24px] border border-white/10 bg-[#181818] p-4 text-center">
-      <p className="text-[32px] leading-none font-semibold tracking-tight text-[#f1f1f1]">{formatNumber(value)}</p>
-      <p className="mt-1 text-[12px] text-[#aaaaaa]">{label}</p>
+    <div className="rounded-[18px] border border-white/10 bg-[#181818] p-3 text-center sm:rounded-[24px] sm:p-4">
+      <p className="text-[22px] leading-none font-semibold tracking-tight text-[#f1f1f1] sm:text-[32px]">{formatNumber(value)}</p>
+      <p className="mt-1 text-[10px] leading-4 text-[#aaaaaa] sm:text-[12px]">{label}</p>
     </div>
   );
 }

@@ -79,6 +79,7 @@ export default async function PublicMapPage({ params }: PublicMapPageProps) {
 
   return (
     <main className="relative min-h-[100dvh] overflow-hidden text-foreground">
+      <h1 className="sr-only">Mapa de viajes de {payload.channel.channel_name}</h1>
       <div className="absolute inset-0">
         <MapExperienceV2
           channel={payload.channel}

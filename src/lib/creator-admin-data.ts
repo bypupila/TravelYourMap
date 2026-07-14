@@ -1181,7 +1181,7 @@ function buildAlerts(
       severity: "warning",
       title: `${pendingCount} videos necesitan ubicacion`,
       description: "Revisalos para que el mapa publico no pierda cobertura.",
-      href: "/map-admin-proposal?tab=videos&status=pending",
+      href: "/creator-panel?tab=videos&status=pending",
     });
   }
   if (syncRow?.status === "failed") {
@@ -1190,7 +1190,7 @@ function buildAlerts(
       severity: "error",
       title: "La ultima sync fallo",
       description: syncRow.error_message || "Revisar el importador antes de publicar nuevos cambios.",
-      href: "/map-admin-proposal?tab=actividad",
+      href: "/creator-panel?tab=actividad",
     });
   }
   const brokenSponsors = sponsors.filter((sponsor) => sponsor.active && !sponsor.affiliate_url && !sponsor.website_url);
@@ -1200,7 +1200,7 @@ function buildAlerts(
       severity: "warning",
       title: `${brokenSponsors.length} sponsors sin URL`,
       description: "No van a poder convertir clicks desde el mapa.",
-      href: "/map-admin-proposal?tab=sponsors",
+      href: "/creator-panel?tab=sponsors",
     });
   }
   const unpublishedClosed = polls.filter((poll) => poll.status === "closed" && !poll.published_at);
@@ -1210,7 +1210,7 @@ function buildAlerts(
       severity: "info",
       title: "Hay votaciones cerradas sin publicar",
       description: "Publicar el resultado ayuda a conectar audiencia, destino y sponsor.",
-      href: "/map-admin-proposal?tab=votaciones",
+      href: "/creator-panel?tab=votaciones",
     });
   }
   return alerts;
@@ -1267,7 +1267,7 @@ export function buildQuickAction({
       severity: "warning",
       label: `Tenes ${pendingCount} videos sin ubicacion final.`,
       cta: "Ubicar ahora",
-      href: "/map-admin-proposal?tab=videos&status=pending",
+      href: "/creator-panel?tab=videos&status=pending",
     };
   }
 
@@ -1280,7 +1280,7 @@ export function buildQuickAction({
         severity: "info",
         label: "La votacion activa ya tiene ganador provisional.",
         cta: "Ver resultado",
-        href: "/map-admin-proposal?tab=votaciones",
+        href: "/creator-panel?tab=votaciones",
       };
     }
   }
@@ -1291,7 +1291,7 @@ export function buildQuickAction({
       severity: "warning",
       label: `${countryOpportunity.country_name} tiene ${countryOpportunity.videos_count} videos sin sponsor asociado.`,
       cta: "Crear oportunidad",
-      href: `/map-admin-proposal?tab=paises&country=${encodeURIComponent(countryOpportunity.country_code)}`,
+      href: `/creator-panel?tab=paises&country=${encodeURIComponent(countryOpportunity.country_code)}`,
     };
   }
 
@@ -1302,7 +1302,7 @@ export function buildQuickAction({
       severity: "info",
       label: "No hay votacion activa para orientar el proximo destino.",
       cta: "Crear votacion",
-      href: "/map-admin-proposal?tab=votaciones&modal=new-vote",
+      href: "/creator-panel?tab=votaciones&modal=new-vote",
     };
   }
 
@@ -1310,6 +1310,6 @@ export function buildQuickAction({
     severity: "success",
     label: `Todo al dia. Ultima sync: ${formatAdminRelativeTime(syncStatus.last_run_at)}.`,
     cta: "Ver actividad",
-    href: "/map-admin-proposal?tab=actividad",
+    href: "/creator-panel?tab=actividad",
   };
 }

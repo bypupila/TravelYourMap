@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, X } from "@phosphor-icons/react";
 import { DEMO_USER } from "@/lib/demo-data";
 
 type Locale = "es" | "en";
@@ -129,7 +130,7 @@ export function YoutubeImportStep({
               title={channelValidationState === "valid" ? copy.channelValid : copy.channelInvalid}
               aria-label={channelValidationState === "valid" ? copy.channelValid : copy.channelInvalid}
             >
-              {channelValidationState === "valid" ? "✓" : "✕"}
+              {channelValidationState === "valid" ? <Check size={20} weight="bold" aria-hidden="true" /> : <X size={20} weight="bold" aria-hidden="true" />}
             </span>
           ) : null}
         </div>

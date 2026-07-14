@@ -17,6 +17,7 @@ interface MiniMapModelProps {
   markerMode?: "countries" | "videos";
   pointOfView?: { lat: number; lng: number; altitude: number };
   autoRotateSpeed?: number;
+  loadingLabel?: string;
 }
 
 export function MiniMapModel({
@@ -25,6 +26,7 @@ export function MiniMapModel({
   markerMode = "countries",
   pointOfView = { lat: 18, lng: -22, altitude: 2.05 },
   autoRotateSpeed = -0.45,
+  loadingLabel = "Cargando mapa...",
 }: MiniMapModelProps) {
   const [Globe, setGlobe] = useState<GlobeComponent | null>(null);
   const [dimensions, setDimensions] = useState({ width: 320, height: 180 });
@@ -139,7 +141,7 @@ export function MiniMapModel({
           <div className="relative flex h-[280px] w-[280px] animate-pulse items-center justify-center rounded-full border border-white/5 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.02),transparent_70%)] sm:h-[450px] sm:w-[450px]">
             <div className="absolute inset-[15%] rounded-full border border-dashed border-white/[0.03]" />
             <div className="absolute inset-[35%] rounded-full border border-white/[0.02]" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/20">Cargando mapa...</span>
+            <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-white/20">{loadingLabel}</span>
           </div>
         </div>
       )}

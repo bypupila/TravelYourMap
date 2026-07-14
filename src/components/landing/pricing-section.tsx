@@ -4,50 +4,17 @@ import { useId, useState } from "react";
 import Link from "next/link";
 import { CheckCircle, XCircle } from "@phosphor-icons/react/dist/ssr";
 import { buildLocalizedHref, type Locale } from "@/lib/i18n";
+import { getLocalizedPlan, PLAN_DEFINITIONS } from "@/lib/plans";
+import { ComingSoonButton } from "@/components/site/coming-soon-button";
+import type { ComingSoonFeatureId, ComingSoonSurfaceId } from "@/lib/coming-soon";
 
 type BillingCycle = "monthly" | "annual";
 
 type PricingSectionProps = {
-  planRows: string[];
   locale: Locale;
 };
 
-type PricingPlan = {
-  title: string;
-  monthlyPrice: number;
-  rows: string[];
-  featured?: boolean;
-  muted?: boolean;
-  ctaHref?: string;
-  ctaLabel?: string;
-  annualDiscount?: number;
-};
-
 const DEFAULT_ANNUAL_DISCOUNT = 0.2;
-
-const pricingPlans: PricingPlan[] = [
-  {
-    title: "Sin TravelYourMap",
-    monthlyPrice: 0,
-    rows: ["PDFs y documentos", "Links desordenados", "Información difícil de entender", "Propuesta poco profesional"],
-    muted: true,
-  },
-  {
-    title: "Creator Pro",
-    monthlyPrice: 79,
-    rows: [],
-    featured: true,
-    ctaHref: "/onboarding?lang=es",
-    ctaLabel: "Comenzar ahora",
-  },
-  {
-    title: "Agency",
-    monthlyPrice: 199,
-    rows: ["Portafolio de canales", "API de acceso", "Portal de marcas", "Soporte dedicado"],
-    ctaHref: "/pricing",
-    ctaLabel: "Contactar ventas",
-  },
-];
 
 function formatMoney(value: number) {
   return new Intl.NumberFormat("en-US", {
@@ -79,9 +46,11 @@ function getBillingAmount(monthlyPrice: number, billingCycle: BillingCycle, annu
   };
 }
 
-export function PricingSection({ planRows, locale }: PricingSectionProps) {
+export function PricingSection({ locale }: PricingSectionProps) {
   const billingCycleLabelId = useId();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
+  const creatorPro = getLocalizedPlan(PLAN_DEFINITIONS.find((plan) => plan.slug === "creator_pro")!, locale);
+  const agency = getLocalizedPlan(PLAN_DEFINITIONS.find((plan) => plan.slug === "agency")!, locale);
   const toggleCopy =
     billingCycle === "annual"
       ? locale === "en"
@@ -146,26 +115,28 @@ export function PricingSection({ planRows, locale }: PricingSectionProps) {
             {locale === "en" ? "TravelYourMap helps you show your coverage, experience and positioning clearly and professionally so you can close better deals." : "TravelYourMap te ayuda a mostrar tu cobertura, experiencia y posicionamiento de forma clara y profesional para que cierres mejores deals."}
           </p>
         </div>
-        <PlanCard title={locale === "en" ? "Without TravelYourMap" : "Sin TravelYourMap"} rows={locale === "en" ? ["PDFs and documents", "Messy links", "Hard-to-understand information", "Unprofessional proposal"] : pricingPlans[0].rows} muted locale={locale} />
+        <PlanCard title={locale === "en" ? "Without TravelYourMap" : "Sin TravelYourMap"} rows={locale === "en" ? ["PDFs and documents", "Messy links", "Hard-to-understand information", "Unprofessional proposal"] : ["PDFs y documentos", "Enlaces desordenados", "Información difícil de entender", "Propuesta poco profesional"]} muted locale={locale} />
         <PlanCard
-          title="Creator Pro"
-          rows={planRows}
+          title={creatorPro.name}
+          rows={creatorPro.features}
           featured
-          monthlyPrice={pricingPlans[1].monthlyPrice}
+          monthlyPrice={creatorPro.monthlyPrice}
           billingCycle={billingCycle}
-          annualDiscount={pricingPlans[1].annualDiscount ?? DEFAULT_ANNUAL_DISCOUNT}
-          ctaHref={buildLocalizedHref(pricingPlans[1].ctaHref || "/onboarding", locale)}
-          ctaLabel={locale === "en" ? "Start now" : pricingPlans[1].ctaLabel}
+          annualDiscount={DEFAULT_ANNUAL_DISCOUNT}
+          ctaHref={buildLocalizedHref(`/onboarding?plan=${creatorPro.slug}`, locale)}
+          ctaLabel={creatorPro.ctaLabel}
           locale={locale}
         />
         <PlanCard
-          title="Agency"
-          rows={pricingPlans[2].rows}
-          monthlyPrice={pricingPlans[2].monthlyPrice}
+          title={agency.name}
+          rows={agency.features}
+          monthlyPrice={agency.monthlyPrice}
           billingCycle={billingCycle}
-          annualDiscount={pricingPlans[2].annualDiscount ?? DEFAULT_ANNUAL_DISCOUNT}
-          ctaHref={buildLocalizedHref(pricingPlans[2].ctaHref || "/pricing", locale)}
-          ctaLabel={locale === "en" ? "Contact sales" : pricingPlans[2].ctaLabel}
+          annualDiscount={DEFAULT_ANNUAL_DISCOUNT}
+          ctaHref={buildLocalizedHref(`/onboarding?plan=${agency.slug}`, locale)}
+          ctaLabel={locale === "en" ? "Coming soon" : "Próximamente"}
+          comingSoonFeatureId="agency_plan"
+          comingSoonSurfaceId="landing_pricing"
           locale={locale}
         />
       </div>
@@ -184,6 +155,8 @@ function PlanCard({
   ctaHref,
   ctaLabel,
   locale = "es",
+  comingSoonFeatureId,
+  comingSoonSurfaceId,
 }: {
   title: string;
   rows: string[];
@@ -195,6 +168,8 @@ function PlanCard({
   ctaHref?: string;
   ctaLabel?: string;
   locale?: Locale;
+  comingSoonFeatureId?: ComingSoonFeatureId;
+  comingSoonSurfaceId?: ComingSoonSurfaceId;
 }) {
   const pricing = getBillingAmount(monthlyPrice, billingCycle, annualDiscount, locale);
   const showPrice = monthlyPrice > 0 && !muted;
@@ -229,7 +204,16 @@ function PlanCard({
           {ctaLabel}
         </Link>
       ) : null}
-      {!featured && !muted && ctaHref && ctaLabel ? (
+      {!featured && !muted && comingSoonFeatureId && comingSoonSurfaceId && ctaLabel ? (
+        <ComingSoonButton
+          featureId={comingSoonFeatureId}
+          surfaceId={comingSoonSurfaceId}
+          className="mt-7 inline-flex w-full justify-center rounded-[9px] border border-white/14 px-4 py-3 text-[13px] font-extrabold text-white/78"
+        >
+          {ctaLabel}
+        </ComingSoonButton>
+      ) : null}
+      {!featured && !muted && !comingSoonFeatureId && ctaHref && ctaLabel ? (
         <Link href={ctaHref} className="mt-7 inline-flex w-full justify-center rounded-[9px] border border-white/14 px-4 py-3 text-[13px] font-extrabold text-white/78">
           {ctaLabel}
         </Link>

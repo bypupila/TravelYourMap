@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "TravelYourMap para creators | convierte tu canal en un mapa",
   description:
     "Landing para creadores de viajes: importa tu canal de YouTube, organiza videos por destino y publica una página interactiva lista para marcas y sponsors.",
+  alternates: { canonical: siteUrl },
   openGraph: {
     title: "TravelYourMap para creators | convierte tu canal en un mapa",
     description:

@@ -1,0 +1,3752 @@
+[
+  {
+    "requested": "/",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-landing.png",
+    "bytes": 98412,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Convierte tu canal en un mapa que abre puertas."
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Landing para creadores de viajes: importa tu canal de YouTube, organiza videos por destino y publica una página interactiva lista para marcas y sponsors.",
+    "overflow": [
+      {
+        "label": "Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan",
+        "left": 633,
+        "right": 1613,
+        "sel": "div.creator-real-globe.absolute",
+        "width": 980
+      },
+      {
+        "label": "Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan",
+        "left": 633,
+        "right": 1613,
+        "sel": "div.pointer-events-none.relative",
+        "width": 980
+      },
+      {
+        "label": "Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan",
+        "left": 633,
+        "right": 1613,
+        "sel": "div",
+        "width": 980
+      },
+      {
+        "label": "Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan",
+        "left": 633,
+        "right": 1613,
+        "sel": "div",
+        "width": 980
+      },
+      {
+        "label": "Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan",
+        "left": 633,
+        "right": 1613,
+        "sel": "div",
+        "width": 980
+      },
+      {
+        "label": "Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan",
+        "left": 633,
+        "right": 1613,
+        "sel": "div.scene-container",
+        "width": 980
+      },
+      {
+        "label": "",
+        "left": 633,
+        "right": 1613,
+        "sel": "canvas",
+        "width": 980
+      },
+      {
+        "label": "",
+        "left": 633,
+        "right": 1613,
+        "sel": "div",
+        "width": 980
+      }
+    ],
+    "tap": [
+      {
+        "h": 40,
+        "label": "Travel Your Map home",
+        "tag": "a",
+        "w": 186
+      },
+      {
+        "h": 20,
+        "label": "Funciones",
+        "tag": "a",
+        "w": 58
+      },
+      {
+        "h": 20,
+        "label": "Precios",
+        "tag": "a",
+        "w": 42
+      },
+      {
+        "h": 20,
+        "label": "Ejemplos",
+        "tag": "a",
+        "w": 52
+      },
+      {
+        "h": 20,
+        "label": "Recursos",
+        "tag": "a",
+        "w": 51
+      },
+      {
+        "h": 20,
+        "label": "Explorar",
+        "tag": "a",
+        "w": 50
+      },
+      {
+        "h": 27,
+        "label": "Switch to English",
+        "tag": "a",
+        "w": 35
+      },
+      {
+        "h": 27,
+        "label": "Español seleccionado",
+        "tag": "a",
+        "w": 33
+      },
+      {
+        "h": 40,
+        "label": "Iniciar sesión",
+        "tag": "a",
+        "w": 127
+      },
+      {
+        "h": 40,
+        "label": "Crear mi mapa",
+        "tag": "a",
+        "w": 128
+      },
+      {
+        "h": 36,
+        "label": "Abrir demo",
+        "tag": "a",
+        "w": 109
+      },
+      {
+        "h": 34,
+        "label": "Lectura pública",
+        "tag": "button",
+        "w": 165
+      },
+      {
+        "h": 34,
+        "label": "Embed oficial",
+        "tag": "button",
+        "w": 146
+      },
+      {
+        "h": 34,
+        "label": "SEO listo",
+        "tag": "button",
+        "w": 108
+      },
+      {
+        "h": 36,
+        "label": "Ver demo completa",
+        "tag": "a",
+        "w": 152
+      },
+      {
+        "h": 36,
+        "label": "Copiar enlace",
+        "tag": "button",
+        "w": 122
+      },
+      {
+        "h": 36,
+        "label": "X",
+        "tag": "a",
+        "w": 61
+      },
+      {
+        "h": 36,
+        "label": "YouTube",
+        "tag": "a",
+        "w": 96
+      }
+    ],
+    "title": "TravelYourMap para creators | convierte tu canal en un mapa",
+    "trunc": [
+      {
+        "ch": 11,
+        "cw": 14,
+        "label": "",
+        "sel": "span.fi.fi-us",
+        "sh": 17,
+        "sw": 14
+      },
+      {
+        "ch": 11,
+        "cw": 14,
+        "label": "",
+        "sel": "span.fi.fi-ch",
+        "sh": 17,
+        "sw": 14
+      },
+      {
+        "ch": 11,
+        "cw": 14,
+        "label": "",
+        "sel": "span.fi.fi-is",
+        "sh": 17,
+        "sw": 14
+      },
+      {
+        "ch": 11,
+        "cw": 14,
+        "label": "",
+        "sel": "span.fi.fi-us",
+        "sh": 17,
+        "sw": 14
+      },
+      {
+        "ch": 11,
+        "cw": 14,
+        "label": "",
+        "sel": "span.fi.fi-gr",
+        "sh": 17,
+        "sw": 14
+      },
+      {
+        "ch": 11,
+        "cw": 14,
+        "label": "",
+        "sel": "span.fi.fi-co",
+        "sh": 17,
+        "sw": 14
+      },
+      {
+        "ch": 11,
+        "cw": 14,
+        "label": "",
+        "sel": "span.fi.fi-no",
+        "sh": 17,
+        "sw": 14
+      },
+      {
+        "ch": 11,
+        "cw": 14,
+        "label": "",
+        "sel": "span.fi.fi-ma",
+        "sh": 17,
+        "sw": 14
+      },
+      {
+        "ch": 11,
+        "cw": 14,
+        "label": "",
+        "sel": "span.fi.fi-ca",
+        "sh": 17,
+        "sw": 14
+      },
+      {
+        "ch": 11,
+        "cw": 14,
+        "label": "",
+        "sel": "span.fi.fi-br",
+        "sh": 17,
+        "sw": 14
+      },
+      {
+        "ch": 11,
+        "cw": 14,
+        "label": "",
+        "sel": "span.fi.fi-al",
+        "sh": 17,
+        "sw": 14
+      },
+      {
+        "ch": 11,
+        "cw": 14,
+        "label": "",
+        "sel": "span.fi.fi-pt",
+        "sh": 17,
+        "sw": 14
+      }
+    ],
+    "unlabeled": [],
+    "url": "http://localhost:3000/",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 5352,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/pricing",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-pricing.png",
+    "bytes": 59353,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Convierte tu canal en una experiencia viva."
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Conecta tu canal de YouTube, importa videos y conviértelos en un mapa interactivo con analytics por país, sponsors y páginas públicas.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 42,
+        "label": "Go to homepage",
+        "tag": "a",
+        "w": 42
+      },
+      {
+        "h": 36,
+        "label": "Resumen",
+        "tag": "button",
+        "w": 72
+      },
+      {
+        "h": 36,
+        "label": "Canal",
+        "tag": "button",
+        "w": 55
+      },
+      {
+        "h": 36,
+        "label": "Importar",
+        "tag": "button",
+        "w": 73
+      },
+      {
+        "h": 36,
+        "label": "Analítica",
+        "tag": "button",
+        "w": 72
+      },
+      {
+        "h": 36,
+        "label": "Sponsors",
+        "tag": "button",
+        "w": 73
+      },
+      {
+        "h": 36,
+        "label": "Voto fan",
+        "tag": "button",
+        "w": 69
+      },
+      {
+        "h": 36,
+        "label": "Planes",
+        "tag": "button",
+        "w": 59
+      }
+    ],
+    "title": "TravelYourMap | mapas de viaje para creadores",
+    "trunc": [],
+    "unlabeled": [],
+    "url": "http://localhost:3000/onboarding?lang=es",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/onboarding?demo=1",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-onboarding.png",
+    "bytes": 59353,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Convierte tu canal en una experiencia viva."
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Conecta tu canal de YouTube, importa videos y conviértelos en un mapa interactivo con analytics por país, sponsors y páginas públicas.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 42,
+        "label": "Go to homepage",
+        "tag": "a",
+        "w": 42
+      },
+      {
+        "h": 36,
+        "label": "Resumen",
+        "tag": "button",
+        "w": 72
+      },
+      {
+        "h": 36,
+        "label": "Canal",
+        "tag": "button",
+        "w": 55
+      },
+      {
+        "h": 36,
+        "label": "Importar",
+        "tag": "button",
+        "w": 73
+      },
+      {
+        "h": 36,
+        "label": "Analítica",
+        "tag": "button",
+        "w": 72
+      },
+      {
+        "h": 36,
+        "label": "Sponsors",
+        "tag": "button",
+        "w": 73
+      },
+      {
+        "h": 36,
+        "label": "Voto fan",
+        "tag": "button",
+        "w": 69
+      },
+      {
+        "h": 36,
+        "label": "Planes",
+        "tag": "button",
+        "w": 59
+      }
+    ],
+    "title": "TravelYourMap | mapas de viaje para creadores",
+    "trunc": [],
+    "unlabeled": [],
+    "url": "http://localhost:3000/onboarding?demo=1",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/onboarding/processing?qa=responsive",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-onboarding-processing.png",
+    "bytes": 80243,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Tu canal se está convirtiendo en un mundo."
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Conecta tu canal de YouTube, importa videos y conviértelos en un mapa interactivo con analytics por país, sponsors y páginas públicas.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 42,
+        "label": "Go to homepage",
+        "tag": "a",
+        "w": 42
+      }
+    ],
+    "title": "TravelYourMap | mapas de viaje para creadores",
+    "trunc": [
+      {
+        "ch": 260,
+        "cw": 260,
+        "label": "",
+        "sel": "div.relative.h-full",
+        "sh": 359,
+        "sw": 271
+      }
+    ],
+    "unlabeled": [],
+    "url": "http://localhost:3000/onboarding/processing?qa=responsive",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/auth",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-auth.png",
+    "bytes": 69446,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Entra, activa tu mapa y publica una presencia propia."
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Conecta tu canal de YouTube, importa videos y conviértelos en un mapa interactivo con analytics por país, sponsors y páginas públicas.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 38,
+        "label": "Creador",
+        "tag": "a",
+        "w": 75
+      },
+      {
+        "h": 38,
+        "label": "Viewer",
+        "tag": "a",
+        "w": 68
+      },
+      {
+        "h": 38,
+        "label": "Registro",
+        "tag": "a",
+        "w": 74
+      },
+      {
+        "h": 48,
+        "label": "Ver contraseña",
+        "tag": "button",
+        "w": 40
+      },
+      {
+        "h": 15,
+        "label": "Términos",
+        "tag": "a",
+        "w": 49
+      },
+      {
+        "h": 15,
+        "label": "privacidad",
+        "tag": "a",
+        "w": 57
+      },
+      {
+        "h": 15,
+        "label": "Términos de YouTube",
+        "tag": "a",
+        "w": 112
+      }
+    ],
+    "title": "TravelYourMap | mapas de viaje para creadores",
+    "trunc": [],
+    "unlabeled": [],
+    "url": "http://localhost:3000/auth",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1233,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/auth/viewer-register",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-viewer-register.png",
+    "bytes": 51796,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Registro gratuito"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Conecta tu canal de YouTube, importa videos y conviértelos en un mapa interactivo con analytics por país, sponsors y páginas públicas.",
+    "overflow": [
+      {
+        "label": "Vista previa del mapa",
+        "left": -7,
+        "right": 1447,
+        "sel": "iframe.absolute.inset-0",
+        "width": 1454
+      }
+    ],
+    "tap": [
+      {
+        "h": 20,
+        "label": "",
+        "tag": "input",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "",
+        "tag": "input",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "",
+        "tag": "input",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "",
+        "tag": "input",
+        "w": 20
+      },
+      {
+        "h": 15,
+        "label": "Inicia sesión",
+        "tag": "a",
+        "w": 63
+      }
+    ],
+    "title": "TravelYourMap | mapas de viaje para creadores",
+    "trunc": [
+      {
+        "ch": 1000,
+        "cw": 1440,
+        "label": "Cuenta ViewerRegistro gratuitoRegístrate para votar, guardar favoritos y participar en map",
+        "sel": "main.relative.min-h-[100dvh]",
+        "sh": 1005,
+        "sw": 1447
+      }
+    ],
+    "unlabeled": [],
+    "url": "http://localhost:3000/auth/viewer-register",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/auth/consents",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-consents.png",
+    "bytes": 44332,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Consentimientos"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Conecta tu canal de YouTube, importa videos y conviértelos en un mapa interactivo con analytics por país, sponsors y páginas públicas.",
+    "overflow": [],
+    "tap": [],
+    "title": "TravelYourMap | mapas de viaje para creadores",
+    "trunc": [],
+    "unlabeled": [],
+    "url": "http://localhost:3000/auth/consents",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/map",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-map.png",
+    "bytes": 115037,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [],
+    "h1Count": 0,
+    "lang": "es",
+    "metaDescription": "Mapa fullscreen con un punto por video extraido del canal seleccionado.",
+    "overflow": [
+      {
+        "label": "Maldivas: tour completo por villas sobre el agua906.6KMaldives12:05",
+        "left": 1367,
+        "right": 1627,
+        "sel": "div.group.relative",
+        "width": 260
+      },
+      {
+        "label": "",
+        "left": 1360,
+        "right": 1634,
+        "sel": "img.absolute.inset-0",
+        "width": 274
+      },
+      {
+        "label": "Maldivas: tour completo por villas sobre el agua906.6KMaldives12:05",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.absolute.inset-0",
+        "width": 256
+      },
+      {
+        "label": "Maldivas: tour completo por villas sobre el agua",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.relative.flex-1",
+        "width": 256
+      },
+      {
+        "label": "Maldivas: tour completo por villas sobre el agua",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.absolute.bottom-0",
+        "width": 256
+      },
+      {
+        "label": "Maldivas: tour completo por villas sobre el agua",
+        "left": 1377,
+        "right": 1617,
+        "sel": "p.text-[11px].font-semibold",
+        "width": 240
+      },
+      {
+        "label": "906.6KMaldives12:05",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.absolute.inset-x-0",
+        "width": 256
+      },
+      {
+        "label": "906.6K",
+        "left": 1377,
+        "right": 1457,
+        "sel": "div.flex.gap-1.5",
+        "width": 80
+      },
+      {
+        "label": "Maldives",
+        "left": 1454,
+        "right": 1540,
+        "sel": "div.flex.gap-1.5",
+        "width": 85
+      },
+      {
+        "label": "",
+        "left": 1469,
+        "right": 1481,
+        "sel": "span.fi.fi-mv",
+        "width": 12
+      },
+      {
+        "label": "Maldives",
+        "left": 1487,
+        "right": 1525,
+        "sel": "span.truncate.uppercase",
+        "width": 38
+      },
+      {
+        "label": "12:05",
+        "left": 1537,
+        "right": 1617,
+        "sel": "div.flex.gap-1.5",
+        "width": 80
+      }
+    ],
+    "tap": [
+      {
+        "h": 24,
+        "label": "Nuevos",
+        "tag": "button",
+        "w": 57
+      },
+      {
+        "h": 24,
+        "label": "ABC",
+        "tag": "button",
+        "w": 37
+      },
+      {
+        "h": 24,
+        "label": "Vistos",
+        "tag": "button",
+        "w": 52
+      },
+      {
+        "h": 40,
+        "label": "Crear cuenta gratis",
+        "tag": "a",
+        "w": 141
+      },
+      {
+        "h": 40,
+        "label": "Compartir",
+        "tag": "button",
+        "w": 40
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: United States",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Switzerland",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Iceland",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: United States",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Greece",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Colombia",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: United Arab Emirates",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Kenya",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Norway",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Morocco",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Canada",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Turkey",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Azerbaijan",
+        "tag": "button",
+        "w": 20
+      }
+    ],
+    "title": "Mapa global de videos | TravelYourMap",
+    "trunc": [
+      {
+        "ch": 18,
+        "cw": 115,
+        "label": "United Arab Emirates",
+        "sel": "span.block.truncate",
+        "sh": 18,
+        "sw": 119
+      },
+      {
+        "ch": 18,
+        "cw": 115,
+        "label": "Bosnia and Herzegovina",
+        "sel": "span.block.truncate",
+        "sh": 18,
+        "sw": 133
+      },
+      {
+        "ch": 20,
+        "cw": 99,
+        "label": "Buscar videos del mapa",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 20,
+        "sw": 136
+      },
+      {
+        "ch": 920,
+        "cw": 898,
+        "label": "Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan🌍Mundo0/1250%TodosFil",
+        "sel": "div.flex.flex-col",
+        "sh": 932,
+        "sw": 34501
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-us",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ch",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-is",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-us",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-gr",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-co",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ae",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ke",
+        "sh": 15,
+        "sw": 16
+      }
+    ],
+    "unlabeled": [],
+    "url": "http://localhost:3000/map",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/explore",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-explore.png",
+    "bytes": 171720,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Creadores, países y rutas en una sola capa de exploración."
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Explora países, creadores y videos con una vista editorial centrada en destinos y rutas.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 42,
+        "label": "Go to homepage",
+        "tag": "a",
+        "w": 42
+      },
+      {
+        "h": 36,
+        "label": "Empieza gratis",
+        "tag": "a",
+        "w": 109
+      },
+      {
+        "h": 38,
+        "label": "Todos",
+        "tag": "button",
+        "w": 62
+      },
+      {
+        "h": 38,
+        "label": "Latinoamérica",
+        "tag": "button",
+        "w": 108
+      },
+      {
+        "h": 38,
+        "label": "Asia",
+        "tag": "button",
+        "w": 53
+      },
+      {
+        "h": 38,
+        "label": "City Walks",
+        "tag": "button",
+        "w": 86
+      },
+      {
+        "h": 38,
+        "label": "Food",
+        "tag": "button",
+        "w": 57
+      },
+      {
+        "h": 38,
+        "label": "Recientes",
+        "tag": "button",
+        "w": 81
+      }
+    ],
+    "title": "Explorar creadores por destino | TravelYourMap",
+    "trunc": [],
+    "unlabeled": [],
+    "url": "http://localhost:3000/explore",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 2387,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/u/demo",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-profile-demo.png",
+    "bytes": 164158,
+    "broken": [],
+    "canonical": "http://localhost:3000/u/pupila.nomad",
+    "emptyLinks": [],
+    "h1": [],
+    "h1Count": 0,
+    "lang": "es",
+    "metaDescription": "Explora 125 videos de Pupila Nomad en 78 países con mapa interactivo.",
+    "overflow": [
+      {
+        "label": "Maldivas: tour completo por villas sobre el agua906.6KMaldives12:05",
+        "left": 1367,
+        "right": 1627,
+        "sel": "div.group.relative",
+        "width": 260
+      },
+      {
+        "label": "",
+        "left": 1360,
+        "right": 1634,
+        "sel": "img.absolute.inset-0",
+        "width": 274
+      },
+      {
+        "label": "Maldivas: tour completo por villas sobre el agua906.6KMaldives12:05",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.absolute.inset-0",
+        "width": 256
+      },
+      {
+        "label": "Maldivas: tour completo por villas sobre el agua",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.relative.flex-1",
+        "width": 256
+      },
+      {
+        "label": "Maldivas: tour completo por villas sobre el agua",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.absolute.bottom-0",
+        "width": 256
+      },
+      {
+        "label": "Maldivas: tour completo por villas sobre el agua",
+        "left": 1377,
+        "right": 1617,
+        "sel": "p.text-[11px].font-semibold",
+        "width": 240
+      },
+      {
+        "label": "906.6KMaldives12:05",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.absolute.inset-x-0",
+        "width": 256
+      },
+      {
+        "label": "906.6K",
+        "left": 1377,
+        "right": 1457,
+        "sel": "div.flex.gap-1.5",
+        "width": 80
+      },
+      {
+        "label": "Maldives",
+        "left": 1454,
+        "right": 1540,
+        "sel": "div.flex.gap-1.5",
+        "width": 85
+      },
+      {
+        "label": "",
+        "left": 1469,
+        "right": 1481,
+        "sel": "span.fi.fi-mv",
+        "width": 12
+      },
+      {
+        "label": "Maldives",
+        "left": 1487,
+        "right": 1525,
+        "sel": "span.truncate.uppercase",
+        "width": 38
+      },
+      {
+        "label": "12:05",
+        "left": 1537,
+        "right": 1617,
+        "sel": "div.flex.gap-1.5",
+        "width": 80
+      }
+    ],
+    "tap": [
+      {
+        "h": 24,
+        "label": "Nuevos",
+        "tag": "button",
+        "w": 57
+      },
+      {
+        "h": 24,
+        "label": "ABC",
+        "tag": "button",
+        "w": 37
+      },
+      {
+        "h": 24,
+        "label": "Vistos",
+        "tag": "button",
+        "w": 52
+      },
+      {
+        "h": 40,
+        "label": "Crear cuenta gratis",
+        "tag": "a",
+        "w": 141
+      },
+      {
+        "h": 40,
+        "label": "Compartir",
+        "tag": "button",
+        "w": 40
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: United States",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Switzerland",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Iceland",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: United States",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Greece",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Colombia",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: United Arab Emirates",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Kenya",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Norway",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Morocco",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Canada",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Turkey",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Azerbaijan",
+        "tag": "button",
+        "w": 20
+      }
+    ],
+    "title": "Pupila Nomad | Mapa de viajes en TravelYourMap",
+    "trunc": [
+      {
+        "ch": 18,
+        "cw": 115,
+        "label": "United Arab Emirates",
+        "sel": "span.block.truncate",
+        "sh": 18,
+        "sw": 119
+      },
+      {
+        "ch": 18,
+        "cw": 115,
+        "label": "Bosnia and Herzegovina",
+        "sel": "span.block.truncate",
+        "sh": 18,
+        "sw": 133
+      },
+      {
+        "ch": 20,
+        "cw": 99,
+        "label": "Buscar videos del mapa",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 20,
+        "sw": 136
+      },
+      {
+        "ch": 920,
+        "cw": 898,
+        "label": "Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan🌍Mundo0/1250%TodosFil",
+        "sel": "div.flex.flex-col",
+        "sh": 932,
+        "sw": 34501
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-us",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ch",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-is",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-us",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-gr",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-co",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ae",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ke",
+        "sh": 15,
+        "sw": 16
+      }
+    ],
+    "unlabeled": [],
+    "url": "http://localhost:3000/u/demo",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/u/demo/media-kit",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-media-kit.png",
+    "bytes": 105711,
+    "broken": [],
+    "canonical": "http://localhost:3000/u/pupila.nomad/media-kit",
+    "emptyLinks": [],
+    "h1": [
+      "Pupila Nomad: viajes, destinos y audiencias listas para descubrir marcas"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "0 videos en 0 paises, sponsors activos y senales first-party de TravelYourMap.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 40,
+        "label": "PUPupila Nomad@pupila.nomad",
+        "tag": "a",
+        "w": 142
+      },
+      {
+        "h": 16,
+        "label": "TravelYourMap",
+        "tag": "a",
+        "w": 126
+      },
+      {
+        "h": 40,
+        "label": "",
+        "tag": "input",
+        "w": 301
+      },
+      {
+        "h": 40,
+        "label": "",
+        "tag": "input",
+        "w": 301
+      },
+      {
+        "h": 40,
+        "label": "",
+        "tag": "input",
+        "w": 301
+      },
+      {
+        "h": 40,
+        "label": "",
+        "tag": "input",
+        "w": 301
+      },
+      {
+        "h": 40,
+        "label": "",
+        "tag": "input",
+        "w": 301
+      },
+      {
+        "h": 40,
+        "label": "",
+        "tag": "input",
+        "w": 301
+      }
+    ],
+    "title": "Pupila Nomad | Media Kit para marcas",
+    "trunc": [],
+    "unlabeled": [],
+    "url": "http://localhost:3000/u/demo/media-kit",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1692,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/dashboard",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-dashboard.png",
+    "bytes": 150304,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [],
+    "h1Count": 0,
+    "lang": "es",
+    "metaDescription": "Conecta tu canal de YouTube, importa videos y conviértelos en un mapa interactivo con analytics por país, sponsors y páginas públicas.",
+    "overflow": [
+      {
+        "label": "FAVORITOVER MÁS TARDERETOS FÍSICOS en Cuarentena (Principiantes y Avanzados)70Argentina5:4",
+        "left": 1367,
+        "right": 1627,
+        "sel": "div.group.relative",
+        "width": 260
+      },
+      {
+        "label": "",
+        "left": 1360,
+        "right": 1634,
+        "sel": "img.absolute.inset-0",
+        "width": 274
+      },
+      {
+        "label": "FAVORITOVER MÁS TARDERETOS FÍSICOS en Cuarentena (Principiantes y Avanzados)70Argentina5:4",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.absolute.inset-0",
+        "width": 256
+      },
+      {
+        "label": "FAVORITOVER MÁS TARDERETOS FÍSICOS en Cuarentena (Principiantes y Avanzados)",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.relative.flex-1",
+        "width": 256
+      },
+      {
+        "label": "FAVORITOVER MÁS TARDE",
+        "left": 1377,
+        "right": 1513,
+        "sel": "div.absolute.top-2",
+        "width": 136
+      },
+      {
+        "label": "VER MÁS TARDE",
+        "left": 1437,
+        "right": 1513,
+        "sel": "span.px-1.5.py-0.5",
+        "width": 76
+      },
+      {
+        "label": "RETOS FÍSICOS en Cuarentena (Principiantes y Avanzados)",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.absolute.bottom-0",
+        "width": 256
+      },
+      {
+        "label": "RETOS FÍSICOS en Cuarentena (Principiantes y Avanzados)",
+        "left": 1377,
+        "right": 1617,
+        "sel": "p.text-[11px].font-semibold",
+        "width": 240
+      },
+      {
+        "label": "70Argentina5:48",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.absolute.inset-x-0",
+        "width": 256
+      },
+      {
+        "label": "70",
+        "left": 1377,
+        "right": 1457,
+        "sel": "div.flex.gap-1.5",
+        "width": 80
+      },
+      {
+        "label": "Argentina",
+        "left": 1454,
+        "right": 1540,
+        "sel": "div.flex.gap-1.5",
+        "width": 85
+      },
+      {
+        "label": "",
+        "left": 1466,
+        "right": 1478,
+        "sel": "span.fi.fi-ar",
+        "width": 12
+      }
+    ],
+    "tap": [
+      {
+        "h": 24,
+        "label": "Nuevos",
+        "tag": "button",
+        "w": 57
+      },
+      {
+        "h": 24,
+        "label": "ABC",
+        "tag": "button",
+        "w": 37
+      },
+      {
+        "h": 24,
+        "label": "Vistos",
+        "tag": "button",
+        "w": 52
+      },
+      {
+        "h": 40,
+        "label": "Seguidor",
+        "tag": "button",
+        "w": 107
+      },
+      {
+        "h": 40,
+        "label": "Admin",
+        "tag": "button",
+        "w": 93
+      },
+      {
+        "h": 40,
+        "label": "Extraer videos",
+        "tag": "button",
+        "w": 137
+      },
+      {
+        "h": 40,
+        "label": "Compartir",
+        "tag": "button",
+        "w": 40
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Argentina",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Argentina",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Argentina",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Argentina",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Argentina",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Argentina",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Argentina",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Argentina",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Argentina",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Argentina",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Argentina",
+        "tag": "button",
+        "w": 20
+      }
+    ],
+    "title": "TravelYourMap | mapas de viaje para creadores",
+    "trunc": [
+      {
+        "ch": 20,
+        "cw": 50,
+        "label": "Buscar videos del mapa",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 20,
+        "sw": 136
+      },
+      {
+        "ch": 920,
+        "cw": 898,
+        "label": "Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan🌍Mundo13/3537%TodosFi",
+        "sel": "div.flex.flex-col",
+        "sh": 932,
+        "sw": 9661
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ar",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ar",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ar",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ar",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ar",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ar",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ar",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ar",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ar",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ar",
+        "sh": 15,
+        "sw": 16
+      }
+    ],
+    "unlabeled": [],
+    "url": "http://localhost:3000/dashboard",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/creator-panel?qa=responsive",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-creator-panel.png",
+    "bytes": 91779,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Creator Admin"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Panel privado para gestionar mapa, videos, audiencia, votaciones y sponsors.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 36,
+        "label": "Ver mi mapa",
+        "tag": "a",
+        "w": 117
+      },
+      {
+        "h": 36,
+        "label": "Cerrar alertas",
+        "tag": "button",
+        "w": 36
+      },
+      {
+        "h": 32,
+        "label": "Ver audiencia",
+        "tag": "button",
+        "w": 91
+      },
+      {
+        "h": 32,
+        "label": "Ver paises",
+        "tag": "button",
+        "w": 74
+      },
+      {
+        "h": 32,
+        "label": "Abrir alertas",
+        "tag": "button",
+        "w": 87
+      },
+      {
+        "h": 30,
+        "label": "Ver todo",
+        "tag": "button",
+        "w": 65
+      },
+      {
+        "h": 36,
+        "label": "Cerrar alertas",
+        "tag": "button",
+        "w": 36
+      },
+      {
+        "h": 32,
+        "label": "Revisar videos",
+        "tag": "button",
+        "w": 103
+      },
+      {
+        "h": 20,
+        "label": "Quitar alerta Videos pendientes de revision",
+        "tag": "button",
+        "w": 20
+      }
+    ],
+    "title": "Panel del creador | TravelYourMap",
+    "trunc": [
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "TravelYourMap",
+        "sel": "p.text-[10px].font-black",
+        "sh": 15,
+        "sw": 113
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Creator Admin",
+        "sel": "h1.mt-1.text-[17px]",
+        "sh": 26,
+        "sw": 110
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Resumen",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 50
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Videos",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 38
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Paises",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 35
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Votaciones",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 61
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Sponsors",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 51
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Media Kit",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 53
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Negocio",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 45
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Secundario",
+        "sel": "p.px-2.text-[9px]",
+        "sh": 14,
+        "sw": 75
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Audiencia",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 55
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Actividad",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 53
+      }
+    ],
+    "unlabeled": [],
+    "url": "http://localhost:3000/creator-panel?qa=responsive",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/admin?qa=responsive",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-admin.png",
+    "bytes": 81533,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Administración global"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Conecta tu canal de YouTube, importa videos y conviértelos en un mapa interactivo con analytics por país, sponsors y páginas públicas.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 17,
+        "label": "7 días30 días90 días180 días",
+        "tag": "select",
+        "w": 65
+      },
+      {
+        "h": 36,
+        "label": "Actualizar",
+        "tag": "button",
+        "w": 105
+      },
+      {
+        "h": 40,
+        "label": "",
+        "tag": "input",
+        "w": 737
+      },
+      {
+        "h": 36,
+        "label": "Buscar",
+        "tag": "button",
+        "w": 76
+      },
+      {
+        "h": 24,
+        "label": "Viewer",
+        "tag": "button",
+        "w": 55
+      },
+      {
+        "h": 24,
+        "label": "Creator",
+        "tag": "button",
+        "w": 59
+      },
+      {
+        "h": 24,
+        "label": "Superadmin",
+        "tag": "button",
+        "w": 78
+      },
+      {
+        "h": 24,
+        "label": "Viewer",
+        "tag": "button",
+        "w": 55
+      },
+      {
+        "h": 24,
+        "label": "Creator",
+        "tag": "button",
+        "w": 59
+      },
+      {
+        "h": 24,
+        "label": "Superadmin",
+        "tag": "button",
+        "w": 78
+      },
+      {
+        "h": 24,
+        "label": "Viewer",
+        "tag": "button",
+        "w": 55
+      },
+      {
+        "h": 24,
+        "label": "Creator",
+        "tag": "button",
+        "w": 59
+      },
+      {
+        "h": 24,
+        "label": "Superadmin",
+        "tag": "button",
+        "w": 78
+      },
+      {
+        "h": 40,
+        "label": "",
+        "tag": "input",
+        "w": 318
+      },
+      {
+        "h": 40,
+        "label": "Actualizar rol",
+        "tag": "button",
+        "w": 318
+      }
+    ],
+    "title": "TravelYourMap | mapas de viaje para creadores",
+    "trunc": [
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Buscar usuarios",
+        "sel": "span.sr-only",
+        "sh": 20,
+        "sw": 97
+      }
+    ],
+    "unlabeled": [],
+    "url": "http://localhost:3000/admin?qa=responsive",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 2686,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/brand-portal/responsive-qa-access",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-brand-portal.png",
+    "bytes": 44150,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "IATI Seguros"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Estado privado de campaña para una marca en TravelYourMap.",
+    "overflow": [],
+    "tap": [],
+    "title": "Portal privado de marca | TravelYourMap",
+    "trunc": [],
+    "unlabeled": [],
+    "url": "http://localhost:3000/brand-portal/responsive-qa-access",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/sponsor-report/responsive-qa",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-sponsor-report.png",
+    "bytes": 107525,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "IATI Seguros en el mapa de Pupila Nomad"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Reporte privado de rendimiento para una marca en TravelYourMap.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 40,
+        "label": "Guardar PDF",
+        "tag": "button",
+        "w": 128
+      },
+      {
+        "h": 40,
+        "label": "Copiar link",
+        "tag": "button",
+        "w": 119
+      }
+    ],
+    "title": "Reporte privado de sponsor | TravelYourMap",
+    "trunc": [],
+    "unlabeled": [],
+    "url": "http://localhost:3000/sponsor-report/responsive-qa",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 2036,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/status",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-status.png",
+    "bytes": 82978,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Estado del servicio"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Conecta tu canal de YouTube, importa videos y conviértelos en un mapa interactivo con analytics por país, sponsors y páginas públicas.",
+    "overflow": [],
+    "tap": [],
+    "title": "TravelYourMap | mapas de viaje para creadores",
+    "trunc": [],
+    "unlabeled": [],
+    "url": "http://localhost:3000/status",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1080,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/privacy",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-privacy.png",
+    "bytes": 86767,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Política de Privacidad"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Política de privacidad de TravelYourMap para uso de YouTube API Services.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 18,
+        "label": "Política de Privacidad de Google",
+        "tag": "a",
+        "w": 200
+      },
+      {
+        "h": 20,
+        "label": "Ver Términos",
+        "tag": "a",
+        "w": 81
+      },
+      {
+        "h": 20,
+        "label": "Términos de YouTube",
+        "tag": "a",
+        "w": 130
+      }
+    ],
+    "title": "Privacidad | TravelYourMap",
+    "trunc": [],
+    "unlabeled": [],
+    "url": "http://localhost:3000/privacy",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/terms",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-terms.png",
+    "bytes": 76427,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Términos de uso"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Términos de uso de TravelYourMap y referencia obligatoria a los términos de YouTube.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 18,
+        "label": "Términos de Servicio de YouTube",
+        "tag": "a",
+        "w": 201
+      },
+      {
+        "h": 18,
+        "label": "Ver Política de Privacidad",
+        "tag": "a",
+        "w": 158
+      }
+    ],
+    "title": "Términos | TravelYourMap",
+    "trunc": [],
+    "unlabeled": [],
+    "url": "http://localhost:3000/terms",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/country-card-proposals",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-country-card-proposals.png",
+    "bytes": 69481,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Prototipos de Tarjetas"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Conecta tu canal de YouTube, importa videos y conviértelos en un mapa interactivo con analytics por país, sponsors y páginas públicas.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 34,
+        "label": "- Quitar Vistas",
+        "tag": "button",
+        "w": 117
+      },
+      {
+        "h": 34,
+        "label": "+ Agregar Vistas",
+        "tag": "button",
+        "w": 128
+      }
+    ],
+    "title": "TravelYourMap | mapas de viaje para creadores",
+    "trunc": [],
+    "unlabeled": [],
+    "url": "http://localhost:3000/country-card-proposals",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1641,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/map-proposal",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-map-proposal.png",
+    "bytes": 199318,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [],
+    "h1Count": 0,
+    "lang": "es",
+    "metaDescription": "Propuesta visual aislada para evaluar una nueva version del mapa con datos demo de Luisito Comunica.",
+    "overflow": [
+      {
+        "label": "ASÍ ES SUMBA: la isla de los guerreros (rituales y vida) 🇮🇩🐴Indonesia",
+        "left": 1433,
+        "right": 1653,
+        "sel": "button.group.relative",
+        "width": 220
+      },
+      {
+        "label": "",
+        "left": 1434,
+        "right": 1652,
+        "sel": "img.object-cover.transition",
+        "width": 218
+      },
+      {
+        "label": "",
+        "left": 1434,
+        "right": 1652,
+        "sel": "span.absolute.inset-0",
+        "width": 218
+      },
+      {
+        "label": "ASÍ ES SUMBA: la isla de los guerreros (rituales y vida) 🇮🇩🐴Indonesia",
+        "left": 1434,
+        "right": 1652,
+        "sel": "span.absolute.bottom-0",
+        "width": 218
+      },
+      {
+        "label": "ASÍ ES SUMBA: la isla de los guerreros (rituales y vida) 🇮🇩🐴",
+        "left": 1446,
+        "right": 1640,
+        "sel": "span.line-clamp-1.text-[13px]",
+        "width": 194
+      },
+      {
+        "label": "Indonesia",
+        "left": 1446,
+        "right": 1640,
+        "sel": "span.mt-1.block",
+        "width": 194
+      },
+      {
+        "label": "Este platillo es tóxico (si no está bien preparado): ¿A QUÉ SABE? 💀Indonesia",
+        "left": 1665,
+        "right": 1885,
+        "sel": "button.group.relative",
+        "width": 220
+      },
+      {
+        "label": "",
+        "left": 1666,
+        "right": 1884,
+        "sel": "img.object-cover.transition",
+        "width": 218
+      },
+      {
+        "label": "",
+        "left": 1666,
+        "right": 1884,
+        "sel": "span.absolute.inset-0",
+        "width": 218
+      },
+      {
+        "label": "Este platillo es tóxico (si no está bien preparado): ¿A QUÉ SABE? 💀Indonesia",
+        "left": 1666,
+        "right": 1884,
+        "sel": "span.absolute.bottom-0",
+        "width": 218
+      },
+      {
+        "label": "Este platillo es tóxico (si no está bien preparado): ¿A QUÉ SABE? 💀",
+        "left": 1678,
+        "right": 1872,
+        "sel": "span.line-clamp-1.text-[13px]",
+        "width": 194
+      },
+      {
+        "label": "Indonesia",
+        "left": 1678,
+        "right": 1872,
+        "sel": "span.mt-1.block",
+        "width": 194
+      }
+    ],
+    "tap": [
+      {
+        "h": 16,
+        "label": "Nueva playlist",
+        "tag": "button",
+        "w": 16
+      },
+      {
+        "h": 36,
+        "label": "Demo creador",
+        "tag": "button",
+        "w": 96
+      },
+      {
+        "h": 36,
+        "label": "Demo viewer",
+        "tag": "button",
+        "w": 90
+      },
+      {
+        "h": 36,
+        "label": "Creador",
+        "tag": "button",
+        "w": 66
+      },
+      {
+        "h": 36,
+        "label": "Viewer",
+        "tag": "button",
+        "w": 59
+      },
+      {
+        "h": 40,
+        "label": "Todos",
+        "tag": "button",
+        "w": 66
+      },
+      {
+        "h": 40,
+        "label": "En vivo",
+        "tag": "button",
+        "w": 72
+      },
+      {
+        "h": 40,
+        "label": "Videos",
+        "tag": "button",
+        "w": 71
+      },
+      {
+        "h": 40,
+        "label": "Creadores",
+        "tag": "button",
+        "w": 91
+      },
+      {
+        "h": 40,
+        "label": "Filtros",
+        "tag": "button",
+        "w": 114
+      },
+      {
+        "h": 40,
+        "label": "Acercar mapa",
+        "tag": "button",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Alejar mapa",
+        "tag": "button",
+        "w": 40
+      },
+      {
+        "h": 40,
+        "label": "Resetear mapa",
+        "tag": "button",
+        "w": 40
+      },
+      {
+        "h": 32,
+        "label": "Guardar video",
+        "tag": "button",
+        "w": 32
+      },
+      {
+        "h": 18,
+        "label": "0",
+        "tag": "button",
+        "w": 26
+      },
+      {
+        "h": 36,
+        "label": "Mis viajes",
+        "tag": "button",
+        "w": 108
+      },
+      {
+        "h": 36,
+        "label": "Quiero ir",
+        "tag": "button",
+        "w": 108
+      },
+      {
+        "h": 36,
+        "label": "Explorados",
+        "tag": "button",
+        "w": 108
+      }
+    ],
+    "title": "Prototipo de mapa ROAM | TravelYourMap",
+    "trunc": [
+      {
+        "ch": 1000,
+        "cw": 1440,
+        "label": "RoamExplore. Watch. Inspire.Luisito ComunicaDemo creador86Paises86Ciudades1.4KVideosExplor",
+        "sel": "div.relative.min-h-[100dvh]",
+        "sh": 1000,
+        "sw": 1455
+      },
+      {
+        "ch": 23,
+        "cw": 112,
+        "label": "Luisito Comunica",
+        "sel": "p.truncate.text-[15px]",
+        "sh": 23,
+        "sw": 115
+      },
+      {
+        "ch": 30,
+        "cw": 436,
+        "label": "Compré el pase VIP para el mundo Nintendo en Japón | ¿Vale la pena? 🎟️🎢",
+        "sel": "h2.mt-8.line-clamp-1",
+        "sh": 60,
+        "sw": 436
+      },
+      {
+        "ch": 20,
+        "cw": 194,
+        "label": "Compré el pase VIP para el mundo Nintendo en Japón | ¿Vale la pena? 🎟️🎢",
+        "sel": "span.line-clamp-1.text-[13px]",
+        "sh": 59,
+        "sw": 194
+      },
+      {
+        "ch": 20,
+        "cw": 194,
+        "label": "ASÍ ES SRI LANKA: el país “más barato” de Asia | ¿Cómo viven? 🇱🇰",
+        "sel": "span.line-clamp-1.text-[13px]",
+        "sh": 59,
+        "sw": 194
+      },
+      {
+        "ch": 20,
+        "cw": 194,
+        "label": "Probando comida callejera en SRI LANKA: el país “más barato” de Asia 🇱🇰",
+        "sel": "span.line-clamp-1.text-[13px]",
+        "sh": 59,
+        "sw": 194
+      },
+      {
+        "ch": 20,
+        "cw": 194,
+        "label": "Volé en el asiento de $15,000 con ducha: ¿vale la pena? | SUITE EMIRATES ✈️🚿",
+        "sel": "span.line-clamp-1.text-[13px]",
+        "sh": 59,
+        "sw": 194
+      },
+      {
+        "ch": 20,
+        "cw": 194,
+        "label": "Aquí vive el reptil más peligroso del mundo: DRAGÓN DE KOMODO 🐊",
+        "sel": "span.line-clamp-1.text-[13px]",
+        "sh": 59,
+        "sw": 194
+      },
+      {
+        "ch": 20,
+        "cw": 194,
+        "label": "ASÍ ES SUMBA: la isla de los guerreros (rituales y vida) 🇮🇩🐴",
+        "sel": "span.line-clamp-1.text-[13px]",
+        "sh": 39,
+        "sw": 194
+      },
+      {
+        "ch": 20,
+        "cw": 194,
+        "label": "Este platillo es tóxico (si no está bien preparado): ¿A QUÉ SABE? 💀",
+        "sel": "span.line-clamp-1.text-[13px]",
+        "sh": 59,
+        "sw": 194
+      },
+      {
+        "ch": 20,
+        "cw": 194,
+        "label": "Así es el trabajo MÁS PELIGROSO del mundo (un infierno en la tierra) ⚠️🇮🇩",
+        "sel": "span.line-clamp-1.text-[13px]",
+        "sh": 59,
+        "sw": 194
+      }
+    ],
+    "unlabeled": [
+      "button.flex.h-11"
+    ],
+    "url": "http://localhost:3000/map-proposal",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/map-proposal-v1",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-map-proposal-v1.png",
+    "bytes": 110561,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Tus viajes en el mapa"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Vista de map-experience en modo demo, viewer y creator para validar permisos.",
+    "overflow": [
+      {
+        "label": "Este platillo es tóxico (si no está bien preparado): ¿A QUÉ SABE? 💀",
+        "left": 1325,
+        "right": 1475,
+        "sel": "button.group.min-w-[150px]",
+        "width": 150
+      },
+      {
+        "label": "Este platillo es tóxico (si no está bien preparado): ¿A QUÉ SABE? 💀",
+        "left": 1326,
+        "right": 1474,
+        "sel": "div.relative.aspect-[16/10]",
+        "width": 148
+      },
+      {
+        "label": "",
+        "left": 1326,
+        "right": 1474,
+        "sel": "img.object-cover",
+        "width": 148
+      },
+      {
+        "label": "",
+        "left": 1326,
+        "right": 1474,
+        "sel": "span.absolute.inset-0",
+        "width": 148
+      },
+      {
+        "label": "Este platillo es tóxico (si no está bien preparado): ¿A QUÉ SABE? 💀",
+        "left": 1326,
+        "right": 1474,
+        "sel": "div.absolute.inset-x-0",
+        "width": 148
+      },
+      {
+        "label": "Este platillo es tóxico (si no está bien preparado): ¿A QUÉ SABE? 💀",
+        "left": 1334,
+        "right": 1466,
+        "sel": "p.line-clamp-2.text-[10px]",
+        "width": 132
+      },
+      {
+        "label": "Así es el trabajo MÁS PELIGROSO del mundo (un infierno en la tierra) ⚠️🇮🇩",
+        "left": 1487,
+        "right": 1637,
+        "sel": "button.group.min-w-[150px]",
+        "width": 150
+      },
+      {
+        "label": "Así es el trabajo MÁS PELIGROSO del mundo (un infierno en la tierra) ⚠️🇮🇩",
+        "left": 1488,
+        "right": 1636,
+        "sel": "div.relative.aspect-[16/10]",
+        "width": 148
+      },
+      {
+        "label": "",
+        "left": 1488,
+        "right": 1636,
+        "sel": "img.object-cover",
+        "width": 148
+      },
+      {
+        "label": "",
+        "left": 1488,
+        "right": 1636,
+        "sel": "span.absolute.inset-0",
+        "width": 148
+      },
+      {
+        "label": "Así es el trabajo MÁS PELIGROSO del mundo (un infierno en la tierra) ⚠️🇮🇩",
+        "left": 1488,
+        "right": 1636,
+        "sel": "div.absolute.inset-x-0",
+        "width": 148
+      },
+      {
+        "label": "Así es el trabajo MÁS PELIGROSO del mundo (un infierno en la tierra) ⚠️🇮🇩",
+        "left": 1496,
+        "right": 1628,
+        "sel": "p.line-clamp-2.text-[10px]",
+        "width": 132
+      }
+    ],
+    "tap": [
+      {
+        "h": 28,
+        "label": "Demo",
+        "tag": "button",
+        "w": 56
+      },
+      {
+        "h": 28,
+        "label": "Viewer",
+        "tag": "button",
+        "w": 62
+      },
+      {
+        "h": 28,
+        "label": "Creator",
+        "tag": "button",
+        "w": 67
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: United Arab Emirates",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: United Arab Emirates",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Norway",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Norway",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: United Arab Emirates",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Madagascar",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Madagascar",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Sweden",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Sweden",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Cuba",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Cuba",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Cuba",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Cuba",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Cuba",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Germany",
+        "tag": "button",
+        "w": 20
+      }
+    ],
+    "title": "Mapa ROAM v1 permisos | TravelYourMap",
+    "trunc": [
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ae",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ae",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-no",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-no",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ae",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-mg",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-mg",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-se",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-se",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-cu",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-cu",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-cu",
+        "sh": 15,
+        "sw": 16
+      }
+    ],
+    "unlabeled": [],
+    "url": "http://localhost:3000/map-proposal-v1",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/map-proposal-2",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-map-proposal-2.png",
+    "bytes": 116839,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [],
+    "h1Count": 0,
+    "lang": "es",
+    "metaDescription": "Propuesta visual premium rediseñada del mapa con datos demo de Luisito Comunica.",
+    "overflow": [
+      {
+        "label": "Aquí vive el reptil más peligroso del mundo: DRAGÓN DE KOMODO 🐊7.9MMexico0:00",
+        "left": 1367,
+        "right": 1627,
+        "sel": "div.group.relative",
+        "width": 260
+      },
+      {
+        "label": "",
+        "left": 1360,
+        "right": 1634,
+        "sel": "img.absolute.inset-0",
+        "width": 274
+      },
+      {
+        "label": "Aquí vive el reptil más peligroso del mundo: DRAGÓN DE KOMODO 🐊7.9MMexico0:00",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.absolute.inset-0",
+        "width": 256
+      },
+      {
+        "label": "Aquí vive el reptil más peligroso del mundo: DRAGÓN DE KOMODO 🐊",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.relative.flex-1",
+        "width": 256
+      },
+      {
+        "label": "Aquí vive el reptil más peligroso del mundo: DRAGÓN DE KOMODO 🐊",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.absolute.bottom-0",
+        "width": 256
+      },
+      {
+        "label": "Aquí vive el reptil más peligroso del mundo: DRAGÓN DE KOMODO 🐊",
+        "left": 1377,
+        "right": 1617,
+        "sel": "p.text-[11px].font-semibold",
+        "width": 240
+      },
+      {
+        "label": "7.9MMexico0:00",
+        "left": 1369,
+        "right": 1625,
+        "sel": "div.absolute.inset-x-0",
+        "width": 256
+      },
+      {
+        "label": "7.9M",
+        "left": 1377,
+        "right": 1457,
+        "sel": "div.flex.gap-1.5",
+        "width": 80
+      },
+      {
+        "label": "Mexico",
+        "left": 1454,
+        "right": 1540,
+        "sel": "div.flex.gap-1.5",
+        "width": 85
+      },
+      {
+        "label": "",
+        "left": 1474,
+        "right": 1486,
+        "sel": "span.fi.fi-mx",
+        "width": 12
+      },
+      {
+        "label": "Mexico",
+        "left": 1492,
+        "right": 1520,
+        "sel": "span.truncate.uppercase",
+        "width": 29
+      },
+      {
+        "label": "0:00",
+        "left": 1537,
+        "right": 1617,
+        "sel": "div.flex.gap-1.5",
+        "width": 80
+      }
+    ],
+    "tap": [
+      {
+        "h": 24,
+        "label": "Nuevos",
+        "tag": "button",
+        "w": 57
+      },
+      {
+        "h": 24,
+        "label": "ABC",
+        "tag": "button",
+        "w": 37
+      },
+      {
+        "h": 24,
+        "label": "Vistos",
+        "tag": "button",
+        "w": 52
+      },
+      {
+        "h": 44,
+        "label": "Buscar videos del mapa",
+        "tag": "button",
+        "w": 39
+      },
+      {
+        "h": 40,
+        "label": "Crear cuenta gratis",
+        "tag": "a",
+        "w": 141
+      },
+      {
+        "h": 40,
+        "label": "Seguidor",
+        "tag": "button",
+        "w": 107
+      },
+      {
+        "h": 40,
+        "label": "Admin",
+        "tag": "button",
+        "w": 93
+      },
+      {
+        "h": 40,
+        "label": "Extraer videos",
+        "tag": "button",
+        "w": 137
+      },
+      {
+        "h": 40,
+        "label": "Compartir",
+        "tag": "button",
+        "w": 40
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: United Arab Emirates",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: United Arab Emirates",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Norway",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Norway",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: United Arab Emirates",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Madagascar",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Madagascar",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Sweden",
+        "tag": "button",
+        "w": 20
+      },
+      {
+        "h": 20,
+        "label": "Abrir video: Sweden",
+        "tag": "button",
+        "w": 20
+      }
+    ],
+    "title": "Prototipo de mapa ROAM 2 | TravelYourMap",
+    "trunc": [
+      {
+        "ch": 18,
+        "cw": 115,
+        "label": "United Arab Emirates",
+        "sel": "span.block.truncate",
+        "sh": 18,
+        "sw": 119
+      },
+      {
+        "ch": 18,
+        "cw": 115,
+        "label": "Republic of the Congo",
+        "sel": "span.block.truncate",
+        "sh": 18,
+        "sw": 120
+      },
+      {
+        "ch": 920,
+        "cw": 898,
+        "label": "Left-click: rotate, Mouse-wheel/middle-click: zoom, Right-click: pan🌍Mundo0/13930%TodosFi",
+        "sel": "div.flex.flex-col",
+        "sh": 932,
+        "sw": 384469
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ae",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ae",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-no",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-no",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-ae",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-mg",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-mg",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-se",
+        "sh": 15,
+        "sw": 16
+      },
+      {
+        "ch": 12,
+        "cw": 16,
+        "label": "",
+        "sel": "span.fi.fi-se",
+        "sh": 15,
+        "sw": 16
+      }
+    ],
+    "unlabeled": [],
+    "url": "http://localhost:3000/map-proposal-2",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/map-admin-proposal?qa=responsive",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-map-admin-proposal.png",
+    "bytes": 91779,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [],
+    "h1": [
+      "Creator Admin"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Panel operacional del creador para administrar mapa, videos, votaciones y sponsors.",
+    "overflow": [],
+    "tap": [
+      {
+        "h": 36,
+        "label": "Ver mi mapa",
+        "tag": "a",
+        "w": 117
+      },
+      {
+        "h": 36,
+        "label": "Cerrar alertas",
+        "tag": "button",
+        "w": 36
+      },
+      {
+        "h": 32,
+        "label": "Ver audiencia",
+        "tag": "button",
+        "w": 91
+      },
+      {
+        "h": 32,
+        "label": "Ver paises",
+        "tag": "button",
+        "w": 74
+      },
+      {
+        "h": 32,
+        "label": "Abrir alertas",
+        "tag": "button",
+        "w": 87
+      },
+      {
+        "h": 30,
+        "label": "Ver todo",
+        "tag": "button",
+        "w": 65
+      },
+      {
+        "h": 36,
+        "label": "Cerrar alertas",
+        "tag": "button",
+        "w": 36
+      },
+      {
+        "h": 32,
+        "label": "Revisar videos",
+        "tag": "button",
+        "w": 103
+      },
+      {
+        "h": 20,
+        "label": "Quitar alerta Videos pendientes de revision",
+        "tag": "button",
+        "w": 20
+      }
+    ],
+    "title": "Panel de Administracion | TravelYourMap",
+    "trunc": [
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "TravelYourMap",
+        "sel": "p.text-[10px].font-black",
+        "sh": 15,
+        "sw": 113
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Creator Admin",
+        "sel": "h1.mt-1.text-[17px]",
+        "sh": 26,
+        "sw": 110
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Resumen",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 50
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Videos",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 38
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Paises",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 35
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Votaciones",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 61
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Sponsors",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 51
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Media Kit",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 53
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Negocio",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 45
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Secundario",
+        "sel": "p.px-2.text-[9px]",
+        "sh": 14,
+        "sw": 75
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Audiencia",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 55
+      },
+      {
+        "ch": 1,
+        "cw": 1,
+        "label": "Actividad",
+        "sel": "span.min-w-0.flex-1",
+        "sh": 18,
+        "sw": 53
+      }
+    ],
+    "unlabeled": [],
+    "url": "http://localhost:3000/map-admin-proposal?qa=responsive",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 1000,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  },
+  {
+    "requested": "/demo-diseno",
+    "file": "/Users/bypupila/Desktop/0. BY PUPILA - Proyectos/Travel/web/docs/audit-plataforma-2026-07-13/screenshots/d-demo-diseno.png",
+    "bytes": 98820,
+    "broken": [],
+    "canonical": null,
+    "emptyLinks": [
+      {
+        "href": "#",
+        "label": "Ver opciones"
+      },
+      {
+        "href": "#",
+        "label": "Explorar"
+      },
+      {
+        "href": "#",
+        "label": "Reclamar beneficio"
+      }
+    ],
+    "h1": [
+      "Estudio de Tarjetas de Video"
+    ],
+    "h1Count": 1,
+    "lang": "es",
+    "metaDescription": "Demostración de 3 propuestas de diseño premium e interactivas del componente de reproducción de video en mapa.",
+    "overflow": [
+      {
+        "label": "1 MINHDASÍ ES SUMBA: la isla de los guerreros (rituales y vida) 🇮🇩🐴🇮🇩•Indonesia",
+        "left": 1331,
+        "right": 1561,
+        "sel": "div.group.relative",
+        "width": 230
+      },
+      {
+        "label": "",
+        "left": 1332,
+        "right": 1560,
+        "sel": "img.absolute.inset-0",
+        "width": 228
+      },
+      {
+        "label": "",
+        "left": 1332,
+        "right": 1560,
+        "sel": "div.absolute.inset-0",
+        "width": 228
+      },
+      {
+        "label": "1 MINHD",
+        "left": 1340,
+        "right": 1552,
+        "sel": "div.absolute.top-2",
+        "width": 212
+      },
+      {
+        "label": "HD",
+        "left": 1530,
+        "right": 1552,
+        "sel": "div.flex.items-center",
+        "width": 22
+      },
+      {
+        "label": "HD",
+        "left": 1530,
+        "right": 1552,
+        "sel": "span.rounded.bg-black/50",
+        "width": 22
+      },
+      {
+        "label": "ASÍ ES SUMBA: la isla de los guerreros (rituales y vida) 🇮🇩🐴🇮🇩•Indonesia",
+        "left": 1342,
+        "right": 1550,
+        "sel": "div.absolute.bottom-2",
+        "width": 208
+      },
+      {
+        "label": "ASÍ ES SUMBA: la isla de los guerreros (rituales y vida) 🇮🇩🐴",
+        "left": 1342,
+        "right": 1550,
+        "sel": "p.line-clamp-1.text-[11px]",
+        "width": 208
+      },
+      {
+        "label": "🇮🇩•Indonesia",
+        "left": 1342,
+        "right": 1550,
+        "sel": "div.mt-1.flex",
+        "width": 208
+      },
+      {
+        "label": "1 MINHDEste platillo es tóxico (si no está bien preparado): ¿A QUÉ SABE? 💀🇮🇩•Indonesia",
+        "left": 1577,
+        "right": 1807,
+        "sel": "div.group.relative",
+        "width": 230
+      },
+      {
+        "label": "",
+        "left": 1578,
+        "right": 1806,
+        "sel": "img.absolute.inset-0",
+        "width": 228
+      },
+      {
+        "label": "",
+        "left": 1578,
+        "right": 1806,
+        "sel": "div.absolute.inset-0",
+        "width": 228
+      }
+    ],
+    "tap": [
+      {
+        "h": 32,
+        "label": "1. Japan - Compré el pase VIP par...2. Sri Lanka - ASÍ ES SRI LANKA: el p...3. Sri Lanka -",
+        "tag": "select",
+        "w": 300
+      },
+      {
+        "h": 32,
+        "label": "Guardado",
+        "tag": "button",
+        "w": 94
+      },
+      {
+        "h": 32,
+        "label": "Destacar",
+        "tag": "button",
+        "w": 88
+      },
+      {
+        "h": 32,
+        "label": "INICIADOCOMPLETADOVER MÁS TARDE",
+        "tag": "select",
+        "w": 131
+      },
+      {
+        "h": 30,
+        "label": "Quitar de guardados",
+        "tag": "button",
+        "w": 30
+      },
+      {
+        "h": 30,
+        "label": "Destacar video",
+        "tag": "button",
+        "w": 30
+      },
+      {
+        "h": 32,
+        "label": "Abrir en YouTube",
+        "tag": "button",
+        "w": 121
+      },
+      {
+        "h": 32,
+        "label": "ANTERIOR",
+        "tag": "button",
+        "w": 118
+      },
+      {
+        "h": 32,
+        "label": "INICIADO",
+        "tag": "button",
+        "w": 96
+      },
+      {
+        "h": 32,
+        "label": "SIGUIENTE",
+        "tag": "button",
+        "w": 118
+      },
+      {
+        "h": 26,
+        "label": "",
+        "tag": "button",
+        "w": 26
+      },
+      {
+        "h": 26,
+        "label": "",
+        "tag": "button",
+        "w": 26
+      },
+      {
+        "h": 32,
+        "label": "Abrir en YouTube",
+        "tag": "button",
+        "w": 95
+      },
+      {
+        "h": 28,
+        "label": "Anterior",
+        "tag": "button",
+        "w": 28
+      },
+      {
+        "h": 28,
+        "label": "INICIADO",
+        "tag": "button",
+        "w": 94
+      },
+      {
+        "h": 28,
+        "label": "Siguiente",
+        "tag": "button",
+        "w": 28
+      },
+      {
+        "h": 32,
+        "label": "Abrir en YouTube",
+        "tag": "button",
+        "w": 102
+      },
+      {
+        "h": 32,
+        "label": "SAVE_STAT: SYNC",
+        "tag": "button",
+        "w": 180
+      }
+    ],
+    "title": "Propuestas de Diseño DesktopVideoMapCard | TravelYourMap",
+    "trunc": [
+      {
+        "ch": 419,
+        "cw": 403,
+        "label": "Compré el pase VIP para el mundo Nintendo en Japón | ¿Vale la pena? 🎟️🎢🇯🇵 Japan•Video ",
+        "sel": "article.group.relative",
+        "sh": 419,
+        "sw": 483
+      },
+      {
+        "ch": 14,
+        "cw": 281,
+        "label": "Compré el pase VIP para el mundo Nintendo en Japón | ¿Vale la pena? 🎟️🎢",
+        "sel": "h2.truncate.text-sm",
+        "sh": 16,
+        "sw": 472
+      },
+      {
+        "ch": 493,
+        "cw": 403,
+        "label": "🇯🇵JapanDestino #1 de 8Compré el pase VIP para el mundo Nintendo en Japón | ¿Vale la pena",
+        "sel": "article.group.relative",
+        "sh": 573,
+        "sw": 403
+      },
+      {
+        "ch": 16,
+        "cw": 371,
+        "label": "Compré el pase VIP para el mundo Nintendo en Japón | ¿Vale la pena? 🎟️🎢",
+        "sel": "h2.text-[13px].font-bold",
+        "sh": 33,
+        "sw": 371
+      },
+      {
+        "ch": 16,
+        "cw": 367,
+        "label": "Compré el pase VIP para el mundo Nintendo en Japón | ¿Vale la pena? 🎟️🎢",
+        "sel": "h2.text-xs.font-bold",
+        "sh": 32,
+        "sw": 367
+      },
+      {
+        "ch": 453,
+        "cw": 403,
+        "label": "🇯🇵JapanCinema Ambient SlotCompré el pase VIP para el mundo Nintendo en Japón | ¿Vale la ",
+        "sel": "article.group.relative",
+        "sh": 533,
+        "sw": 483
+      },
+      {
+        "ch": 17,
+        "cw": 371,
+        "label": "Compré el pase VIP para el mundo Nintendo en Japón | ¿Vale la pena? 🎟️🎢",
+        "sel": "h3.text-xs.font-extrabold",
+        "sh": 33,
+        "sw": 371
+      },
+      {
+        "ch": 227,
+        "cw": 403,
+        "label": "Reproductor oficial de YouTube.WATCH ON YT",
+        "sel": "div.relative.overflow-hidden",
+        "sh": 267,
+        "sw": 403
+      },
+      {
+        "ch": 17,
+        "cw": 371,
+        "label": "Compré el pase VIP para el mundo Nintendo en Japón | ¿Vale la pena? 🎟️🎢",
+        "sel": "h3.mt-1.5.text-xs",
+        "sh": 33,
+        "sw": 371
+      },
+      {
+        "ch": 242,
+        "cw": 351,
+        "label": "Reproductor oficial de YouTube.DISPLAY",
+        "sel": "div.rounded.overflow-hidden",
+        "sh": 242,
+        "sw": 359
+      },
+      {
+        "ch": 425,
+        "cw": 405,
+        "label": "🇯🇵 JapanCompré el pase VIP para el mundo Nintendo en Japón | ¿Vale la pena? 🎟️🎢Reprodu",
+        "sel": "article.group.relative",
+        "sh": 465,
+        "sw": 445
+      },
+      {
+        "ch": 732,
+        "cw": 918,
+        "label": "Compré el pase VIP para el mundo Nintendo en Japón | ¿Vale la pena? 🎟️🎢🇯🇵 Japan•Video ",
+        "sel": "article.group.relative",
+        "sh": 732,
+        "sw": 998
+      }
+    ],
+    "unlabeled": [
+      "button.flex.h-6.5",
+      "button.flex.h-6.5",
+      "button.flex.h-7",
+      "button.flex.h-7",
+      "button.col-span-1.flex",
+      "button.col-span-1.flex",
+      "button.flex-1.flex",
+      "button.w-full.flex",
+      "button.flex-1.flex",
+      "button.flex.h-8",
+      "button.flex.h-8",
+      "button.flex.h-9"
+    ],
+    "url": "http://localhost:3000/demo-diseno",
+    "viewport": {
+      "clientWidth": 1440,
+      "h": 1000,
+      "scrollHeight": 8635,
+      "scrollWidth": 1440,
+      "w": 1440
+    }
+  }
+]

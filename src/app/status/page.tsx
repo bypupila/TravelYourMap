@@ -1,6 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { ContactStrip } from "@/components/site/contact-strip";
 import { loadPublicStatus, type PublicServiceStatus } from "@/lib/public-status";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Estado del servicio | TravelYourMap",
+  description: "Estado operativo de importaciones, mapas, votaciones y servicios de TravelYourMap.",
+  robots: { index: true, follow: true },
+};
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +36,7 @@ export default async function StatusPage() {
         <header className="tm-surface-strong rounded-[2rem] border border-white/10 px-6 py-5">
           <p className="tym-overline text-[#8ff0ff]">Travel Your Map</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#f5f7fb]">Estado del servicio</h1>
-          <p className="mt-2 text-sm text-[#aab2bc]">Ultima actualizacion: {generatedAt.toLocaleString("es-AR")}</p>
+          <p className="mt-2 text-sm text-[#aab2bc]">Última actualización: {generatedAt.toLocaleString("es-AR")}</p>
           <div className="mt-3">
             <Badge className={statusClasses[status.overall_status]}>{statusLabel[status.overall_status]}</Badge>
           </div>

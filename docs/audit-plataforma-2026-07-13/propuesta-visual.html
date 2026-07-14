@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TravelYourMap · propuestas visuales de auditoría</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #0c0f11;
+        --surface: #171b1e;
+        --surface-soft: #1d2327;
+        --text: #f3eee7;
+        --muted: #b7b0a6;
+        --disabled: #78736b;
+        --accent: #ff5a3d;
+        --accent-soft: rgba(255, 90, 61, 0.16);
+        --border: rgba(255, 245, 235, 0.12);
+        --green: #71d7aa;
+        --yellow: #e3ba68;
+      }
+      * { box-sizing: border-box; }
+      html { background: var(--bg); }
+      body {
+        margin: 0;
+        color: var(--text);
+        background:
+          radial-gradient(circle at 12% 9%, rgba(255,90,61,.12), transparent 24%),
+          radial-gradient(circle at 84% 18%, rgba(39,86,124,.17), transparent 30%),
+          var(--bg);
+        font-family: "Outfit", sans-serif;
+      }
+      .page { width: 1440px; margin: 0 auto; padding: 64px; }
+      .topline { display: flex; align-items: center; justify-content: space-between; gap: 32px; margin-bottom: 48px; }
+      .brand { display: flex; align-items: center; gap: 14px; }
+      .brand img { width: 44px; height: 44px; border-radius: 50%; }
+      .eyebrow { font: 500 11px/1 "JetBrains Mono", monospace; letter-spacing: .17em; text-transform: uppercase; color: var(--accent); }
+      h1 { max-width: 820px; margin: 14px 0 12px; font-size: 52px; line-height: .98; letter-spacing: -.045em; }
+      .lead { max-width: 760px; margin: 0; color: var(--muted); font-size: 18px; line-height: 1.55; }
+      .badge { border: 1px solid var(--border); border-radius: 999px; padding: 10px 14px; color: var(--muted); background: rgba(255,255,255,.035); font: 500 11px/1 "JetBrains Mono", monospace; text-transform: uppercase; letter-spacing: .08em; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+      .proposal { position: relative; min-height: 780px; overflow: hidden; border: 1px solid var(--border); border-radius: 32px; background: rgba(17,20,22,.86); box-shadow: 0 28px 90px rgba(0,0,0,.32); }
+      .proposal-head { padding: 28px 30px 22px; border-bottom: 1px solid var(--border); }
+      .proposal-head h2 { margin: 8px 0 8px; font-size: 27px; letter-spacing: -.025em; }
+      .proposal-head p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.45; }
+      .canvas { display: flex; min-height: 650px; align-items: center; justify-content: center; padding: 28px; background: linear-gradient(180deg, rgba(255,255,255,.015), transparent); }
+      .phone { width: 330px; height: 610px; overflow: hidden; border: 1px solid rgba(255,255,255,.18); border-radius: 34px; background: #0d0f11; box-shadow: 0 24px 55px rgba(0,0,0,.5); }
+      .phone-scroll { height: 100%; display: flex; flex-direction: column; }
+      .mobile-head { padding: 18px 18px 14px; border-bottom: 1px solid var(--border); background: rgba(17,20,22,.96); }
+      .mobile-brand { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .mobile-brand strong { font-size: 14px; }
+      .step { color: var(--muted); font: 500 10px/1 "JetBrains Mono", monospace; }
+      .progress { height: 3px; margin-top: 12px; border-radius: 999px; background: rgba(255,255,255,.08); }
+      .progress span { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+      .mobile-body { flex: 1; overflow: hidden; padding: 18px; }
+      .kicker { color: var(--accent); font: 500 10px/1 "JetBrains Mono", monospace; text-transform: uppercase; letter-spacing: .13em; }
+      .mobile-body h3 { margin: 10px 0 10px; font-size: 26px; line-height: 1.04; letter-spacing: -.035em; }
+      .mobile-body > p { margin: 0 0 16px; color: var(--muted); font-size: 13px; line-height: 1.45; }
+      .mini-card { padding: 14px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); }
+      .mini-card + .mini-card { margin-top: 10px; }
+      .mini-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .mini-price { font-size: 24px; font-weight: 700; }
+      .tiny { color: var(--muted); font-size: 11px; line-height: 1.45; }
+      .mobile-actions { display: grid; grid-template-columns: 1fr 1.25fr; gap: 10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); background: rgba(13,15,17,.98); }
+      button, .button { min-height: 46px; border: 1px solid var(--border); border-radius: 999px; color: var(--text); background: rgba(255,255,255,.045); font: 600 13px/1 "Outfit", sans-serif; display: inline-flex; align-items: center; justify-content: center; }
+      .primary { border-color: transparent; background: var(--accent); }
+      .processing .mobile-body { padding-top: 22px; }
+      .process-status { margin-top: 18px; padding: 16px; border: 1px solid var(--border); border-radius: 22px; background: var(--surface); }
+      .process-status .bar { height: 6px; margin: 14px 0; border-radius: 999px; background: rgba(255,255,255,.06); }
+      .process-status .bar span { display: block; width: 64%; height: 100%; border-radius: inherit; background: var(--accent); }
+      .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+      .metric { min-height: 76px; padding: 12px; border: 1px solid var(--border); border-radius: 16px; background: #111416; }
+      .metric strong { display: block; font-size: 20px; }
+      .map-phone { position: relative; background: #080a0b; }
+      .search { margin: 16px; height: 46px; border: 1px solid var(--border); border-radius: 999px; padding: 0 16px; display: flex; align-items: center; color: var(--muted); background: var(--surface); }
+      .map-stage { position: relative; height: 286px; margin: 0 16px; overflow: hidden; border: 1px solid var(--border); border-radius: 24px; background: radial-gradient(circle at 55% 44%, #1c4253 0, #101a24 30%, #05080c 66%); }
+      .map-stage:after { content: ""; position: absolute; width: 190px; height: 190px; left: 67px; top: 42px; border-radius: 50%; border: 1px solid rgba(255,90,61,.36); background: radial-gradient(circle at 35% 30%, #244a57, #11181c 50%, #090c0e); }
+      .map-toolbar { position: absolute; z-index: 2; top: 14px; left: 12px; right: 12px; display: flex; justify-content: space-between; }
+      .chip { min-height: 38px; padding: 0 13px; border: 1px solid var(--border); border-radius: 999px; display: inline-flex; align-items: center; color: var(--text); background: rgba(13,15,17,.9); font-size: 12px; }
+      .result-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 16px 18px 0; }
+      .result-head strong { font-size: 17px; }
+      .clear { color: var(--accent); font-size: 12px; }
+      .video-strip { display: grid; grid-template-columns: 1.5fr .8fr; gap: 10px; margin: 12px 16px; }
+      .thumb { height: 120px; border: 1px solid var(--border); border-radius: 18px; background: linear-gradient(145deg, #2f6a7e, #2d302b 50%, #16191b); }
+      .sheet { position: absolute; z-index: 4; left: 12px; right: 12px; bottom: 12px; padding: 16px; border: 1px solid rgba(255,245,235,.18); border-radius: 24px; background: rgba(23,27,30,.98); box-shadow: 0 -18px 55px rgba(0,0,0,.48); }
+      .sheet h4 { margin: 2px 0 12px; font-size: 18px; }
+      .sheet-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+      .sheet-tabs span { padding: 9px; border-radius: 999px; text-align: center; color: var(--muted); font-size: 12px; background: rgba(255,255,255,.035); }
+      .sheet-tabs .active { color: var(--text); background: var(--accent-soft); border: 1px solid rgba(255,90,61,.42); }
+      .choice { display: flex; align-items: center; justify-content: space-between; padding: 11px 12px; border-radius: 15px; background: #111416; }
+      .choice + .choice { margin-top: 7px; }
+      .choice.selected { border: 1px solid rgba(255,90,61,.48); }
+      .pricing-canvas { align-items: stretch; padding: 28px; }
+      .pricing-board { width: 100%; padding: 24px; border: 1px solid var(--border); border-radius: 26px; background: #111416; }
+      .pricing-board h3 { margin: 10px 0 6px; font-size: 28px; }
+      .pricing-board > p { margin: 0 0 22px; color: var(--muted); }
+      .plan-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+      .plan { min-height: 325px; display: flex; flex-direction: column; padding: 18px; border: 1px solid var(--border); border-radius: 22px; background: var(--surface); }
+      .plan.featured { border-color: rgba(255,90,61,.62); box-shadow: inset 0 0 0 1px rgba(255,90,61,.14); }
+      .plan h4 { margin: 12px 0 2px; font-size: 21px; }
+      .plan .price { margin: 7px 0; font-size: 29px; font-weight: 700; }
+      .plan ul { margin: 13px 0 18px; padding-left: 18px; color: var(--muted); font-size: 12px; line-height: 1.75; }
+      .plan .button { margin-top: auto; width: 100%; }
+      .notes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 28px; }
+      .note { padding: 16px; border-left: 2px solid var(--accent); background: rgba(255,255,255,.025); }
+      .note strong { display: block; margin-bottom: 5px; font-size: 13px; }
+      .note span { color: var(--muted); font-size: 12px; line-height: 1.4; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="topline">
+        <div>
+          <div class="brand">
+            <img src="../../public/favicon.ico" alt="TravelYourMap" />
+            <span class="eyebrow">Auditoría · checkpoint visual</span>
+          </div>
+          <h1>Cuatro correcciones visuales antes de tocar producción.</h1>
+          <p class="lead">Propuestas construidas sobre el sistema actual: dark premium, acento coral, superficies compactas, objetivos táctiles de 44 px y una sola capa prioritaria sobre el mapa.</p>
+        </div>
+        <span class="badge">Propuesta · no implementada</span>
+      </section>
+
+      <section class="grid">
+        <article class="proposal">
+          <header class="proposal-head">
+            <span class="eyebrow">P1 · Onboarding mobile</span>
+            <h2>Acciones visibles sin tapar el contenido</h2>
+            <p>El pie ocupa espacio propio, el progreso vive en el encabezado y la pantalla reserva el safe area.</p>
+          </header>
+          <div class="canvas">
+            <div class="phone">
+              <div class="phone-scroll">
+                <div class="mobile-head">
+                  <div class="mobile-brand"><strong>TravelYourMap</strong><span class="step">Paso 7 de 7</span></div>
+                  <div class="progress"><span style="width:100%"></span></div>
+                </div>
+                <div class="mobile-body">
+                  <span class="kicker">Planes</span>
+                  <h3>Elige tu plan y empieza tu prueba.</h3>
+                  <p>Precios y disponibilidad consistentes con la página pública.</p>
+                  <div class="mini-card">
+                    <div class="mini-row"><strong>Creator</strong><span class="badge">Recomendado</span></div>
+                    <div class="mini-price">$29/mes</div>
+                    <div class="tiny">7 días gratis · Videos ilimitados · 1 sponsor</div>
+                  </div>
+                  <div class="mini-card">
+                    <div class="mini-row"><strong>Creator Pro</strong><span class="badge">Más vendido</span></div>
+                    <div class="mini-price">$79/mes</div>
+                    <div class="tiny">7 días gratis · Sponsor hub · Analytics avanzados</div>
+                  </div>
+                </div>
+                <div class="mobile-actions"><button>Atrás</button><button class="primary">Continuar con Polar</button></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="proposal">
+          <header class="proposal-head">
+            <span class="eyebrow">P2 · Procesamiento mobile</span>
+            <h2>Encabezado compacto, contenido debajo</h2>
+            <p>Se elimina la superposición: estado arriba, mensaje principal en el flujo y métricas legibles.</p>
+          </header>
+          <div class="canvas">
+            <div class="phone processing">
+              <div class="phone-scroll">
+                <div class="mobile-head">
+                  <div class="mobile-brand"><strong>Importación en curso</strong><span class="badge">64%</span></div>
+                  <div class="progress"><span style="width:64%"></span></div>
+                </div>
+                <div class="mobile-body">
+                  <span class="kicker">Canal conectado</span>
+                  <h3>Tu canal se está convirtiendo en un mundo.</h3>
+                  <p>Podés cerrar esta pantalla. Te avisamos cuando el mapa esté listo.</p>
+                  <div class="process-status">
+                    <div class="mini-row"><strong>Mapeando destinos</strong><span class="step">64%</span></div>
+                    <div class="bar"><span></span></div>
+                    <div class="tiny">42 de 66 videos procesados</div>
+                  </div>
+                  <div class="metrics">
+                    <div class="metric"><strong>8</strong><span class="tiny">Países</span></div>
+                    <div class="metric"><strong>42</strong><span class="tiny">Videos</span></div>
+                    <div class="metric"><strong>1,3 M</strong><span class="tiny">Views</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="proposal">
+          <header class="proposal-head">
+            <span class="eyebrow">P3 · Mapa mobile</span>
+            <h2>Una sola capa de control a la vez</h2>
+            <p>Filtros y votación comparten un bottom sheet exclusivo; la búsqueda limpia el país anterior.</p>
+          </header>
+          <div class="canvas">
+            <div class="phone map-phone">
+              <div class="search">Buscar destinos o videos</div>
+              <div class="map-stage">
+                <div class="map-toolbar"><span class="chip">Todos</span><span class="chip">Filtros</span></div>
+              </div>
+              <div class="result-head"><strong>Resultados para Japón</strong><span class="clear">Limpiar búsqueda</span></div>
+              <div class="video-strip"><div class="thumb"></div><div class="thumb"></div></div>
+              <div class="sheet">
+                <div class="sheet-tabs"><span>Filtros</span><span class="active">Votación</span></div>
+                <h4>Próximo destino</h4>
+                <div class="choice selected"><strong>Perú</strong><span class="tiny">1 voto</span></div>
+                <div class="choice"><strong>Portugal</strong><span class="tiny">0 votos</span></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="proposal">
+          <header class="proposal-head">
+            <span class="eyebrow">P4 · Pricing</span>
+            <h2>Una única verdad para precios y disponibilidad</h2>
+            <p>La ruta /pricing muestra la misma oferta que onboarding y separa compra de contacto comercial.</p>
+          </header>
+          <div class="canvas pricing-canvas">
+            <div class="pricing-board">
+              <span class="kicker">Planes TravelYourMap</span>
+              <h3>Elige el plan que acompaña tu mapa.</h3>
+              <p>7 días gratis. Cancelación simple. Sin planes fantasma.</p>
+              <div class="plan-grid">
+                <div class="plan">
+                  <span class="kicker">Creator</span><h4>Para empezar</h4><div class="price">$29</div><div class="tiny">por mes</div>
+                  <ul><li>Videos ilimitados</li><li>1 sponsor</li><li>Analytics básicos</li></ul>
+                  <span class="button">Empezar prueba</span>
+                </div>
+                <div class="plan featured">
+                  <span class="kicker">Creator Pro</span><h4>Para monetizar</h4><div class="price">$79</div><div class="tiny">por mes</div>
+                  <ul><li>Sponsor hub</li><li>Analytics avanzados</li><li>Sync prioritaria</li></ul>
+                  <span class="button primary">Empezar prueba</span>
+                </div>
+                <div class="plan">
+                  <span class="kicker">Agency</span><h4>Para equipos</h4><div class="price">A medida</div><div class="tiny">venta asistida</div>
+                  <ul><li>Portafolio de canales</li><li>API</li><li>Portal de marcas</li></ul>
+                  <span class="button">Hablar con ventas</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section class="notes">
+        <div class="note"><strong>Jerarquía</strong><span>Un objetivo principal por estado, sin paneles compitiendo.</span></div>
+        <div class="note"><strong>Responsive</strong><span>Acciones de 44–46 px y espacio real para barras fijas.</span></div>
+        <div class="note"><strong>Contenido</strong><span>Países, precios y estados usan una fuente única y español consistente.</span></div>
+        <div class="note"><strong>Alcance</strong><span>Estas propuestas no modifican código de producción.</span></div>
+      </section>
+    </main>
+  </body>
+</html>

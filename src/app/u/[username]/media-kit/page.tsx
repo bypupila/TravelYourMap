@@ -25,7 +25,7 @@ export async function generateMetadata({ params }: MediaKitPageProps): Promise<M
 
   const canonicalUrl = `${siteUrl}/u/${encodeURIComponent(mediaKit.channel.canonicalHandle)}/media-kit`;
   const title = `${mediaKit.channel.channel_name} | Media Kit para marcas`;
-  const description = `${mediaKit.summary.videos} videos en ${mediaKit.summary.countries} paises, sponsors activos y senales first-party de TravelYourMap.`;
+  const description = `${mediaKit.summary.videos} videos en ${mediaKit.summary.countries} países, sponsors activos y señales first-party de TravelYourMap.`;
   return {
     title,
     description,
@@ -89,7 +89,7 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
                 {mediaKit.settings.preferred_cta_label || "Solicitar partnership"}
               </a>
               <Link href={mediaKit.urls.mapUrl} className="inline-flex h-11 items-center rounded-lg border border-[#cbd5e1] bg-white px-4 text-sm font-black text-[#111827]">
-                Ver mapa publico
+                Ver mapa público
               </Link>
               {mediaKit.settings.rate_card_url ? (
                 <a href={mediaKit.settings.rate_card_url} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center rounded-lg border border-[#cbd5e1] bg-white px-4 text-sm font-black text-[#111827]">
@@ -109,9 +109,9 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
 
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <Metric label="Videos" value={formatNumber(mediaKit.summary.videos)} />
-            <Metric label="Paises" value={formatNumber(mediaKit.summary.countries)} />
+            <Metric label="Países" value={formatNumber(mediaKit.summary.countries)} />
             <Metric label="Views YouTube" value={formatCompact(mediaKit.summary.youtube_views)} />
-            <Metric label="Senales 30d" value={formatCompact(mediaKit.summary.map_events_30d)} />
+            <Metric label="Señales 30d" value={formatCompact(mediaKit.summary.map_events_30d)} />
           </section>
         </div>
 
@@ -134,7 +134,7 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
           <section className="rounded-lg border border-[#d7dce4] bg-[#111827] p-4 text-white">
             <p className="text-xs font-black uppercase tracking-[0.16em] text-[#ffb19f]">Fuente de datos</p>
             <p className="mt-2 text-sm leading-6 text-[#dbe4ef]">
-              TravelYourMap combina datos importados de YouTube con interacciones propias del mapa publico. Las metricas first-party son eventos capturados dentro de la experiencia TravelYourMap.
+              TravelYourMap combina datos importados de YouTube con interacciones propias del mapa público. Las métricas first-party son eventos capturados dentro de la experiencia TravelYourMap.
             </p>
           </section>
         </aside>
@@ -142,13 +142,13 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
 
       <section className="border-y border-[#d7dce4] bg-white">
         <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:px-8">
-          <Panel title="Destinos con mas valor" eyebrow="Inventario geografico">
+          <Panel title="Destinos con más valor" eyebrow="Inventario geográfico">
             <div className="grid gap-3">
               {mediaKit.topCountries.map((country) => (
                 <article key={country.country_code} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 rounded-lg border border-[#e2e8f0] bg-[#f8fafc] p-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-black">{country.country_name}</p>
-                    <p className="mt-1 text-xs text-[#64748b]">{country.videos_count} videos · {formatCompact(country.map_events)} senales del mapa</p>
+                    <p className="mt-1 text-xs text-[#64748b]">{country.videos_count} videos · {formatCompact(country.map_events)} señales del mapa</p>
                   </div>
                   <p className="self-center text-sm font-black text-[#ff5a3d]">{formatCompact(country.youtube_views)}</p>
                 </article>

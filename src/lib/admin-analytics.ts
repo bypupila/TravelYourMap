@@ -36,6 +36,18 @@ export interface AdminOverviewMetrics {
     top_viewer_countries: Array<{ country_code: string; users: number }>;
     top_event_countries: Array<{ country_code: string; events: number }>;
   };
+  coming_soon: {
+    unique_people: number;
+    total_clicks: number;
+    interactions: Array<{
+      feature_id: string;
+      feature_label: string;
+      surface_id: string;
+      surface_label: string;
+      unique_people: number;
+      total_clicks: number;
+    }>;
+  };
 }
 
 export async function loadAdminOverviewMetrics(input?: { windowDays?: number }): Promise<AdminOverviewMetrics> {
@@ -53,6 +65,7 @@ export async function loadAdminOverviewMetrics(input?: { windowDays?: number }):
     viewerProfilesTable,
     creatorViewerSubscriptionsTable,
     fanVotesTable,
+    comingSoonInteractionsTable,
   ] = await Promise.all([
     tableExists("public", "users"),
     tableExists("public", "creator_activity_log"),
@@ -65,6 +78,7 @@ export async function loadAdminOverviewMetrics(input?: { windowDays?: number }):
     tableExists("public", "viewer_profiles"),
     tableExists("public", "creator_viewer_subscriptions"),
     tableExists("public", "map_fan_votes"),
+    tableExists("public", "coming_soon_interactions"),
   ]);
 
   const userCountRowsPromise = usersTable
@@ -233,6 +247,39 @@ export async function loadAdminOverviewMetrics(input?: { windowDays?: number }):
       `
     : Promise.resolve([]);
 
+  const comingSoonSummaryRowsPromise = comingSoonInteractionsTable
+    ? sql<Array<{ unique_people: number; total_clicks: number }>>`
+        select
+          count(distinct coalesce('user:' || user_id::text, 'anonymous:' || anonymous_visitor_hash))::int as unique_people,
+          count(*)::int as total_clicks
+        from public.coming_soon_interactions
+        where created_at >= now() - make_interval(days => ${windowDays})
+      `
+    : Promise.resolve([{ unique_people: 0, total_clicks: 0 }]);
+
+  const comingSoonInteractionRowsPromise = comingSoonInteractionsTable
+    ? sql<Array<{
+        feature_id: string;
+        feature_label: string;
+        surface_id: string;
+        surface_label: string;
+        unique_people: number;
+        total_clicks: number;
+      }>>`
+        select
+          feature_id,
+          feature_label,
+          surface_id,
+          surface_label,
+          count(distinct coalesce('user:' || user_id::text, 'anonymous:' || anonymous_visitor_hash))::int as unique_people,
+          count(*)::int as total_clicks
+        from public.coming_soon_interactions
+        where created_at >= now() - make_interval(days => ${windowDays})
+        group by feature_id, feature_label, surface_id, surface_label
+        order by unique_people desc, total_clicks desc, feature_label asc, surface_label asc
+      `
+    : Promise.resolve([]);
+
   const [
     userCountRows,
     monthlyActiveRows,
@@ -241,6 +288,8 @@ export async function loadAdminOverviewMetrics(input?: { windowDays?: number }):
     sponsorRows,
     viewerCountryRows,
     eventCountryRows,
+    comingSoonSummaryRows,
+    comingSoonInteractionRows,
   ] = await Promise.all([
     userCountRowsPromise,
     monthlyActiveRowsPromise,
@@ -249,11 +298,14 @@ export async function loadAdminOverviewMetrics(input?: { windowDays?: number }):
     sponsorRowsPromise,
     viewerCountryRowsPromise,
     eventCountryRowsPromise,
+    comingSoonSummaryRowsPromise,
+    comingSoonInteractionRowsPromise,
   ]);
 
   const users = userCountRows[0] || { viewers: 0, creators: 0 };
   const active = monthlyActiveRows[0] || { mav_viewers: 0, mav_creators: 0 };
   const events = eventSummaryRows[0] || { map_views: 0, video_opens: 0, votes: 0, sponsor_clicks: 0, saved: 0, favorites: 0, watch_later: 0, watch_seconds: 0 };
+  const comingSoonSummary = comingSoonSummaryRows[0] || { unique_people: 0, total_clicks: 0 };
 
   return {
     window_days: windowDays,
@@ -276,6 +328,11 @@ export async function loadAdminOverviewMetrics(input?: { windowDays?: number }):
     geography: {
       top_viewer_countries: viewerCountryRows || [],
       top_event_countries: eventCountryRows || [],
+    },
+    coming_soon: {
+      unique_people: comingSoonSummary.unique_people || 0,
+      total_clicks: comingSoonSummary.total_clicks || 0,
+      interactions: comingSoonInteractionRows || [],
     },
   };
 }

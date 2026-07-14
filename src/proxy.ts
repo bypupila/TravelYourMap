@@ -17,7 +17,6 @@ const LOCAL_ONLY_ROUTES = new Set([
   "/map-proposal",
   "/map-proposal-v1",
   "/map-proposal-2",
-  "/map-admin-proposal",
   "/demo-diseno",
   "/country-card-proposals",
 ]);

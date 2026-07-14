@@ -14,7 +14,6 @@ import {
   Video,
   CheckCircle,
   XCircle,
-  YoutubeLogo,
 } from "@phosphor-icons/react/dist/ssr";
 import { MiniMapModel } from "@/components/landing/mini-map-model";
 import { PricingSection } from "@/components/landing/pricing-section";
@@ -41,8 +40,8 @@ const DEMO_MAP_HREF = "/map?channelId=demo-channel";
 const landingCopy = {
   es: {
     nav: { features: "Funciones", pricing: "Precios", examples: "Ejemplos", resources: "Recursos", explore: "Explorar", login: "Iniciar sesión", create: "Crear mi mapa", language: "Seleccionar idioma", english: "Cambiar a inglés", spanish: "Español seleccionado" },
-    hero: { eyebrow: "El media kit interactivo para creadores de viajes", titleLead: "Convierte tu canal en un mapa que", titleAccent: "abre puertas.", description: "Importa tu canal de YouTube, detectamos destinos y crea tu página web interactiva lista para marcas y sponsors.", mode: "Creator Mode", modeDescription: "Únete a una red de creadores ficticios y reales que ya están cerrando mejores deals.", demoMap: "Ver mapa demo", create: "Crear mi mapa" },
-    stats: [{ value: "2406", label: "videos mapeados", icon: YoutubeLogo }, { value: "165", label: "países cubiertos", icon: GlobeHemisphereWest }],
+    hero: { eyebrow: "El media kit interactivo para creadores de viajes", titleLead: "Convierte tu canal en un mapa que", titleAccent: "abre puertas.", description: "Importa tu canal de YouTube, detecta destinos y crea una página web interactiva lista para marcas y sponsors.", mode: "Creator Mode", modeDescription: "Únete a una red de creadores ficticios y reales que ya están cerrando mejores deals.", demoMap: "Ver mapa demo", create: "Crear mi mapa" },
+    stats: [{ value: "2406", label: "videos mapeados", icon: Video }, { value: "165", label: "países cubiertos", icon: GlobeHemisphereWest }],
     keyFeatures: ["Influencers de viajes", "Agencias", "Sponsors", "Colaboraciones", "Mapas interactivos"],
     brand: { eyebrow: "Perfil comercial", title: "Trabajamos con", description: "Influencers de viajes, agencias y sponsors que necesitan presentar su cobertura con contexto geográfico." },
     how: { titleLead: "De tu canal", titleMiddle: "a un mapa en", titleAccent: "minutos." },
@@ -56,7 +55,7 @@ const landingCopy = {
   en: {
     nav: { features: "Features", pricing: "Pricing", examples: "Examples", resources: "Resources", explore: "Explore", login: "Sign in", create: "Create my map", language: "Select language", english: "English selected", spanish: "Switch to Spanish" },
     hero: { eyebrow: "The interactive media kit for travel creators", titleLead: "Turn your channel into a map that", titleAccent: "opens doors.", description: "Import your YouTube channel, detect destinations and create an interactive website ready for brands and sponsors.", mode: "Creator Mode", modeDescription: "Join a network of fictional and real creators already closing better deals.", demoMap: "View demo map", create: "Create my map" },
-    stats: [{ value: "2406", label: "mapped videos", icon: YoutubeLogo }, { value: "165", label: "covered countries", icon: GlobeHemisphereWest }],
+    stats: [{ value: "2406", label: "mapped videos", icon: Video }, { value: "165", label: "covered countries", icon: GlobeHemisphereWest }],
     keyFeatures: ["Travel influencers", "Agencies", "Sponsors", "Collaborations", "Interactive maps"],
     brand: { eyebrow: "Commercial profile", title: "We work with", description: "Travel influencers, agencies and sponsors who need to present their coverage with geographic context." },
     how: { titleLead: "From your channel", titleMiddle: "to a map in", titleAccent: "minutes." },
@@ -85,7 +84,7 @@ export async function CinematicLanding({ locale = "es" }: { locale?: Locale }) {
         <FeatureGrid copy={copy} />
         <SponsorComparison copy={copy} />
         <DemoChannelShowcase locale={locale} />
-        <PricingSection planRows={copy.pricing.rows} locale={locale} />
+        <PricingSection locale={locale} />
         <FaqSection copy={copy} />
       </div>
       <FinalCta locale={locale} copy={copy} />
@@ -139,7 +138,7 @@ function CreatorNav({ locale, copy }: { locale: Locale; copy: LandingCopy }) {
             <SignIn size={16} weight="bold" aria-hidden="true" />
             {copy.nav.login}
           </Link>
-          <Link href="/onboarding?lang=es" className="inline-flex min-h-9 items-center justify-center rounded-[13px] bg-[#ff5147] px-2.5 py-1.5 text-[12px] font-bold text-white shadow-[0_10px_22px_-14px_rgba(255,71,59,0.95),inset_0_1px_0_rgba(255,255,255,0.18)] transition duration-200 hover:bg-[#ff5d54] active:scale-[0.98]">Crear mi mapa</Link>
+          <Link href={buildLocalizedHref("/onboarding", locale)} className="inline-flex min-h-9 items-center justify-center rounded-[13px] bg-[#ff5147] px-2.5 py-1.5 text-[12px] font-bold text-white shadow-[0_10px_22px_-14px_rgba(255,71,59,0.95),inset_0_1px_0_rgba(255,255,255,0.18)] transition duration-200 hover:bg-[#ff5d54] active:scale-[0.98]">{copy.nav.create}</Link>
         </div>
       </nav>
     </header>
@@ -190,7 +189,7 @@ function HeroSection({
       </div>
 
       <div className="relative min-h-[600px] sm:min-h-[720px] lg:min-h-[760px]">
-        <CreatorGlobe videoLocations={videoLocations} />
+        <CreatorGlobe videoLocations={videoLocations} locale={locale} />
         <div className="absolute right-0 top-8 z-20 flex w-full max-w-[430px] flex-col gap-4 sm:right-4 sm:top-10 lg:right-0">
           <div className="grid w-full max-w-[410px] grid-cols-2 gap-4 self-end lg:w-[410px]">
             {copy.stats.map((stat) => <MetricCard key={stat.label} {...stat} />)}
@@ -204,7 +203,7 @@ function HeroSection({
   );
 }
 
-function CreatorGlobe({ videoLocations }: { videoLocations: TravelVideoLocation[] }) {
+function CreatorGlobe({ videoLocations, locale }: { videoLocations: TravelVideoLocation[]; locale: Locale }) {
   return (
     <div className="creator-real-globe absolute -left-[14%] -top-[180px] h-[780px] w-[780px] overflow-hidden rounded-full lg:-left-[8%] lg:-top-[196px] lg:h-[980px] lg:w-[980px]">
       <MiniMapModel
@@ -212,13 +211,14 @@ function CreatorGlobe({ videoLocations }: { videoLocations: TravelVideoLocation[
         markerMode="videos"
         pointOfView={{ lat: 25, lng: 12, altitude: 1.85 }}
         autoRotateSpeed={-0.32}
+        loadingLabel={locale === "en" ? "Loading map..." : "Cargando mapa..."}
         className="rounded-full bg-transparent"
       />
     </div>
   );
 }
 
-function MetricCard({ value, label, icon: Icon }: { value: string; label: string; icon: typeof YoutubeLogo }) {
+function MetricCard({ value, label, icon: Icon }: { value: string; label: string; icon: typeof Video }) {
   return (
     <div className="rounded-[22px] border border-white/12 bg-[#101419]/82 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_28px_70px_-44px_rgba(0,0,0,0.95)] backdrop-blur-xl sm:p-7">
       <Icon size={29} weight="fill" className="text-[#ff473b]" />
@@ -234,7 +234,7 @@ function DestinationCard({ copy, locale }: { copy: LandingCopy; locale: Locale }
       <div className="relative h-[150px] overflow-hidden rounded-[16px] sm:h-[170px]">
         <Image
           src={DESTINATION_PREVIEW_IMAGE}
-          alt="Vista previa creada de TravelYourMap"
+            alt={locale === "en" ? "TravelYourMap destination preview" : "Vista previa de destino en TravelYourMap"}
           fill
           sizes="(max-width: 768px) 100vw, 410px"
           className="object-cover"
@@ -249,7 +249,7 @@ function DestinationCard({ copy, locale }: { copy: LandingCopy; locale: Locale }
             {copy.hero.demoMap} <Play size={15} weight="fill" />
           </Link>
           <Link
-            href={buildLocalizedHref(DEMO_MAP_HREF, locale)}
+            href={buildLocalizedHref("/onboarding", locale)}
             className="inline-flex min-h-11 w-full items-center justify-center gap-3 rounded-full bg-[#ff473b] px-8 py-4 text-[14px] font-bold text-white shadow-[0_20px_46px_-24px_rgba(255,71,59,0.85)] transition hover:-translate-y-0.5 hover:bg-[#ff5b50] active:translate-y-0 active:scale-[0.98]"
           >
             {copy.hero.create} <ArrowRight size={17} weight="bold" />
@@ -293,13 +293,13 @@ function HowItWorks({ copy }: { copy: LandingCopy }) {
     <section className="grid gap-8 border-b border-white/8 py-12 lg:grid-cols-[300px_1fr]">
       <h2 className="text-[34px] font-extrabold leading-[1.05] tracking-[-0.045em] text-white sm:text-[40px]">{copy.how.titleLead}<br />{copy.how.titleMiddle}<br /><span className="text-[#ff473b]">{copy.how.titleAccent}</span></h2>
       <div className="grid gap-5 md:grid-cols-4">
-        {copy.steps.map((title, index) => <StepCard key={title} index={index + 1} title={title} icon={[YoutubeLogo, MapPin, GlobeHemisphereWest, RocketLaunch][index]} />)}
+        {copy.steps.map((title, index) => <StepCard key={title} index={index + 1} title={title} icon={[Video, MapPin, GlobeHemisphereWest, RocketLaunch][index]} />)}
       </div>
     </section>
   );
 }
 
-function StepCard({ title, icon: Icon, index }: { title: string; icon: typeof YoutubeLogo; index: number }) {
+function StepCard({ title, icon: Icon, index }: { title: string; icon: typeof Video; index: number }) {
   return (
     <div className="relative min-h-[190px] rounded-[17px] border border-white/10 bg-white/[0.035] p-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
       <span className="absolute -left-2 -top-3 grid h-9 w-9 place-items-center rounded-full bg-[#ff473b] text-[13px] font-extrabold text-white">{index}</span>
@@ -325,7 +325,7 @@ function FeatureGrid({ copy }: { copy: LandingCopy }) {
   );
 }
 
-function FeatureCard({ title, text, icon: Icon }: { title: string; text: string; icon: typeof YoutubeLogo }) {
+function FeatureCard({ title, text, icon: Icon }: { title: string; text: string; icon: typeof Video }) {
   return (
     <article className="grid min-h-[150px] grid-cols-[82px_1fr] items-center gap-5 rounded-[16px] border border-white/9 bg-white/[0.04] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
       <div className="grid h-16 w-16 place-items-center rounded-full border border-[#ff473b]/25 bg-[#ff473b]/8 text-[#ff473b]">
@@ -398,7 +398,7 @@ function FinalCta({ locale, copy }: { locale: Locale; copy: LandingCopy }) {
         <div className="relative min-h-[260px] overflow-hidden rounded-[24px] border border-white/10 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.8)] lg:min-h-[320px] lg:rounded-[40px]">
           <Image
             src={FINAL_CTA_IMAGE}
-            alt="Influencer de viaje grabando en una montaña"
+            alt={locale === "en" ? "Travel creator filming in the mountains" : "Creador de viajes grabando en una montaña"}
             fill
             sizes="(max-width: 1024px) 100vw, 50vw"
             className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 hover:scale-105"
@@ -417,12 +417,12 @@ function FinalCta({ locale, copy }: { locale: Locale; copy: LandingCopy }) {
       </div>
       <div className="mx-auto max-w-[1500px] px-5 pb-14 sm:px-8 lg:px-14">
         <ContactStrip
-          title="Contacto"
+          title={locale === "en" ? "Contact" : "Contacto"}
           description={copy.cta.contactDescription}
           items={[
-            { label: "General", email: "hello" },
+            { label: locale === "en" ? "General" : "General", email: "hello" },
             { label: "Marketing", email: "marketing" },
-            { label: "Soporte", email: "support" },
+            { label: locale === "en" ? "Support" : "Soporte", email: "support" },
           ]}
           tone="dark"
           locale={locale}
