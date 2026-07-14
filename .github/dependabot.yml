@@ -19,6 +19,15 @@ updates:
           - "@types/*"
           - "eslint*"
           - "typescript"
+    ignore:
+      # Next.js' current lint stack still depends on plugins capped at ESLint 9,
+      # and TypeScript 7 changed its package layout in a way Next cannot detect.
+      - dependency-name: "eslint"
+        update-types:
+          - "version-update:semver-major"
+      - dependency-name: "typescript"
+        update-types:
+          - "version-update:semver-major"
     labels:
       - "dependencies"
       - "security"

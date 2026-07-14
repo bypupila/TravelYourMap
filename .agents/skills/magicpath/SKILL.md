@@ -1,6 +1,6 @@
 ---
 name: magicpath
-description: Use MagicPath through the magicpath-ai CLI to find, preview, inspect, install, create, and edit UI components, and to manage MagicPath skills. Trigger for MagicPath requests; designs/components; personal or team projects; active canvas projects or selected components/images; themes/design systems; user/team skills; teams, members, ownership, attribution, or who worked on something; installed component audits; and share/view links. Also use for both workflow directions, installing MagicPath React/TypeScript components into an app with inspect/add and adapting them to production code, authoring/editing responsive interactive canvas components with code start/submit, or creating/retrieving/updating/importing/deleting MagicPath skills with the skills command group. Use when importing or recreating UI from a local path or GitHub/GitLab/Bitbucket repo into MagicPath. In hosts with an embedded browser, keep the MagicPath project canvas open via share URLs for visual work.
+description: Use MagicPath through the magicpath-ai CLI to find, preview, inspect, install, export, create, and edit UI components and manage MagicPath skills. Trigger for MagicPath designs/components; personal or team projects; active canvases and selected components/images/revisions; themes/design systems; teams, members, ownership, attribution, installed-component audits, and share/view links. Use when exporting exact MagicPath components or revisions to local folders/apps; replacing, adapting, or translating local UI with 1:1 fidelity and explicit requested changes; installing React/TypeScript components with inspect/add; authoring responsive interactive canvas components with code start/submit; importing or recreating UI from local paths or GitHub/GitLab/Bitbucket repositories into MagicPath; or creating, retrieving, updating, importing, enabling, disabling, or deleting MagicPath skills. In hosts with an embedded browser, keep the project canvas open via share URLs for visual work.
 compatibility: Requires Node.js (for npx), network access to MagicPath, and browser access for login or preview flows.
 metadata:
   author: MagicPathAI
@@ -44,9 +44,8 @@ Then run `npx -y magicpath-ai whoami -o json` — it reports `guest: true`, the 
 A guest session is scoped to that single project and expires. Within it:
 
 - Use `code start` / `code submit` to create and edit designs on the project — this is the whole point of the session.
-- A guest session includes a limited number of free builds (creating or editing a design each counts as one build). Once the limit is reached, the next attempt to create or edit returns an error right away saying the free builds are used up — relay it to the user and let them know they can sign up at https://magicpath.ai to keep building and save the project.
 - In a host with an embedded browser, open the `canvasUrl` (from `whoami`) so the user can watch their canvas update beside you. The `canvasUrl` is the only way to open a guest canvas — do not use `share` or `view`, which require a full account.
-- Other workspace features (teams, additional projects, themes) belong to full accounts. If a command reports it needs an account, or the session has expired, tell the user they can sign up at https://magicpath.ai to keep the project and unlock everything else. Never tell a guest to run `login` without a pairing code.
+- Other workspace features (teams, additional projects, themes) belong to full accounts. If a command reports it needs an account, tell the user to sign up from the canvas open in their browser — that's what saves this project to their account and unlocks everything else. (If their session has already expired, the project can't be saved and they'd start fresh.) Never tell a guest to run `login` without a pairing code.
 
 ## Working with Teams
 
@@ -160,6 +159,8 @@ Ask before writing outside the user's current project or into a global agent con
 ### Phase 2: Understand the Target Context
 
 > **This phase is critical.** Before installing anything, you MUST understand where the component is going and what it needs to do there. Skipping this leads to components that look right but behave wrong.
+>
+> **Taking a design outside MagicPath:** Before exporting to a folder, installing into an app, replacing local UI, or translating to another framework, read and follow [Using MagicPath designs in local code](references/using-magicpath-designs-in-local-code.md). It defines how to lock the exact revision, establish 1:1 parity before adaptation, preserve local behavior, verify the rendered result, and limit differences to changes the user explicitly requested.
 
 7. **Inspect the MagicPath component source** — use `npx -y magicpath-ai inspect <generatedName> -o json` to read the source code. Identify what it renders, what props it expects, and what assumptions it makes about layout (fixed widths, absolute positioning, etc.).
 8. **Read the target codebase context** — before installing, read the file(s) where the component will live. Understand:
@@ -192,7 +193,7 @@ npx -y magicpath-ai code submit --dir . --wait -o json
 
 `code start` is the only command that begins a stateful coding session. Use `--project` to create a new component, or `--component` to edit an existing one. It writes editable files, creates or reuses a pending revision on the canvas, and shows agent presence.
 
-`code context` is read-only. Use it only to inspect existing component source; it must not be used as the submit path.
+`code context` is read-only. Use it to inspect or export an existing component's exact source revision; it must not be used as the submit path.
 
 Edit only these surfaces: `src/App.tsx`, `src/index.css`, `src/components/generated/**`, and temporary image assets under `assets/**`.
 
@@ -218,7 +219,7 @@ The MagicPath template uses Tailwind v4. Style this way:
    - **Add real interactivity**: Replace static/placeholder content with actual props, state, and event handlers. A MagicPath button that says "Submit" needs an `onClick` prop and loading state. A form needs validation and `onSubmit`.
    - **Wire up data flow**: Connect the component to the app's actual data — props from parents, context providers, API calls, router state. Don't leave mock data in place.
    - **Preserve existing functionality**: When replacing an existing component, audit every feature the old one provided (form submission, error handling, loading states, accessibility, keyboard navigation, analytics events) and ensure the new component handles all of them.
-   - **Match the project's patterns**: Use the same state management, error handling, and styling approaches as the rest of the codebase.
+   - **Match the project's patterns without redesigning**: Use the same state management and error handling approaches. Reuse styling abstractions only when their computed output preserves the MagicPath design; do not replace exact values with merely similar local tokens or primitives.
 
 ### Phase 4: Integrate into the Page
 
@@ -474,7 +475,7 @@ npx -y magicpath-ai image add <projectId> ./hero.png -o json  # add a local imag
 npx -y magicpath-ai code start --project <projectId> --dir <workdir> --name "Name" --width <px> --height <px> -o json # start a new pending component with chosen canvas size
 npx -y magicpath-ai code start --component <componentId> --dir <workdir> -o json                 # start editing an existing component
 npx -y magicpath-ai code start --component <componentId> --revision <revisionId> --dir <workdir> -o json # start editing a specific revision
-npx -y magicpath-ai code context <componentId> --dir <workdir> -o json                           # read-only source fetch; not for submit
+npx -y magicpath-ai code context <componentId> --dir <workdir> -o json                           # read-only source fetch/export; not for submit
 npx -y magicpath-ai code submit --dir <workdir> --width <px> --height <px> --wait -o json         # submit edits/size + wait for build
 npx -y magicpath-ai code status <jobId> -o json                                                  # poll a build job
 ```
@@ -487,7 +488,7 @@ npx -y magicpath-ai code status <jobId> -o json                                 
 - Use `inspect` to inspect source code without installing — don't use `add` just to read code
 - MagicPath components are React/TypeScript source code — use `add` in JS/TS projects, use `inspect` + translate for other languages
 - **Themes** (design systems) contain CSS variables (`light`/`dark` maps), optional `fonts`, and an optional `prompt` with styling instructions for agents. "Theme" and "design system" are interchangeable. Use `list-themes` to browse, `get-theme` to fetch the full definition
-- The `code` subcommands are for canvas-component source workflows, not app installation. Use `code start` + `code submit` to publish edits back to the MagicPath canvas; `code context` is read-only inspection. They are unrelated to `add`/`inspect`, which install reusable component source into an app.
+- Use `code start` + `code submit` to publish source edits back to the MagicPath canvas. `code context` is read-only exact-revision retrieval and can also provide a source snapshot for an outward export. `add`/`inspect` remain the registry-component installation and inspection path.
 
 ## Current Project Context
 
@@ -500,5 +501,6 @@ The JSON above contains auth status, projects, and CLI version. If auth.authenti
 ## References
 
 - [CLI Reference](references/cli-reference.md)
+- [Using MagicPath designs in local code](references/using-magicpath-designs-in-local-code.md) — export an exact component or revision, replace local UI, or translate a MagicPath design while preserving 1:1 fidelity and explicitly requested differences
 - [Working with repositories](references/working-with-repositories.md) — bring an existing local or online Git repository's UI onto the MagicPath canvas (e.g. "render this project in MagicPath", "bring the sidebar of my app into MagicPath")
 - [Working with embedded browsers](references/working-with-embedded-browsers.md) — use a MagicPath project as the persistent canvas inside Codex, Cursor, or another host with an in-app browser

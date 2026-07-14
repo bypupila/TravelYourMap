@@ -45,7 +45,6 @@ type OnboardingCopy = {
   topbarTitle: string;
   searchPlaceholder: string;
   workflowPill: string;
-  demoMapLabel: string;
   stepLabels: Array<{ step: OnboardingStep; label: string }>;
   stepMeta: Record<OnboardingStep, { eyebrow: string; title: string; description: string }>;
   footerBack: string;
@@ -179,7 +178,6 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
     topbarTitle: "Onboarding",
     searchPlaceholder: "Busca videos, países o creadores",
     workflowPill: "Flujo del creador",
-    demoMapLabel: "Mapa demo",
     stepLabels: [
       { step: 0, label: "Resumen" },
       { step: 1, label: "Canal" },
@@ -296,7 +294,6 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
     topbarTitle: "Onboarding",
     searchPlaceholder: "Search across videos, countries, or creators",
     workflowPill: "Creator flow",
-    demoMapLabel: "Demo map",
     stepLabels: [
       { step: 0, label: "Overview" },
       { step: 1, label: "Channel" },
@@ -441,7 +438,6 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
 
   const copy = onboardingCopy[locale];
   const analytics = DEMO_ANALYTICS as ChannelAnalytics;
-  const demoMapPath = "/map?channelId=demo-channel";
 
   const currentMeta = copy.stepMeta[step];
 
@@ -748,7 +744,17 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
 
   function handleBack() {
     setStepError(null);
-    setStep((current) => (current > 0 ? ((current - 1) as OnboardingStep) : 0));
+    if (step > 0) {
+      setStep((current) => ((current - 1) as OnboardingStep));
+      return;
+    }
+
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+
+    router.push("/auth");
   }
 
   function stepStateFor(stepIndex: OnboardingStep): StepState {
@@ -793,9 +799,6 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
               <p className="tym-overline truncate text-[#aaaaaa]">{copy.topbarEyebrow}</p>
               <p className="truncate text-[14px] font-medium text-[#f3eee7]">{copy.topbarTitle}</p>
             </Link>
-            <Link href={demoMapPath} className="tym-btn-primary min-h-9 shrink-0 px-3 py-2 text-[11px]">
-              {copy.demoMapLabel}
-            </Link>
           </div>
           <div className="mt-2 flex items-center justify-between gap-3 rounded-[14px] bg-white/[0.05] px-3 py-2" aria-live="polite">
             <span className="truncate text-[12px] font-medium text-[#f3eee7]">{copy.stepLabels[step]?.label}</span>
@@ -812,11 +815,6 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
               <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">{stepper}</div>
             }
             hideSearch
-            actions={
-              <Link href={demoMapPath} className="tym-btn-primary">
-                {copy.demoMapLabel}
-              </Link>
-            }
           />
         </div>
       </header>
@@ -882,7 +880,7 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
               event.stopPropagation();
               handleBack();
             }}
-            disabled={step === 0 || activationState !== "idle"}
+            disabled={activationState !== "idle"}
           >
             {copy.footerBack}
           </Button>

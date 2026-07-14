@@ -24,7 +24,7 @@ const payloadSchema = z.object({
   youtubeVideoId: z.string().trim().max(64).optional().nullable(),
   sponsorId: z.string().uuid().optional().nullable(),
   pollId: z.string().uuid().optional().nullable(),
-  metadata: z.record(z.unknown()).optional().nullable(),
+  metadata: z.record(z.string(), z.unknown()).optional().nullable(),
 });
 
 export async function POST(request: Request) {

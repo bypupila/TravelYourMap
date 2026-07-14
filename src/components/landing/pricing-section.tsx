@@ -3,11 +3,13 @@
 import { useId, useState } from "react";
 import Link from "next/link";
 import { CheckCircle, XCircle } from "@phosphor-icons/react/dist/ssr";
+import { buildLocalizedHref, type Locale } from "@/lib/i18n";
 
 type BillingCycle = "monthly" | "annual";
 
 type PricingSectionProps = {
   planRows: string[];
+  locale: Locale;
 };
 
 type PricingPlan = {
@@ -56,12 +58,12 @@ function formatMoney(value: number) {
   }).format(value);
 }
 
-function getBillingAmount(monthlyPrice: number, billingCycle: BillingCycle, annualDiscount: number) {
+function getBillingAmount(monthlyPrice: number, billingCycle: BillingCycle, annualDiscount: number, locale: Locale) {
   if (billingCycle === "monthly") {
     return {
       price: monthlyPrice,
-      suffix: "/mes",
-      helper: monthlyPrice > 0 ? "Facturación mensual" : "Sin cargo",
+      suffix: locale === "en" ? "/mo" : "/mes",
+      helper: monthlyPrice > 0 ? (locale === "en" ? "Monthly billing" : "Facturación mensual") : locale === "en" ? "No charge" : "Sin cargo",
       savings: null as number | null,
     };
   }
@@ -71,33 +73,31 @@ function getBillingAmount(monthlyPrice: number, billingCycle: BillingCycle, annu
 
   return {
     price: discountedYearly,
-    suffix: "/año",
-    helper: `Equivale a ${formatMoney(discountedYearly / 12)}/mes`,
+    suffix: locale === "en" ? "/yr" : "/año",
+    helper: locale === "en" ? `Equals ${formatMoney(discountedYearly / 12)}/mo` : `Equivale a ${formatMoney(discountedYearly / 12)}/mes`,
     savings: yearlyBase - discountedYearly,
   };
 }
 
-export function PricingSection({ planRows }: PricingSectionProps) {
+export function PricingSection({ planRows, locale }: PricingSectionProps) {
   const billingCycleLabelId = useId();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const toggleCopy =
     billingCycle === "annual"
-      ? {
-          title: "Ahorra 20%",
-          detail: "Paga una vez al año y baja el costo mensual real.",
-        }
-      : {
-          title: "Pago mensual",
-          detail: "Mantén flexibilidad con facturación mes a mes.",
-        };
+      ? locale === "en"
+        ? { title: "Save 20%", detail: "Pay once a year and lower your real monthly cost." }
+        : { title: "Ahorra 20%", detail: "Paga una vez al año y baja el costo mensual real." }
+      : locale === "en"
+        ? { title: "Monthly payment", detail: "Keep flexibility with month-to-month billing." }
+        : { title: "Pago mensual", detail: "Mantén flexibilidad con facturación mes a mes." };
 
   return (
     <section id="pricing" className="border-t border-white/8 py-12">
       <div className="mb-9 flex flex-wrap items-end justify-between gap-5">
-        <h2 className="text-[36px] font-extrabold tracking-[-0.05em] text-white">Elige el plan perfecto para ti</h2>
+        <h2 className="text-[36px] font-extrabold tracking-[-0.05em] text-white">{locale === "en" ? "Choose the perfect plan for you" : "Elige el plan perfecto para ti"}</h2>
         <div className="w-full max-w-[300px] self-center lg:mr-2">
           <div
-            aria-label="Ciclo de facturación"
+            aria-label={locale === "en" ? "Billing cycle" : "Ciclo de facturación"}
             role="tablist"
             className="inline-flex w-full rounded-[999px] border border-white/10 bg-white/[0.035] p-1 text-[12px] font-bold"
           >
@@ -113,8 +113,8 @@ export function PricingSection({ planRows }: PricingSectionProps) {
                   : "border border-[#ff473b]/28 text-white/58 hover:text-white/78"
               }`}
             >
-              <span className="block text-white">Mensual</span>
-              <span className="block text-[11px] font-semibold text-white/80">{formatMoney(79)}/mes</span>
+              <span className="block text-white">{locale === "en" ? "Monthly" : "Mensual"}</span>
+              <span className="block text-[11px] font-semibold text-white/80">{formatMoney(79)}/{locale === "en" ? "mo" : "mes"}</span>
             </button>
             <button
               type="button"
@@ -128,7 +128,7 @@ export function PricingSection({ planRows }: PricingSectionProps) {
                   : "border border-[#ff473b]/28 text-white/58 hover:text-white/78"
               }`}
             >
-              <span className="block text-white">Anual</span>
+              <span className="block text-white">{locale === "en" ? "Annual" : "Anual"}</span>
               <span className="block text-[11px] font-semibold text-white/80">-20% real</span>
             </button>
           </div>
@@ -140,13 +140,13 @@ export function PricingSection({ planRows }: PricingSectionProps) {
       <div className="grid gap-6 lg:grid-cols-[0.9fr_1fr_1fr_1fr]">
         <div className="py-5">
           <h3 className="text-[25px] font-extrabold leading-tight text-white">
-            Las marcas compran <span className="text-[#ff473b]">destinos</span>, no solo views.
+            {locale === "en" ? <>Brands buy <span className="text-[#ff473b]">destinations</span>, not just views.</> : <>Las marcas compran <span className="text-[#ff473b]">destinos</span>, no solo views.</>}
           </h3>
           <p className="mt-5 text-[14px] leading-7 text-white/62">
-            TravelYourMap te ayuda a mostrar tu cobertura, experiencia y posicionamiento de forma clara y profesional para que cierres mejores deals.
+            {locale === "en" ? "TravelYourMap helps you show your coverage, experience and positioning clearly and professionally so you can close better deals." : "TravelYourMap te ayuda a mostrar tu cobertura, experiencia y posicionamiento de forma clara y profesional para que cierres mejores deals."}
           </p>
         </div>
-        <PlanCard title="Sin TravelYourMap" rows={pricingPlans[0].rows} muted />
+        <PlanCard title={locale === "en" ? "Without TravelYourMap" : "Sin TravelYourMap"} rows={locale === "en" ? ["PDFs and documents", "Messy links", "Hard-to-understand information", "Unprofessional proposal"] : pricingPlans[0].rows} muted locale={locale} />
         <PlanCard
           title="Creator Pro"
           rows={planRows}
@@ -154,8 +154,9 @@ export function PricingSection({ planRows }: PricingSectionProps) {
           monthlyPrice={pricingPlans[1].monthlyPrice}
           billingCycle={billingCycle}
           annualDiscount={pricingPlans[1].annualDiscount ?? DEFAULT_ANNUAL_DISCOUNT}
-          ctaHref={pricingPlans[1].ctaHref}
-          ctaLabel={pricingPlans[1].ctaLabel}
+          ctaHref={buildLocalizedHref(pricingPlans[1].ctaHref || "/onboarding", locale)}
+          ctaLabel={locale === "en" ? "Start now" : pricingPlans[1].ctaLabel}
+          locale={locale}
         />
         <PlanCard
           title="Agency"
@@ -163,8 +164,9 @@ export function PricingSection({ planRows }: PricingSectionProps) {
           monthlyPrice={pricingPlans[2].monthlyPrice}
           billingCycle={billingCycle}
           annualDiscount={pricingPlans[2].annualDiscount ?? DEFAULT_ANNUAL_DISCOUNT}
-          ctaHref={pricingPlans[2].ctaHref}
-          ctaLabel={pricingPlans[2].ctaLabel}
+          ctaHref={buildLocalizedHref(pricingPlans[2].ctaHref || "/pricing", locale)}
+          ctaLabel={locale === "en" ? "Contact sales" : pricingPlans[2].ctaLabel}
+          locale={locale}
         />
       </div>
     </section>
@@ -181,6 +183,7 @@ function PlanCard({
   muted = false,
   ctaHref,
   ctaLabel,
+  locale = "es",
 }: {
   title: string;
   rows: string[];
@@ -191,14 +194,15 @@ function PlanCard({
   muted?: boolean;
   ctaHref?: string;
   ctaLabel?: string;
+  locale?: Locale;
 }) {
-  const pricing = getBillingAmount(monthlyPrice, billingCycle, annualDiscount);
+  const pricing = getBillingAmount(monthlyPrice, billingCycle, annualDiscount, locale);
   const showPrice = monthlyPrice > 0 && !muted;
-  const badgeLabel = billingCycle === "annual" && pricing.savings !== null ? `Ahorras ${formatMoney(pricing.savings)}` : "Facturación flexible";
+  const badgeLabel = billingCycle === "annual" && pricing.savings !== null ? `${locale === "en" ? "You save" : "Ahorras"} ${formatMoney(pricing.savings)}` : locale === "en" ? "Flexible billing" : "Facturación flexible";
 
   return (
     <article className={`relative rounded-[17px] border p-7 ${featured ? "border-[#ff473b]/70 bg-[#121014]" : "border-white/10 bg-white/[0.035]"}`}>
-      {featured ? <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-[#ff473b]/70 bg-[#2b1210] px-4 py-1 text-[10px] font-extrabold uppercase tracking-[0.16em] text-white">Más popular</span> : null}
+      {featured ? <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full border border-[#ff473b]/70 bg-[#2b1210] px-4 py-1 text-[10px] font-extrabold uppercase tracking-[0.16em] text-white">{locale === "en" ? "Most popular" : "Más popular"}</span> : null}
       <h3 className="text-[14px] font-extrabold text-white/82">{title}</h3>
       {showPrice ? (
         <div className="mt-3">

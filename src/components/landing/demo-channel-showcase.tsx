@@ -13,16 +13,10 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { buildLocalizedHref, type Locale } from "@/lib/i18n";
 
 const DEMO_MAP_HREF = "/map?channelId=demo-channel";
 const DEMO_CHANNEL_BACKGROUND_IMAGE = "/creators/homepage-demo.png";
-
-const demoChannelStats = [
-  { label: "Modo", value: "Lectura pública" },
-  { label: "Fuente", value: "Embed oficial" },
-  { label: "SEO", value: "Listo para indexar" },
-  { label: "Estado", value: "Canal demo" },
-] as const;
 
 const viewModes = {
   public: {
@@ -66,27 +60,39 @@ const viewModes = {
   },
 } as const;
 
+const viewModesEn = {
+  public: { label: "Public reading", eyebrow: "Demo mode", title: "The public version keeps the journey clean and ready to show.", body: "The channel is presented with a direct narrative, no operational noise and a hierarchy built for sales teams, press and sponsors.", points: ["No login or friction to understand the product.", "The main CTA is always visible and easy to follow.", "Explicit copy explains the scope of the demo."], accent: "#ff5a4b" },
+  embed: { label: "Official embed", eyebrow: "Compliance", title: "Playback uses the official source and preserves the native experience.", body: "The embedded player is not overloaded with overlays or shortcuts that could break the experience or platform compliance.", points: ["Official YouTube embed, without autoplay.", "The player is not covered with custom banners.", "The demo respects the video's content and brand."], accent: "#5faef6" },
+  seo: { label: "SEO ready", eyebrow: "Indexing", title: "The demo also works as an indexable and shareable landing page.", body: "Titles, semantic structure and visible text are prepared for search engines, social previews and public links.", points: ["Clear hierarchy for crawling and quick reading.", "Visible summary of channel mode, source and status.", "Useful content even without playing a video."], accent: "#7ed08d" },
+} as const;
+
+const demoCopy = {
+  es: { eyebrow: "Canal demo", title: "La vista pública del canal demo, lista para marcas y sponsors.", description: "Esta sección enseña la experiencia pública real: embed oficial, lectura clara, contenido de muestra y una superficie preparada para indexar.", channel: "Canal demo", publicMode: "Modo lectura pública · embeds oficiales · videos listos para mostrar.", open: "Abrir demo", status: "Estado del canal", complete: "Ver demo completa", copied: "Enlace copiado", copyLink: "Copiar enlace", chips: ["Canal demo", "Videos listos para mostrar"], featureCards: [["Lectura pública", "Contenido visible, sin fricción y listo para compartir."], ["Embed oficial", "YouTube conserva su reproductor y su experiencia nativa."], ["SEO listo", "Texto y estructura preparados para indexación y previews."]], stats: [["Modo", "Lectura pública"], ["Fuente", "Embed oficial"], ["SEO", "Listo para indexar"], ["Estado", "Canal demo"]] },
+  en: { eyebrow: "Demo channel", title: "The public view of the demo channel, ready for brands and sponsors.", description: "This section shows the real public experience: official embed, clear reading, sample content and a surface prepared for indexing.", channel: "Demo channel", publicMode: "Public reading mode · official embeds · videos ready to show.", open: "Open demo", status: "Channel status", complete: "View full demo", copied: "Link copied", copyLink: "Copy link", chips: ["Demo channel", "Videos ready to show"], featureCards: [["Public reading", "Visible content, no friction and ready to share."], ["Official embed", "YouTube keeps its player and native experience."], ["SEO ready", "Text and structure prepared for indexing and previews."]], stats: [["Mode", "Public reading"], ["Source", "Official embed"], ["SEO", "Ready to index"], ["Status", "Demo channel"]] },
+} as const;
+
 type ViewModeKey = keyof typeof viewModes;
 
-export function DemoChannelShowcase() {
+export function DemoChannelShowcase({ locale }: { locale: Locale }) {
+  const copy = demoCopy[locale];
+  const localizedViewModes = locale === "en" ? viewModesEn : viewModes;
   const [selectedMode, setSelectedMode] = useState<ViewModeKey>("public");
   const [copied, setCopied] = useState(false);
 
-  const selectedModeData = viewModes[selectedMode];
+  const selectedModeData = localizedViewModes[selectedMode];
 
   const helperChips = useMemo(
     () => [
       selectedModeData.label,
-      "Canal demo",
-      "Videos listos para mostrar",
+      ...copy.chips,
     ],
-    [selectedModeData.label],
+    [copy.chips, selectedModeData.label],
   );
 
   async function handleCopyLink() {
     if (typeof window === "undefined") return;
 
-    const url = `${window.location.origin}${DEMO_MAP_HREF}`;
+    const url = `${window.location.origin}${buildLocalizedHref(DEMO_MAP_HREF, locale)}`;
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
@@ -99,12 +105,12 @@ export function DemoChannelShowcase() {
   return (
     <section id="examples" className="py-12 lg:py-16">
       <div className="mx-auto max-w-[760px] text-center lg:mx-0 lg:text-left">
-        <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#ff473b]">Canal demo</p>
+        <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#ff473b]">{copy.eyebrow}</p>
         <h2 className="mt-4 text-[34px] font-extrabold leading-[1] tracking-[-0.055em] text-white sm:text-[42px] lg:text-[52px]">
-          La vista pública del canal demo, lista para marcas y sponsors.
+          {copy.title}
         </h2>
         <p className="mt-4 max-w-[60ch] text-[15px] leading-7 text-white/62">
-          Esta sección enseña la experiencia pública real: embed oficial, lectura clara, contenido de muestra y una superficie preparada para indexar.
+          {copy.description}
         </p>
       </div>
 
@@ -123,19 +129,19 @@ export function DemoChannelShowcase() {
                 <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(5,7,10,0.14)_0%,rgba(5,7,10,0.3)_42%,rgba(5,7,10,0.92)_100%)]" />
                 <div className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full border border-white/12 bg-black/30 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/82 backdrop-blur-sm">
                   <span className="h-2 w-2 rounded-full bg-[#ff473b]" />
-                  Canal demo
+                  {copy.channel}
                 </div>
                 <div className="absolute bottom-4 left-4 right-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                   <div className="max-w-[28ch]">
                     <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-white/60">@demo.travel</p>
                     <h3 className="mt-2 text-[24px] font-extrabold leading-none text-white">Travel Demo Channel</h3>
                     <p className="mt-2 text-[13px] leading-5 text-white/72">
-                      Modo lectura pública · embeds oficiales · videos listos para mostrar.
+                      {copy.publicMode}
                     </p>
                   </div>
                   <Button asChild size="sm" className="w-fit bg-[#ff473b] text-white shadow-[0_20px_46px_-24px_rgba(255,71,59,0.85)] hover:bg-[#ff5b50]">
-                    <Link href={DEMO_MAP_HREF}>
-                      Abrir demo
+                    <Link href={buildLocalizedHref(DEMO_MAP_HREF, locale)}>
+                      {copy.open}
                       <ArrowRight size={15} weight="bold" />
                     </Link>
                   </Button>
@@ -144,7 +150,7 @@ export function DemoChannelShowcase() {
             </div>
 
             <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              {demoChannelStats.map(({ label, value }) => (
+              {copy.stats.map(([label, value]) => (
                 <div key={label} className="rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/42">{label}</p>
                   <p className="mt-2 text-[14px] font-semibold text-white">{value}</p>
@@ -159,8 +165,8 @@ export function DemoChannelShowcase() {
         <div className="space-y-4">
           <article className="rounded-[28px] border border-white/10 bg-[#0c1014] p-4 shadow-[0_28px_80px_-56px_rgba(0,0,0,0.95)]">
             <div className="flex flex-wrap gap-2">
-              {(Object.keys(viewModes) as ViewModeKey[]).map((mode) => {
-                const modeData = viewModes[mode];
+              {(Object.keys(localizedViewModes) as ViewModeKey[]).map((mode) => {
+                const modeData = localizedViewModes[mode];
                 const active = mode === selectedMode;
 
                 return (
@@ -204,7 +210,7 @@ export function DemoChannelShowcase() {
               <div className="rounded-[22px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))] p-4">
                 <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-white/52">
                   <ShieldCheck size={16} className="text-[#7ed08d]" />
-                  Estado del canal
+                  {copy.status}
                 </div>
                 <p className="mt-3 text-[18px] font-bold text-white">{selectedModeData.label}</p>
                 <div className="mt-4 space-y-3">
@@ -219,8 +225,8 @@ export function DemoChannelShowcase() {
 
             <div className="mt-5 flex flex-wrap gap-3">
               <Button asChild size="sm" className="bg-[#ff473b] text-white shadow-[0_20px_46px_-24px_rgba(255,71,59,0.72)] hover:bg-[#ff5b50]">
-                <Link href={DEMO_MAP_HREF}>
-                  Ver demo completa
+                <Link href={buildLocalizedHref(DEMO_MAP_HREF, locale)}>
+                  {copy.complete}
                   <ArrowRight size={15} weight="bold" />
                 </Link>
               </Button>
@@ -233,17 +239,13 @@ export function DemoChannelShowcase() {
                 aria-live="polite"
               >
                 <Copy size={15} />
-                {copied ? "Enlace copiado" : "Copiar enlace"}
+                {copied ? copy.copied : copy.copyLink}
               </Button>
             </div>
           </article>
 
           <div className="grid gap-3 md:grid-cols-3">
-            {[
-              ["Lectura pública", "Contenido visible, sin fricción y listo para compartir."],
-              ["Embed oficial", "YouTube conserva su reproductor y su experiencia nativa."],
-              ["SEO listo", "Texto y estructura preparados para indexación y previews."],
-            ].map(([title, body]) => (
+            {copy.featureCards.map(([title, body]) => (
               <div key={title} className="rounded-[18px] border border-white/10 bg-white/[0.03] p-4">
                 <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-white/54">
                   <Sparkle size={14} className="text-[#ff473b]" />

@@ -66,6 +66,19 @@ npm install
 npm run dev
 ```
 
+## Design AI local
+
+El proyecto tiene MagicPath disponible como `design-ai` para buscar, inspeccionar, previsualizar y editar componentes de diseño:
+
+```bash
+npm run design-ai -- info -o json
+npm run design-ai -- list-projects -o json
+npm run design-ai -- list-components 420358937792118784 -o json
+npm run design-ai -- view quietly-air-1580
+```
+
+La sesión local actual está autenticada con la cuenta de BY PUPILA. El componente editable asociado al repo es `quietly-air-1580` (`Midnight Relay`) y su contexto se mantiene en `magicpath-code.json`.
+
 ## Bootstrap de Neon
 
 Con `DATABASE_URL` configurado en `.env.local`, ejecuta:
