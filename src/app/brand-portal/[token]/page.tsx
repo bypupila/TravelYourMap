@@ -23,9 +23,9 @@ export default async function BrandPortalPage({ params }: { params: Promise<{ to
   const cleanToken = String(token || "").trim();
   if (process.env.NODE_ENV !== "production" && cleanToken === "responsive-qa-access") {
     return (
-      <main className="min-h-[100dvh] bg-[#f6f7f2] px-4 py-10 text-[#151515]">
+      <main className="min-h-[100dvh] bg-[#f6f7f2] px-4 py-8 text-[#151515] sm:py-10">
         <div className="mx-auto flex w-full max-w-6xl flex-col">
-          <BrandPortalAccessForm token={cleanToken} brandName="IATI Seguros" emailHint="m***@iatiseguros.com" />
+          <BrandPortalAccessForm token={cleanToken} brandName="IATI Seguros" emailHint="m***@iatiseguros.com" className="mt-0" />
           <ContactStrip
             title="Contacto"
             description="Fixture local para validar acceso y soporte del portal privado."
@@ -34,6 +34,7 @@ export default async function BrandPortalPage({ params }: { params: Promise<{ to
               { label: "Marketing", email: "marketing" },
             ]}
             tone="light"
+            compactOnMobile
           />
         </div>
       </main>
