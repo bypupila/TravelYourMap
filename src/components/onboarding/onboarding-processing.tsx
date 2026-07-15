@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { GlobeHemisphereWest } from "@phosphor-icons/react";
 import { FloatingTopBar, SignalPill } from "@/components/design-system/chrome";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -449,7 +451,23 @@ export function OnboardingProcessing({
       <div className="platform-grid-glow pointer-events-none absolute inset-0" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_18%,rgba(255,255,255,0.08),transparent_26%),radial-gradient(circle_at_82%_22%,rgba(255, 90, 61,0.16),transparent_26%),linear-gradient(180deg,rgba(17,20,22,0.95),rgba(17,20,22,0.82))]" />
 
-      <header className="absolute inset-x-0 top-0 z-40 px-4 py-3">
+      <header className="absolute inset-x-0 top-0 z-40 h-[68px] px-4 md:hidden">
+        <div className="tm-refraction flex h-full items-center justify-between rounded-full border border-white/10 bg-[#15191b]/90 px-3 shadow-[0_26px_72px_-38px_rgba(0,0,0,0.88)] backdrop-blur-xl">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link
+              href="/"
+              aria-label="Go to homepage"
+              className="tym-logo-badge size-[42px] shrink-0 cursor-pointer transition-transform duration-200 hover:scale-[1.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <GlobeHemisphereWest size={20} weight="duotone" />
+            </Link>
+            <p className="truncate text-[14px] font-medium text-[#f1f1f1]">{copy.eyebrow}</p>
+          </div>
+          <SignalPill text={copy.statusPill} className="shrink-0" />
+        </div>
+      </header>
+
+      <header className="absolute inset-x-0 top-0 z-40 hidden px-4 py-3 md:block">
         <FloatingTopBar
           eyebrow={copy.eyebrow}
           title={copy.title}
