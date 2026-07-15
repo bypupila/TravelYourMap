@@ -616,7 +616,7 @@ function TopBar({
           <span className={cn("hidden rounded-full border px-3 py-1 text-[11px] font-bold md:inline-flex", health === "Operativo" ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300" : "border-[#ffbf47]/25 bg-[#ffbf47]/10 text-[#ffd07a]")}>
             {health}
           </span>
-          <a href={payload.mapUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-[12px] font-bold text-white hover:bg-white/[0.08]">
+          <a href={payload.mapUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-[12px] font-bold text-white hover:bg-white/[0.08]">
             Ver mi mapa
             <ArrowUpRight size={14} />
           </a>
@@ -793,7 +793,7 @@ function SummaryTab({
           onAction={() => window.location.assign("/onboarding")}
         />
       ) : null}
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-2 gap-2 md:gap-3 xl:grid-cols-4">
         <Kpi title="Salud del mapa" value={mapHealth} suffix="%" detail={`${payload.summary.videos_mapped} visibles · ${payload.summary.pending_review} pendientes`} tone={payload.summary.pending_review > 0 ? "warning" : "success"} onClick={() => onNavigate({ tab: "videos", status: payload.summary.pending_review > 0 ? "pending" : null })} />
         <Kpi title="Metricas del mapa" value={mapInteractions} detail={topMapCountry ? `Top pais: ${topMapCountry.country_code}` : "Sin eventos first-party"} onClick={() => onNavigate({ tab: "audiencia" })} />
         <Kpi title="Sponsor clicks" value={sponsorClicks} detail={payload.audience.sponsor_clicks[0]?.brand_name || "Sin clicks registrados"} onClick={() => onNavigate({ tab: "audiencia" })} />
@@ -3954,15 +3954,15 @@ function Kpi({
     <button
       type="button"
       onClick={onClick}
-      className="rounded-2xl border border-white/5 bg-white/[0.01] backdrop-blur-md p-5 text-left transition-all duration-300 hover:bg-[#101722]/50 hover:border-white/10 active:scale-[0.98] group flex flex-col justify-between"
+      className="group flex h-[98px] flex-col justify-between rounded-2xl border border-white/5 bg-white/[0.01] p-3 text-left backdrop-blur-md transition-all duration-300 hover:border-white/10 hover:bg-[#101722]/50 active:scale-[0.98] md:h-auto md:p-5"
     >
       <div>
         <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#8e98a6]">{title}</p>
-        <p className={cn("mt-2.5 font-mono text-[26px] font-bold tracking-tight", tone === "warning" ? "text-[#ffcf70]" : tone === "success" ? "text-emerald-400" : "text-white")}>
+        <p className={cn("mt-1 font-mono text-[24px] font-bold tracking-tight md:mt-2.5 md:text-[26px]", tone === "warning" ? "text-[#ffcf70]" : tone === "success" ? "text-emerald-400" : "text-white")}>
           {prefix}{formatNumber(value)}{suffix}
         </p>
       </div>
-      <p className="mt-2 text-[11px] text-[#8e98a6] line-clamp-1">{detail}</p>
+      <p className="mt-1 text-[10px] text-[#8e98a6] line-clamp-1 md:mt-2 md:text-[11px]">{detail}</p>
     </button>
   );
 }
