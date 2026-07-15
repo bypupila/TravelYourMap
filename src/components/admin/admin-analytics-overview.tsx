@@ -140,12 +140,12 @@ export function AdminAnalyticsOverview({ qaMode = false }: { qaMode?: boolean })
           <h2 className="mt-1 text-lg font-semibold text-[#f5f7fb]">Producto, creadores, sponsors y geografía</h2>
           <p className="mt-1 text-xs text-[#9aa3af]">Fuente: Travel Your Map (eventos internos de plataforma)</p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-1.5 text-xs text-[#d8dee6]">
+        <div className="flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 text-xs text-[#d8dee6] lg:min-h-0 lg:py-1.5">
           <span className="text-zinc-500 font-bold uppercase tracking-wider text-[10px]">Periodo:</span>
           <select
             value={days}
             onChange={(event) => setDays(Number(event.target.value) as 7 | 30 | 90 | 180)}
-            className="bg-transparent text-white font-bold outline-none cursor-pointer focus:text-[#e1543a] transition-colors"
+            className="min-h-11 bg-transparent text-white font-bold outline-none cursor-pointer focus:text-[#e1543a] transition-colors lg:min-h-0"
           >
             <option value={7} className="bg-[#12161f] text-white">7 días</option>
             <option value={30} className="bg-[#12161f] text-white">30 días</option>

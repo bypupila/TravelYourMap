@@ -31,7 +31,7 @@ export function RoleAuditPanel({ items }: RoleAuditPanelProps) {
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
             href="/api/admin/user-role-audit/export"
-            className="tym-btn-secondary inline-flex items-center gap-1.5 text-[11px] font-semibold h-8 px-3 rounded-lg border border-white/10 bg-white/[0.03] text-[#d8dee6] hover:bg-white/[0.07] hover:text-white transition-all"
+            className="tym-btn-secondary inline-flex min-h-11 items-center gap-2 px-3 text-[11px] font-semibold rounded-lg border border-white/10 bg-white/[0.03] text-[#d8dee6] hover:bg-white/[0.07] hover:text-white transition-all lg:min-h-8"
           >
             <Download size={13} />
             Exportar CSV
