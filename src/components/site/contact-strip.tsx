@@ -11,6 +11,7 @@ export interface ContactStripProps {
   items?: Array<{ label: string; email: AppEmailKey }>;
   socialLinks?: ReadonlyArray<{ platform: ByPupilaSocialPlatform; href: string }>;
   tone?: "dark" | "light";
+  compactOnMobile?: boolean;
   className?: string;
   locale?: Locale;
 }
@@ -55,6 +56,7 @@ export function ContactStrip({
   items = defaultItems,
   socialLinks,
   tone = "dark",
+  compactOnMobile = false,
   className,
   locale = "es",
 }: ContactStripProps) {
@@ -64,18 +66,23 @@ export function ContactStrip({
     : { General: "Propuestas de negocios", Marketing: "problemas en la plataforma", Soporte: "Preguntas generales", Support: "Preguntas generales" };
 
   return (
-    <section className={cn("relative mt-8 overflow-hidden rounded-[28px] border p-6 sm:p-7 lg:p-8", toneClasses[tone], className)}>
+    <section className={cn(
+      "relative mt-8 overflow-hidden rounded-[28px] border p-6 sm:p-7 lg:p-8",
+      compactOnMobile && "max-sm:mt-5 max-sm:rounded-[22px] max-sm:p-4",
+      toneClasses[tone],
+      className
+    )}>
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgba(255,90,61,0.16),transparent_28%),radial-gradient(circle_at_88%_18%,rgba(255,255,255,0.05),transparent_24%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/10" />
-      <div className="relative grid gap-6 lg:grid-cols-[1.1fr_1fr] lg:items-end">
+      <div className={cn("relative grid gap-6 lg:grid-cols-[1.1fr_1fr] lg:items-end", compactOnMobile && "max-sm:gap-4")}>
         <div className="min-w-0">
           <p className="text-[11px] font-bold uppercase tracking-[0.28em] text-[#ff5a3d]">{title}</p>
-          <h2 className={cn("mt-3 max-w-[12ch] text-[34px] font-extrabold leading-[1.02] tracking-[-0.05em] sm:text-[42px]", tone === "dark" ? "text-white" : "text-[#111827]")}>
+          <h2 className={cn("mt-3 max-w-[12ch] text-[34px] font-extrabold leading-[1.02] tracking-[-0.05em] sm:text-[42px]", compactOnMobile && "max-sm:mt-2 max-sm:text-[28px]", tone === "dark" ? "text-white" : "text-[#111827]")}>
             {locale === "en" ? "Let's talk directly." : "Hablemos directo."}
           </h2>
-          {description ? <p className={cn("mt-4 max-w-[58ch] text-sm leading-6 sm:text-[15px] sm:leading-7", toneTextClasses[tone])}>{description}</p> : null}
+          {description ? <p className={cn("mt-4 max-w-[58ch] text-sm leading-6 sm:text-[15px] sm:leading-7", compactOnMobile && "max-sm:mt-3", toneTextClasses[tone])}>{description}</p> : null}
         </div>
-        <div className="grid gap-3 sm:grid-cols-3 lg:justify-self-end">
+        <div className={cn("grid gap-3 sm:grid-cols-3 lg:justify-self-end", compactOnMobile && "max-sm:gap-2")}>
           {resolvedItems.map((item) => {
             const email = APP_EMAILS[item.email];
             return (
@@ -84,6 +91,7 @@ export function ContactStrip({
                 href={`mailto:${email}`}
                 className={cn(
                   "group flex min-h-[84px] flex-col justify-between rounded-[18px] border px-4 py-4 text-left transition hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98]",
+                  compactOnMobile && "max-sm:min-h-[68px] max-sm:px-3 max-sm:py-2.5",
                   toneButtonClasses[tone]
                 )}
               >

@@ -1,8 +1,19 @@
 "use client";
 
 import { type FormEvent, useState } from "react";
+import { cn } from "@/lib/utils";
 
-export function BrandPortalAccessForm({ token, brandName, emailHint }: { token: string; brandName: string; emailHint: string | null }) {
+export function BrandPortalAccessForm({
+  token,
+  brandName,
+  emailHint,
+  className,
+}: {
+  token: string;
+  brandName: string;
+  emailHint: string | null;
+  className?: string;
+}) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +42,7 @@ export function BrandPortalAccessForm({ token, brandName, emailHint }: { token: 
   }
 
   return (
-    <form onSubmit={submit} className="mx-auto mt-8 grid w-full max-w-md gap-3 rounded-lg border border-[#d8d5ca] bg-white/85 p-4">
+    <form onSubmit={submit} className={cn("mx-auto mt-8 grid w-full max-w-md gap-3 rounded-lg border border-[#d8d5ca] bg-white/85 p-4", className)}>
       <div>
         <p className="text-xs font-black uppercase tracking-[0.14em] text-[#ff5a3d]">Acceso de marca</p>
         <h1 className="mt-2 text-2xl font-black text-[#151515]">{brandName}</h1>
