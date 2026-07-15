@@ -96,11 +96,11 @@ function CreatorNav({ locale, copy }: { locale: Locale; copy: LandingCopy }) {
   const englishHref = buildLocalizedHref("/", "en");
   const spanishHref = buildLocalizedHref("/", "es");
   return (
-    <header className="sticky top-3 z-30 rounded-[26px] border border-white/10 bg-[#080b0e]/88 p-2 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:rounded-full sm:p-2.5">
+    <header className="sticky top-3 z-30 rounded-[26px] border border-white/10 bg-[#080b0e]/88 p-1.5 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:rounded-full sm:p-2.5">
       <nav>
         <div className="flex items-center justify-between gap-2 sm:gap-3">
           <Link href={buildLocalizedHref("/", locale)} className="group flex min-w-0 items-center gap-2 px-1 sm:gap-3 sm:px-0" aria-label="Travel Your Map home">
-            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#ff6258]/35 bg-[radial-gradient(circle_at_35%_25%,#2a2424,#111417_70%)] text-[#ff5147] shadow-[0_10px_28px_-14px_rgba(255,71,59,0.8),inset_0_1px_0_rgba(255,255,255,0.12)] transition-transform duration-300 group-hover:rotate-[-8deg] group-hover:scale-105 sm:h-10 sm:w-10">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[#ff6258]/35 bg-[radial-gradient(circle_at_35%_25%,#2a2424,#111417_70%)] text-[#ff5147] shadow-[0_10px_28px_-14px_rgba(255,71,59,0.8),inset_0_1px_0_rgba(255,255,255,0.12)] transition-transform duration-300 group-hover:rotate-[-8deg] group-hover:scale-105 sm:h-10 sm:w-10">
               <GlobeHemisphereWest size={20} weight="fill" className="sm:h-[22px] sm:w-[22px]" />
             </span>
             <span className="leading-none">
@@ -133,12 +133,12 @@ function CreatorNav({ locale, copy }: { locale: Locale; copy: LandingCopy }) {
             </Link>
           </div>
         </div>
-        <div className="mt-2 grid grid-cols-2 items-center gap-2 rounded-[18px] border border-white/[0.06] bg-white/[0.035] p-1.5 sm:hidden">
-          <Link href={buildLocalizedHref("/auth", locale)} className="inline-flex min-h-9 items-center gap-2 rounded-[13px] px-2.5 py-1.5 text-[12px] font-semibold text-white/72 transition duration-200 hover:bg-white/[0.06] hover:text-white active:scale-[0.98]">
+        <div className="mt-1.5 grid grid-cols-2 items-center gap-2 rounded-[18px] border border-white/[0.06] bg-white/[0.035] p-1 sm:hidden">
+          <Link href={buildLocalizedHref("/auth", locale)} className="inline-flex min-h-8 items-center gap-2 rounded-[13px] px-2.5 py-1 text-[12px] font-semibold text-white/72 transition duration-200 hover:bg-white/[0.06] hover:text-white active:scale-[0.98]">
             <SignIn size={16} weight="bold" aria-hidden="true" />
             {copy.nav.login}
           </Link>
-          <Link href={buildLocalizedHref("/onboarding", locale)} className="inline-flex min-h-9 items-center justify-center rounded-[13px] bg-[#ff5147] px-2.5 py-1.5 text-[12px] font-bold text-white shadow-[0_10px_22px_-14px_rgba(255,71,59,0.95),inset_0_1px_0_rgba(255,255,255,0.18)] transition duration-200 hover:bg-[#ff5d54] active:scale-[0.98]">{copy.nav.create}</Link>
+          <Link href={buildLocalizedHref("/onboarding", locale)} className="inline-flex min-h-8 items-center justify-center rounded-[13px] bg-[#ff5147] px-2.5 py-1 text-[12px] font-bold text-white shadow-[0_10px_22px_-14px_rgba(255,71,59,0.95),inset_0_1px_0_rgba(255,255,255,0.18)] transition duration-200 hover:bg-[#ff5d54] active:scale-[0.98]">{copy.nav.create}</Link>
         </div>
       </nav>
     </header>
@@ -155,7 +155,7 @@ function HeroSection({
   copy: LandingCopy;
 }) {
   return (
-    <section className="relative mt-8 grid min-h-0 items-start gap-8 pb-10 pt-20 sm:mt-[30px] sm:gap-10 sm:pb-14 sm:pt-16 lg:min-h-[680px] lg:grid-cols-[0.92fr_1.08fr] lg:pb-6 lg:pt-4">
+    <section className="relative mt-6 grid min-h-0 items-start gap-6 pb-8 pt-16 sm:mt-[30px] sm:gap-10 sm:pb-14 sm:pt-16 lg:min-h-[680px] lg:grid-cols-[0.92fr_1.08fr] lg:pb-6 lg:pt-4">
       <div className="relative z-10 mx-auto max-w-[620px] text-center lg:mx-0 lg:text-left">
         <p className="mb-5 text-[12px] font-extrabold uppercase tracking-[0.2em] text-[#ff473b]">{copy.hero.eyebrow}</p>
         <h1 className="mx-auto max-w-[11ch] text-[46px] font-extrabold leading-[0.98] tracking-[-0.055em] text-white sm:text-[68px] lg:mx-0 lg:text-[76px]">
@@ -188,9 +188,9 @@ function HeroSection({
         </div>
       </div>
 
-      <div className="relative min-h-[600px] sm:min-h-[720px] lg:min-h-[760px]">
+      <div className="relative min-h-[510px] sm:min-h-[720px] lg:min-h-[760px]">
         <CreatorGlobe videoLocations={videoLocations} locale={locale} />
-        <div className="absolute right-0 top-8 z-20 flex w-full max-w-[430px] flex-col gap-4 sm:right-4 sm:top-10 lg:right-0">
+        <div className="absolute right-0 top-6 z-20 flex w-full max-w-[430px] flex-col gap-4 sm:right-4 sm:top-10 lg:right-0">
           <div className="grid w-full max-w-[410px] grid-cols-2 gap-4 self-end lg:w-[410px]">
             {copy.stats.map((stat) => <MetricCard key={stat.label} {...stat} />)}
           </div>
