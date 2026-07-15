@@ -122,11 +122,11 @@ export function AdminUsersPanel({ users, query, page, totalPages, totalCount }: 
             />
           </label>
           <div className="flex flex-wrap items-center gap-2">
-            <Button type="submit" className="bg-[#e1543a] hover:bg-[#ee6b49] rounded-xl text-xs font-bold px-4 h-9 tracking-wider transition-all duration-300">
+            <Button type="submit" className="min-h-11 bg-[#e1543a] hover:bg-[#ee6b49] rounded-xl px-4 text-xs font-bold tracking-wider transition-all duration-300 lg:min-h-9">
               Buscar
             </Button>
             {query ? (
-              <Link href="/admin" className="tym-btn-secondary inline-flex items-center justify-center text-xs font-semibold h-9 px-4 rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all">
+              <Link href="/admin" className="tym-btn-secondary inline-flex min-h-11 items-center justify-center px-4 text-xs font-semibold rounded-xl border border-white/10 hover:bg-white/[0.05] transition-all lg:min-h-9">
                 Limpiar
               </Link>
             ) : null}
@@ -176,7 +176,7 @@ export function AdminUsersPanel({ users, query, page, totalPages, totalCount }: 
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-1 bg-black/20 p-1 rounded-lg border border-white/5">
+                  <div className="flex items-center gap-2 bg-black/20 p-1 rounded-lg border border-white/5">
                     {ROLE_ACTIONS.map((role) => {
                       const active = role === user.role;
                       return (
@@ -184,7 +184,7 @@ export function AdminUsersPanel({ users, query, page, totalPages, totalCount }: 
                           key={role}
                           type="button"
                           className={cn(
-                            "px-2.5 py-1 text-[10px] font-bold rounded transition-all",
+                            "min-h-11 px-2.5 py-1 text-[10px] font-bold rounded transition-all lg:min-h-0",
                             active
                               ? "bg-[#e1543a]/20 text-[#ee6b49] border border-[#e1543a]/30"
                               : "text-zinc-500 hover:text-white border border-transparent"
@@ -247,14 +247,14 @@ function PageLink({
 }) {
   if (disabled) {
     return (
-      <span className="inline-flex h-10 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] px-4 text-[12px] text-[#6f7781]">
+      <span className="inline-flex min-h-11 items-center justify-center rounded-full border border-white/10 bg-white/[0.03] px-4 text-[12px] text-[#6f7781] lg:min-h-10">
         {children}
       </span>
     );
   }
 
   return (
-    <Link href={href} className="tym-btn-secondary inline-flex h-10 items-center justify-center px-4 text-[12px]">
+    <Link href={href} className="tym-btn-secondary inline-flex min-h-11 items-center justify-center px-4 text-[12px] lg:min-h-10">
       {children}
     </Link>
   );

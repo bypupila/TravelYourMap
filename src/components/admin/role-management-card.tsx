@@ -87,7 +87,7 @@ export function RoleManagementCard() {
 
           <div className="space-y-2">
             <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#9aa3af]">Seleccionar Rol</span>
-            <div className="grid grid-cols-3 gap-1.5 bg-black/20 p-1 rounded-xl border border-white/5">
+            <div className="grid grid-cols-3 gap-2 bg-black/20 p-1 rounded-xl border border-white/5">
               {ROLE_OPTIONS.map((option) => {
                 const active = role === option.value;
                 return (
@@ -96,7 +96,7 @@ export function RoleManagementCard() {
                     type="button"
                     onClick={() => setRole(option.value)}
                     className={[
-                      "flex flex-col items-center justify-center gap-1 rounded-lg py-2 text-[10px] font-bold transition-all duration-300",
+                      "flex min-h-11 flex-col items-center justify-center gap-1 rounded-lg py-2 text-[10px] font-bold transition-all duration-300 lg:min-h-0",
                       active
                         ? "bg-white/[0.08] text-white shadow-sm border border-white/10"
                         : "text-[#aab2bc] hover:text-white border border-transparent",
@@ -110,7 +110,7 @@ export function RoleManagementCard() {
             </div>
           </div>
 
-          <Button type="submit" className="w-full h-10 bg-[#e1543a] hover:bg-[#ee6b49] rounded-xl font-bold text-xs uppercase tracking-wider text-white transition-all duration-300 active:scale-95" disabled={isSaving}>
+          <Button type="submit" className="min-h-11 w-full bg-[#e1543a] hover:bg-[#ee6b49] rounded-xl font-bold text-xs uppercase tracking-wider text-white transition-all duration-300 active:scale-95 lg:min-h-10" disabled={isSaving}>
             {isSaving ? "Guardando..." : "Actualizar rol"}
           </Button>
         </form>
