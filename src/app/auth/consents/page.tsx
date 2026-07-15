@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ArrowClockwise, WarningCircle } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { ContactStrip } from "@/components/site/contact-strip";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type ConsentState = {
   account_operation: { accepted: boolean; consent_version: string; accepted_at: string } | null;
@@ -17,6 +19,7 @@ export default function AuthConsentsPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [consentPlatformPromotions, setConsentPlatformPromotions] = useState(false);
@@ -24,8 +27,10 @@ export default function AuthConsentsPage() {
   const [deleteConfirmationText, setDeleteConfirmationText] = useState("");
   const [deleteReason, setDeleteReason] = useState("");
 
-  useEffect(() => {
+  const loadConsents = useCallback(() => {
     let active = true;
+    setLoading(true);
+    setLoadError(null);
     fetch("/api/auth/consents", { cache: "no-store" })
       .then(async (response) => {
         if (response.status === 401) {
@@ -42,7 +47,7 @@ export default function AuthConsentsPage() {
       })
       .catch((loadError) => {
         if (!active) return;
-        setError(loadError instanceof Error ? loadError.message : "No se pudo cargar consentimientos.");
+        setLoadError(loadError instanceof Error ? loadError.message : "No se pudo cargar consentimientos.");
       })
       .finally(() => {
         if (!active) return;
@@ -52,6 +57,8 @@ export default function AuthConsentsPage() {
       active = false;
     };
   }, [router]);
+
+  useEffect(() => loadConsents(), [loadConsents]);
 
   async function saveConsents() {
     setSaving(true);
@@ -108,16 +115,18 @@ export default function AuthConsentsPage() {
   return (
     <main className="relative min-h-[100dvh] overflow-hidden text-foreground">
       <div className="relative z-10 mx-auto max-w-[760px] px-4 py-8">
-        <section className="tm-surface-strong rounded-[2rem] border border-white/10 p-6 sm:p-8">
+        <section className="tm-surface-strong min-h-[744px] rounded-[2rem] border border-white/10 p-6 sm:min-h-[708px] sm:p-8">
           <p className="tym-overline">Privacidad</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-[-0.05em] text-foreground">Consentimientos</h1>
           <p className="mt-3 text-sm text-muted-foreground">
             Puedes cambiar tus consentimientos promocionales cuando quieras. El consentimiento de operación de cuenta es obligatorio para mantener acceso.
           </p>
 
-          {loading ? <p className="mt-4 text-sm text-muted-foreground">Cargando...</p> : null}
-
-          {!loading ? (
+          {loading ? (
+            <ConsentsSkeleton />
+          ) : loadError ? (
+            <ConsentsLoadError error={loadError} onRetry={loadConsents} />
+          ) : (
             <div className="mt-6 grid gap-3">
               <label className="flex min-h-11 items-start gap-3 text-sm text-muted-foreground">
                 <input
@@ -147,9 +156,9 @@ export default function AuthConsentsPage() {
                 </Link>
               </div>
             </div>
-          ) : null}
+          )}
 
-          {!loading ? (
+          {!loading && !loadError ? (
             <div className="mt-8 rounded-2xl border border-[#ff5a3d]/30 bg-[#ff5a3d]/10 p-4">
               <p className="text-[11px] uppercase tracking-[0.14em] text-[#ffcabf]">Zona crítica</p>
               <h2 className="mt-1 text-sm font-semibold text-[#ffd8d1]">Eliminar cuenta viewer</h2>
@@ -196,5 +205,59 @@ export default function AuthConsentsPage() {
       />
       </div>
     </main>
+  );
+}
+
+function ConsentsSkeleton() {
+  return (
+    <div className="mt-6" aria-busy="true" aria-label="Cargando tus preferencias">
+      <p className="text-sm text-muted-foreground">Cargando tus preferencias</p>
+      <div className="mt-4 grid gap-3" aria-hidden="true">
+        <ConsentRowSkeleton />
+        <ConsentRowSkeleton />
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <Skeleton className="h-11 w-48 rounded-full bg-white/10" />
+          <Skeleton className="h-5 w-14 bg-white/10" />
+        </div>
+      </div>
+      <div className="mt-8 rounded-2xl border border-white/10 p-4" aria-hidden="true">
+        <Skeleton className="h-3 w-20 bg-white/10" />
+        <Skeleton className="mt-2 h-4 w-40 bg-white/10" />
+        <Skeleton className="mt-3 h-3 w-full bg-white/10" />
+        <Skeleton className="mt-2 h-3 w-4/5 bg-white/10" />
+        <div className="mt-3 grid gap-2">
+          <Skeleton className="h-11 w-full bg-white/10" />
+          <Skeleton className="h-11 w-full bg-white/10" />
+          <Skeleton className="h-11 w-44 rounded-full bg-white/10" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConsentRowSkeleton() {
+  return (
+    <div className="flex min-h-11 items-start gap-3">
+      <Skeleton className="mt-0.5 size-5 shrink-0 rounded-[0.3rem] bg-white/10" />
+      <Skeleton className="mt-1 h-4 w-64 max-w-[calc(100%-2rem)] bg-white/10" />
+    </div>
+  );
+}
+
+function ConsentsLoadError({ error, onRetry }: { error: string; onRetry: () => void }) {
+  return (
+    <div className="mt-6 rounded-2xl border border-[#ff5a3d]/30 bg-[#ff5a3d]/10 p-4" role="alert">
+      <div className="flex items-start gap-3">
+        <WarningCircle className="mt-0.5 size-5 shrink-0 text-[#ffb0a7]" weight="fill" aria-hidden="true" />
+        <div>
+          <p className="text-sm font-semibold text-[#ffd8d1]">No pudimos cargar tus preferencias</p>
+          <p className="mt-1 text-sm text-[#ffcabf]">{error}</p>
+        </div>
+      </div>
+      <Button className="mt-4" variant="outline" onClick={onRetry}>
+        <ArrowClockwise aria-hidden="true" />
+        Reintentar
+      </Button>
+    </div>
   );
 }
