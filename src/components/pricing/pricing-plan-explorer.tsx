@@ -2,7 +2,7 @@
 
 import { useId, useState } from "react";
 import Link from "next/link";
-import { Buildings, CheckCircle, ChevronDown } from "@phosphor-icons/react/dist/ssr";
+import { Buildings, CaretDown, CheckCircle } from "@phosphor-icons/react/dist/ssr";
 import { ComingSoonButton } from "@/components/site/coming-soon-button";
 import { buildLocalizedHref, type Locale } from "@/lib/i18n";
 import { getLocalizedPlan, PLAN_DEFINITIONS } from "@/lib/plans";
@@ -150,7 +150,7 @@ export function PricingPlanExplorer({ locale }: { locale: Locale }) {
           <details className="group mt-3 border-t border-white/10 pt-3">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-2 text-sm font-bold text-white/66 transition hover:text-white">
               {copy.more} ({additionalFeatures.length})
-              <ChevronDown size={18} className="shrink-0 transition duration-300 group-open:rotate-180" aria-hidden="true" />
+              <CaretDown size={18} className="shrink-0 transition duration-300 group-open:rotate-180" aria-hidden="true" />
             </summary>
             <ul className="space-y-2 pb-2 pt-3">
               {additionalFeatures.map((feature) => (
