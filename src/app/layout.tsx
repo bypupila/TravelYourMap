@@ -8,6 +8,7 @@ import { LOCALE_COOKIE_NAME, normalizeLocale } from "@/lib/i18n";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { LocaleDocumentSync } from "@/components/site/locale-document-sync";
 import { ComingSoonProvider } from "@/components/site/coming-soon-provider";
+import { Analytics } from "@vercel/analytics/next";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -74,6 +75,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           </Suspense>
           <ComingSoonProvider>{children}</ComingSoonProvider>
         </TooltipProvider>
+        <Analytics />
       </body>
     </html>
   );
