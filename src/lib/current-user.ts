@@ -29,6 +29,13 @@ export interface SessionUser {
   role: AppUserRole;
 }
 
+export interface LandingSessionProfile {
+  username: string;
+  displayName: string;
+  imageUrl: string | null;
+  href: string;
+}
+
 export function getSessionUserIdFromRequest(request: Request) {
   return getSessionUserIdFromCookieHeader(request.headers.get("cookie"));
 }
@@ -73,6 +80,37 @@ export async function getSessionUserById(userId: string): Promise<SessionUser | 
   return {
     ...row,
     role: normalizeAppUserRole(row.role),
+  };
+}
+
+export async function getLandingSessionProfileFromServerCookies(): Promise<LandingSessionProfile | null> {
+  const userId = await getValidSessionUserIdFromServerCookies();
+  if (!userId) return null;
+
+  const [user, channelRows] = await Promise.all([
+    getSessionUserById(userId),
+    sql<Array<{ id: string; thumbnail_url: string | null }>>`
+      select id, thumbnail_url
+      from public.channels
+      where user_id = ${userId}
+      order by updated_at desc
+      limit 1
+    `,
+  ]);
+  if (!user) return null;
+
+  const channel = channelRows[0] || null;
+  const href = channel
+    ? `/map?channelId=${encodeURIComponent(channel.id)}`
+    : user.role === "viewer"
+      ? "/map"
+      : "/dashboard";
+
+  return {
+    username: user.username,
+    displayName: user.display_name || user.username,
+    imageUrl: channel?.thumbnail_url || null,
+    href,
   };
 }
 

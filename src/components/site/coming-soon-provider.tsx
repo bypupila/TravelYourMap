@@ -76,7 +76,7 @@ export function ComingSoonProvider({ children }: { children: React.ReactNode }) 
           role="status"
           aria-live="polite"
           aria-atomic="true"
-          className="fixed inset-x-0 top-[calc(env(safe-area-inset-top)+5rem)] bottom-auto z-[2000] mx-auto flex min-h-14 w-[80%] items-center overflow-hidden rounded-2xl border border-[rgba(255,90,70,0.34)] bg-[#241b19] text-[#fffdf7] shadow-[0_18px_60px_rgba(0,0,0,0.48)] sm:inset-x-auto sm:top-auto sm:right-6 sm:bottom-6 sm:mx-0 sm:w-[min(100%,28rem)]"
+          className="fixed inset-x-0 top-[calc(env(safe-area-inset-top)+5rem)] bottom-auto z-[2000] mx-auto flex min-h-14 w-[268px] items-center overflow-hidden rounded-2xl border border-[rgba(255,90,70,0.34)] bg-[#241b19] text-[#fffdf7] shadow-[0_18px_60px_rgba(0,0,0,0.48)]"
         >
           <span className="grid min-h-14 w-14 shrink-0 place-items-center self-stretch bg-[#ff5a46] text-white" aria-hidden="true">
             <Clock size={23} weight="bold" />
