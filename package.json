@@ -4,8 +4,8 @@
   "type": "module",
   "version": "0.1.0",
   "scripts": {
-    "dev": "node scripts/copy-assets.mjs && next dev",
-    "build": "node scripts/copy-assets.mjs && next build",
+    "dev": "next dev",
+    "build": "next build",
     "start": "next start",
     "design-ai": "npx -y magicpath-ai",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",

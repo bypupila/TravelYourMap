@@ -851,8 +851,8 @@ export function TravelGlobe({
               }
             >
               {isMobileViewport ? (
-                <div className="flex min-w-0 flex-col items-center justify-center gap-1 text-center">
-                  <div className="flex min-w-0 items-center justify-center gap-2">
+                <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-left">
+                  <div className="flex min-w-0 items-center gap-2">
                     <span className="shrink-0 leading-none">{panelFlag}</span>
                     <h2 className="min-w-0 break-words text-[12px] font-semibold leading-tight tracking-[0.02em] text-[#d5dde6]">
                       {panelCountryName}

@@ -44,7 +44,7 @@ import {
 } from "@/components/map/poll-editor-form";
 import { useLocalVideoActivity, type VideoActivityController } from "@/components/map/video-activity";
 import { VideoSelectionSheet } from "@/components/map/video-selection-sheet";
-import { ResponsiveMapChrome } from "@/components/map/responsive-map-chrome";
+import { CreatorActionButtons, ResponsiveMapChrome } from "@/components/map/responsive-map-chrome";
 import {
   compareVideosByActivityPriority,
   getCountryNameInSpanish,
@@ -196,6 +196,13 @@ const ACTIVITY_FILTER_OPTIONS: Array<{ id: ActivityFilter; label: string; Icon: 
   { id: "watched", label: "Vistos", Icon: CheckCircle },
   { id: "watch_later", label: "Ver más tarde", Icon: BookmarkSimple },
   { id: "incomplete", label: "Incompletos", Icon: Clock },
+];
+
+const DATE_FILTER_OPTIONS: Array<{ id: ContentFilterWindow; label: string; mobileLabel: string; Icon: typeof Clock }> = [
+  { id: "all", label: "Todos", mobileLabel: "Todos", Icon: SquaresFour },
+  { id: "365", label: "365 Días", mobileLabel: "365 días", Icon: Clock },
+  { id: "90", label: "90 Días", mobileLabel: "90 días", Icon: Clock },
+  { id: "30", label: "30 Días", mobileLabel: "30 días", Icon: Clock },
 ];
 
 const MAP_NAV_COMING_SOON_FEATURES: Record<string, ComingSoonFeatureId> = {
@@ -1064,7 +1071,83 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
 
               {!isVideoFocusMode ? (
               <>
-              <div className="pointer-events-none absolute left-4 top-4 z-[90]">
+              <div className="pointer-events-none absolute inset-x-0 top-2 z-[90] sm:hidden">
+                <div
+                  className="tym-scroll-row pointer-events-auto flex w-full snap-x snap-mandatory gap-1.5 overflow-x-auto overscroll-x-contain px-2 pb-1 [scrollbar-width:none]"
+                  role="group"
+                  aria-label="Filtros del mapa"
+                >
+                  <button
+                    type="button"
+                    aria-pressed={filter === "all" && activityFilter === "all"}
+                    className={cn(
+                      "flex h-8 shrink-0 snap-start items-center gap-1 rounded-lg border px-2.5 text-[10px] font-bold shadow-[0_8px_24px_-16px_rgba(0,0,0,0.9)] backdrop-blur-xl transition active:scale-[0.97]",
+                      filter === "all" && activityFilter === "all"
+                        ? "border-[#ff7259]/45 bg-[#ff5a3d]/18 text-[#ffad9d]"
+                        : "border-white/15 bg-[#060c12]/72 text-white"
+                    )}
+                    onClick={() => {
+                      setFilter("all");
+                      setActivityFilter("all");
+                      setDateMenuOpen(false);
+                      setActivityMenuOpen(false);
+                      setMobileVoteOpen(false);
+                      flash("Filtros del mapa: Todos");
+                    }}
+                  >
+                    <SquaresFour size={12} aria-hidden="true" />
+                    Todos
+                  </button>
+
+                  {DATE_FILTER_OPTIONS.slice(1).map(({ id, mobileLabel, Icon }) => (
+                    <button
+                      key={`mobile-date-${id}`}
+                      type="button"
+                      aria-pressed={filter === id}
+                      className={cn(
+                        "flex h-8 shrink-0 snap-start items-center gap-1 rounded-lg border px-2.5 text-[10px] font-bold shadow-[0_8px_24px_-16px_rgba(0,0,0,0.9)] backdrop-blur-xl transition active:scale-[0.97]",
+                        filter === id
+                          ? "border-[#ff7259]/45 bg-[#ff5a3d]/18 text-[#ffad9d]"
+                          : "border-white/15 bg-[#060c12]/72 text-white"
+                      )}
+                      onClick={() => {
+                        setFilter((current) => (current === id ? "all" : id));
+                        setMobileVoteOpen(false);
+                        flash(`Filtro del globo: ${mobileLabel}`);
+                      }}
+                    >
+                      <Icon size={12} aria-hidden="true" />
+                      {mobileLabel}
+                    </button>
+                  ))}
+
+                  <span className="my-1 h-6 w-px shrink-0 bg-white/12" aria-hidden="true" />
+
+                  {ACTIVITY_FILTER_OPTIONS.slice(1).map(({ id, label, Icon }) => (
+                    <button
+                      key={`mobile-activity-${id}`}
+                      type="button"
+                      aria-pressed={activityFilter === id}
+                      className={cn(
+                        "flex h-8 shrink-0 snap-start items-center gap-1 rounded-lg border px-2.5 text-[10px] font-bold shadow-[0_8px_24px_-16px_rgba(0,0,0,0.9)] backdrop-blur-xl transition active:scale-[0.97]",
+                        activityFilter === id
+                          ? "border-[#ff7259]/45 bg-[#ff5a3d]/18 text-[#ffad9d]"
+                          : "border-white/15 bg-[#060c12]/72 text-white"
+                      )}
+                      onClick={() => {
+                        setActivityFilter((current) => (current === id ? "all" : id));
+                        setMobileVoteOpen(false);
+                        flash(`Filtro de actividad: ${label}`);
+                      }}
+                    >
+                      <Icon size={12} aria-hidden="true" />
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pointer-events-none absolute left-4 top-4 z-[90] hidden sm:block">
                 <div className="relative pointer-events-auto">
                   <button
                     type="button"
@@ -1081,12 +1164,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                   </button>
                   {dateMenuOpen ? (
                     <div className="absolute left-0 top-[calc(100%+6px)] max-h-[min(280px,calc(100dvh-10rem))] min-w-[145px] overflow-y-auto overscroll-contain rounded-xl border border-white/10 bg-[#050b10]/95 p-1 shadow-2xl backdrop-blur-xl">
-                      {[
-                        { id: "all", label: "Todos", Icon: SquaresFour },
-                        { id: "365", label: "365 Días", Icon: Clock },
-                        { id: "90", label: "90 Días", Icon: Clock },
-                        { id: "30", label: "30 Días", Icon: Clock },
-                      ].map(({ id, label, Icon }) => (
+                      {DATE_FILTER_OPTIONS.map(({ id, label, Icon }) => (
                         <button
                           key={id}
                           type="button"
@@ -1095,7 +1173,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                             filter === id ? "bg-[#ff5a3d]/12 text-[#ff7d63]" : "text-[#cbd3dc] hover:bg-white/[0.04] hover:text-white"
                           )}
                           onClick={() => {
-                            setFilter((current) => (current === id ? "all" : (id as ContentFilterWindow)));
+                            setFilter((current) => (current === id ? "all" : id));
                             setDateMenuOpen(false);
                             flash(`Filtro del globo: ${label}`);
                           }}
@@ -1109,7 +1187,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                 </div>
               </div>
 
-              <div className="pointer-events-none absolute right-4 top-4 z-[90]">
+              <div className="pointer-events-none absolute right-4 top-4 z-[90] hidden sm:block">
                 <div className="relative pointer-events-auto">
                   <button
                     type="button"
@@ -1244,11 +1322,12 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
               ) : null}
             </div>
 
-            {/* Bottom Inspiration Videos */}
+            {/* Responsive discovery rail: videos and sponsors stay visible on every viewport. */}
             {!isMapFullscreen && !isVideoFocusMode ? (
-              <div className="hidden shrink-0 lg:block">
+              <div className="shrink-0">
                 <VideoInspirationRail2
                   videos={railSourceVideos}
+                  sponsors={sponsors}
                   selectedCountryCode={selectedCountryCode}
                   resolveSponsorNames={resolveVideoSponsorNames}
                   resolveSponsorBannerColors={resolveVideoSponsorBannerColors}
@@ -1304,21 +1383,21 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
       <MobileDrawer2
         channel={channel}
         open={menuOpen}
+        showCreatorActions={isCreatorWorkspace}
         onClose={() => setMenuOpen(false)}
-        onNavigate={(label) => {
-          if (label === "Explorar") {
-            setActiveSidebarItem("Explorar");
-            return;
-          }
-          const featureId = MAP_NAV_COMING_SOON_FEATURES[label];
-          if (featureId) showComingSoon(featureId, "map_sidebar");
-        }}
+        onExtractVideos={() => showComingSoon("map_video_extraction", "map_creator_tools")}
+        onCreatePoll={() => showComingSoon("map_poll_creation", "map_creator_tools")}
+        onOpenAdmin={openAdminPanel}
       />
 
       <VideoSelectionSheet
         open={Boolean(pinnedVideo) && !isDesktopVideoCard}
         videos={activeLocationVideos}
         currentVideo={pinnedVideo}
+        presentation="desktop-card"
+        sponsors={sponsors}
+        hidePlatformAds={hidePlatformAds}
+        platformAd={activePlatformAd}
         resolveSponsorNames={resolveVideoSponsorNames}
         activity={videoActivity}
         onClose={() => requestVideoExit(() => setPinnedVideo(null))}
@@ -1840,13 +1919,14 @@ function ProposalTopbar2({
           </button>
           <button
             type="button"
-            className="flex h-11 min-w-0 w-full items-center gap-3 rounded-full border border-white/[0.07] bg-white/[0.035] px-4 text-left text-[#cbd3dc] shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)] transition-all hover:border-white/[0.12] hover:bg-white/[0.05] focus-visible:border-[#ff5a3d]/40 focus-visible:outline-none"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/[0.07] bg-white/[0.035] text-[#cbd3dc] shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)] transition-all hover:border-white/[0.12] hover:bg-white/[0.05] focus-visible:border-[#ff5a3d]/40 focus-visible:outline-none sm:flex sm:min-w-0 sm:w-full sm:items-center sm:gap-3 sm:px-4 sm:text-left"
             onClick={() => setSearchPanelOpen(true)}
             aria-haspopup="dialog"
             aria-expanded={searchPanelOpen}
+            aria-label={searchQuery ? `Buscar videos. Filtro activo: ${searchQuery}` : "Buscar videos del mapa"}
           >
             <MagnifyingGlass size={17} className="text-[#818b95]" />
-            <span className={cn("min-w-0 flex-1 truncate text-[13px]", searchQuery ? "text-white" : "text-[#818b95]")}>
+            <span className={cn("hidden min-w-0 flex-1 truncate text-[13px] sm:block", searchQuery ? "text-white" : "text-[#818b95]")}>
               {searchQuery || "Buscar videos del mapa"}
             </span>
             {searchQuery ? (
@@ -1875,10 +1955,6 @@ function ProposalTopbar2({
           ) : null}
           {isViewer ? (
             <>
-              <span className="hidden h-10 items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-4 text-[12px] font-bold text-emerald-200 sm:flex">
-                <Eye size={15} />
-                Seguidor
-              </span>
               {canReturnToCreator ? (
                 <button
                   type="button"
@@ -2327,6 +2403,7 @@ function ViewerRegistrationGate({ viewerRegisterHref }: { viewerRegisterHref: st
 // Bottom Inspiration videos row
 function VideoInspirationRail2({
   videos,
+  sponsors,
   selectedCountryCode,
   resolveSponsorNames,
   resolveSponsorBannerColors,
@@ -2338,6 +2415,7 @@ function VideoInspirationRail2({
   onSelect
 }: {
   videos: TravelVideoLocation[];
+  sponsors: MapRailSponsor[];
   selectedCountryCode: string | null;
   resolveSponsorNames: (video: TravelVideoLocation | null | undefined) => string[];
   resolveSponsorBannerColors: (video: TravelVideoLocation | null | undefined) => SponsorBannerColors | null;
@@ -2471,11 +2549,60 @@ function VideoInspirationRail2({
   }, [selectedCountryCode, videos]);
   const railVideos = countryVideos;
 
+  const visibleSponsors = sponsors.slice(0, 8);
+
   return (
-    <section data-component="VideoInspirationRail2" className="bg-[#03060a]/50 border border-white/[0.06] rounded-xl shrink-0 h-[230px] px-4 pt-2 pb-4">
-      <div className="mb-2 flex items-center justify-between">
+    <section
+      data-component="VideoInspirationRail2"
+      aria-label="Videos y sponsors del mapa"
+      className="h-[184px] shrink-0 overflow-hidden rounded-xl border border-white/[0.07] bg-[#03060a]/72 px-3 pb-2 pt-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] md:h-[222px] md:px-4 md:pb-3 md:pt-2 lg:h-[254px] lg:bg-[#03060a]/50 lg:pb-4"
+    >
+      {visibleSponsors.length > 0 ? (
+        <div className="mb-1 flex h-9 min-w-0 items-center gap-2 overflow-hidden border-b border-white/[0.1] pb-1 md:mb-1.5 md:h-8 md:border-white/[0.06]" aria-label="Sponsors del mapa">
+          <span className="shrink-0 text-[7px] font-black uppercase tracking-[0.15em] text-[#ff917b] md:text-[8px]">
+            <span className="md:hidden">Patrocinantes</span>
+            <span className="hidden md:inline">Apoyan este mapa</span>
+          </span>
+          <div className="tym-scroll-row flex min-w-0 flex-1 items-center gap-1.5 overflow-x-auto overscroll-x-contain [scrollbar-width:none]">
+            {visibleSponsors.map((sponsor) => {
+              const sponsorContent = (
+                <>
+                  {sponsor.logo_url ? (
+                    <span className="relative h-4 w-4 shrink-0 overflow-hidden rounded bg-white md:h-5 md:w-5">
+                      <Image src={sponsor.logo_url} alt="" fill sizes="20px" className="object-contain p-0.5" />
+                    </span>
+                  ) : (
+                    <Compass size={11} weight="fill" aria-hidden="true" className="shrink-0 text-[#ff8f78]" />
+                  )}
+                  <span className="max-w-[94px] truncate">{sponsor.brand_name}</span>
+                </>
+              );
+              const sponsorClassName = "flex h-5 shrink-0 items-center gap-1 rounded-md border border-white/[0.08] bg-white/[0.045] px-1.5 text-[8px] font-bold text-[#e6ebf1] transition hover:border-[#ff8f78]/35 hover:bg-white/[0.075] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff5a3d]/60 md:h-6 md:px-2 md:text-[9px]";
+
+              return sponsor.affiliate_url ? (
+                <a
+                  key={sponsor.id}
+                  href={sponsor.affiliate_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={sponsorClassName}
+                  aria-label={`Visitar el sitio de ${sponsor.brand_name}`}
+                >
+                  {sponsorContent}
+                </a>
+              ) : (
+                <span key={sponsor.id} className={sponsorClassName}>
+                  {sponsorContent}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mb-1.5 flex h-7 items-center justify-between gap-3 md:mb-2 md:h-8">
         <div className="min-w-0">
-          <h2 className="text-[14px] font-black uppercase tracking-wider text-white">
+          <h2 className="truncate text-[11px] font-black uppercase tracking-[0.08em] text-white md:text-[13px] lg:text-[14px]">
             {selectedCountryCode ? (
               <>
                 Videos en <CountryFlag code={selectedCountryCode} size={14} />{" "}
@@ -2485,7 +2612,7 @@ function VideoInspirationRail2({
               "Videos para inspirarte"
             )}
           </h2>
-          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#7f8894]">
+          <p className="mt-0.5 hidden text-[9px] font-bold uppercase tracking-[0.08em] text-[#7f8894] md:block lg:mt-1 lg:text-[10px]">
             {railVideos.length} de {countryVideos.length || totalVideos} videos
           </p>
         </div>
@@ -2493,16 +2620,17 @@ function VideoInspirationRail2({
           <button
             type="button"
             onClick={onOpenAllVideos}
-            className="h-11 rounded-full border border-violet-400/35 bg-violet-500/12 px-3.5 text-[10px] font-black uppercase tracking-[0.1em] text-violet-100 transition hover:bg-violet-500/18 hover:text-white lg:h-8"
+            className="h-7 rounded-full border border-[#ff8f78]/30 bg-[#ff5a3d]/10 px-2.5 text-[8px] font-black uppercase tracking-[0.1em] text-[#ffb3a4] transition hover:bg-[#ff5a3d]/18 hover:text-white active:scale-[0.97] md:h-8 md:px-3 md:text-[9px] lg:px-3.5 lg:text-[10px]"
           >
-            Ver Todos
+            <span className="md:hidden">Todos</span>
+            <span className="hidden md:inline">Ver todos</span>
           </button>
         </div>
       </div>
 
       <div
         ref={railRef}
-        className="tym-scroll-row flex min-w-0 max-w-full cursor-grab select-none gap-4 overflow-x-auto overscroll-x-contain pb-5 pr-4 active:cursor-grabbing"
+        className="tym-scroll-row flex min-w-0 max-w-full cursor-grab snap-x snap-mandatory select-none gap-2 overflow-x-auto overscroll-x-contain pb-2 pr-3 active:cursor-grabbing md:gap-3 md:pb-3 md:pr-4 lg:snap-none lg:gap-4 lg:pb-5"
         role="region"
         aria-label="Videos para inspirarte"
         tabIndex={0}
@@ -2528,14 +2656,17 @@ function VideoInspirationRail2({
             lastTimestamp: performance.now(),
             velocity: 0,
           };
-          event.currentTarget.setPointerCapture(event.pointerId);
         }}
         onPointerMove={(event) => {
           const drag = mouseDragRef.current;
           if (!drag || drag.pointerId !== event.pointerId) return;
 
           const distance = event.clientX - drag.startX;
-          if (Math.abs(distance) > 4) drag.didDrag = true;
+          if (Math.abs(distance) > 4 && !drag.didDrag) {
+            drag.didDrag = true;
+            event.currentTarget.setPointerCapture(event.pointerId);
+          }
+          if (!drag.didDrag) return;
           event.currentTarget.scrollLeft = drag.startScrollLeft - distance;
 
           const timestamp = performance.now();
@@ -2582,6 +2713,8 @@ function VideoInspirationRail2({
               sponsorBannerColors={resolveSponsorBannerColors(video)}
               highlightedVideoId={highlightedVideoId}
               isDemoMode={isDemoMode}
+              responsiveRail
+              className="snap-start"
               imagePriority={index === 0}
               onSelect={onSelect}
             />
@@ -2860,12 +2993,18 @@ function MobileDrawer2({
   channel,
   open,
   onClose,
-  onNavigate
+  showCreatorActions,
+  onExtractVideos,
+  onCreatePoll,
+  onOpenAdmin,
 }: {
   channel: TravelChannel;
   open: boolean;
   onClose: () => void;
-  onNavigate: (label: string) => void;
+  showCreatorActions: boolean;
+  onExtractVideos: () => void;
+  onCreatePoll: () => void;
+  onOpenAdmin: () => void;
 }) {
   const channelName = channel.channel_name || "Canal";
   const channelHandle = channel.channel_handle ? `@${channel.channel_handle.replace(/^@/, "")}` : "@canal";
@@ -2892,21 +3031,22 @@ function MobileDrawer2({
           </button>
         </div>
 
-        <div className="space-y-1.5 mt-4">
-          {["Explorar", "En vivo", "Destinos", "Creadores", "Guardados", "Historial", "Comunidad"].map((label) => (
-            <button 
-              key={label} 
-              type="button" 
-              className="flex h-11 w-full items-center rounded-lg border border-white/[0.04] bg-white/[0.01] px-3.5 text-left text-[11px] font-bold text-white transition hover:bg-white/[0.05] lg:h-10"
-              onClick={() => {
-                onNavigate(label);
-                onClose();
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {showCreatorActions ? (
+          <CreatorActionButtons
+            onExtractVideos={() => {
+              onClose();
+              onExtractVideos();
+            }}
+            onCreatePoll={() => {
+              onClose();
+              onCreatePoll();
+            }}
+            onOpenAdmin={() => {
+              onClose();
+              onOpenAdmin();
+            }}
+          />
+        ) : null}
       </aside>
     </div>
   );

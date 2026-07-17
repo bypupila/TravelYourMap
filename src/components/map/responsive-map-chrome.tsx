@@ -500,11 +500,11 @@ function MorePanel({
         {isCreator ? (
           <section className="border-b border-white/10 pb-5">
             <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#ff8f78]">Acciones creator</p>
-            <div className="mt-3 grid gap-2">
-              <ActionButton Icon={Video} label="Extraer videos" onClick={onExtractVideos} accent />
-              <ActionButton Icon={Users} label="Crear votación" onClick={onCreatePoll} />
-              <ActionButton Icon={GearSix} label="Abrir panel admin" onClick={onOpenAdmin} />
-            </div>
+            <CreatorActionButtons
+              onExtractVideos={onExtractVideos}
+              onCreatePoll={onCreatePoll}
+              onOpenAdmin={onOpenAdmin}
+            />
           </section>
         ) : null}
 
@@ -609,6 +609,24 @@ function MorePanel({
           </button>
         </footer>
       ) : null}
+    </div>
+  );
+}
+
+export function CreatorActionButtons({
+  onExtractVideos,
+  onCreatePoll,
+  onOpenAdmin,
+}: {
+  onExtractVideos: () => void;
+  onCreatePoll: () => void;
+  onOpenAdmin: () => void;
+}) {
+  return (
+    <div className="mt-3 grid gap-2">
+      <ActionButton Icon={Video} label="Extraer videos" onClick={onExtractVideos} accent />
+      <ActionButton Icon={Users} label="Crear votación" onClick={onCreatePoll} />
+      <ActionButton Icon={GearSix} label="Abrir panel admin" onClick={onOpenAdmin} />
     </div>
   );
 }

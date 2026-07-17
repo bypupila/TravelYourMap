@@ -212,7 +212,7 @@ export function DesktopVideoMapCard({
     };
 
     return (
-      <div className="border-t border-red-500/35 bg-[#0c0c0c]/85 px-4 py-2 text-white">
+      <div className="border-t border-red-500/35 bg-[#0c0c0c]/85 px-2 py-2 text-white sm:px-4">
         <div className="flex items-center gap-1 w-full">
           <button
             type="button"
@@ -234,14 +234,14 @@ export function DesktopVideoMapCard({
               const coupon = sponsor.action_type === "coupon" ? sponsor.action_value || sponsor.discount_code : sponsor.discount_code;
               const ctaLabel = sponsor.cta_label || (coupon ? "Copiar" : "Ver beneficio");
               const cardClassName =
-                "group relative flex min-h-[64px] w-full items-center rounded-xl border border-white/10 bg-white/[0.03] p-2 text-center shadow-sm transition-all duration-300 hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.98]";
+                "group relative flex min-h-[56px] w-full items-center rounded-xl border border-white/10 bg-white/[0.03] p-1.5 text-center shadow-sm transition-all duration-300 hover:border-white/20 hover:bg-white/[0.06] active:scale-[0.98] sm:min-h-[64px] sm:p-2";
               const cardContent = (
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-bold leading-none text-red-500">
+                  <p className="truncate text-[12px] font-bold leading-none text-red-500 sm:text-[15px]">
                     {categoryText}
                   </p>
                   <p
-                    className="line-clamp-2 text-[11px] text-[#cbd5e1] transition-colors leading-snug mt-0 overflow-hidden text-ellipsis group-hover:text-white"
+                    className="mt-0 line-clamp-2 overflow-hidden text-ellipsis text-[9px] leading-snug text-[#cbd5e1] transition-colors group-hover:text-white sm:text-[11px]"
                     title={sponsor.description || ""}
                   >
                     {sponsor.description || "Oferta recomendada"}
@@ -308,16 +308,16 @@ export function DesktopVideoMapCard({
     const promoDescription = ad.description || "Promoción activa para viewers y creadores de Travel Your Map.";
     const hasAdHref = Boolean(ad.href);
     return (
-      <section className="group relative w-full overflow-hidden rounded-xl border border-red-500/35 bg-black px-4 py-2.5 text-white shadow-[0_30px_90px_-30px_rgba(0,0,0,0.95)] transition-all duration-300 hover:border-red-500/45">
+      <section className="group relative w-full overflow-hidden rounded-xl border border-red-500/35 bg-black px-3 py-2 text-white shadow-[0_30px_90px_-30px_rgba(0,0,0,0.95)] transition-all duration-300 hover:border-red-500/45 sm:px-4 sm:py-2.5">
         <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-black/0 transition-all duration-300 group-hover:scale-125" />
         
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="min-w-0">
-              <p className="line-clamp-2 max-w-[330px] text-[17px] font-extrabold text-white group-hover:text-white transition-colors leading-[1.05]">
+              <p className="line-clamp-2 max-w-[330px] text-[15px] font-extrabold leading-[1.05] text-white transition-colors group-hover:text-white sm:text-[17px]">
                 {promoTitle}
               </p>
-              <p className="line-clamp-2 text-[11px] text-[#cbd5e1] leading-snug mt-0.5 max-w-[280px] overflow-hidden text-ellipsis">
+              <p className="mt-0.5 line-clamp-1 max-w-[280px] overflow-hidden text-ellipsis text-[10px] leading-snug text-[#cbd5e1] sm:line-clamp-2 sm:text-[11px]">
                 {promoDescription}
               </p>
             </div>
@@ -332,7 +332,7 @@ export function DesktopVideoMapCard({
               }
             }}
             className={cn(
-              "inline-flex h-7 items-center justify-center gap-1 rounded-lg bg-gradient-to-r from-[#ff5a3d] to-[#ff7259] px-3 text-[10px] font-black text-white shadow-md shadow-[#ff5a3d]/25 transition-all duration-300 active:scale-95 shrink-0",
+              "inline-flex h-7 shrink-0 items-center justify-center gap-1 rounded-lg bg-gradient-to-r from-[#ff5a3d] to-[#ff7259] px-2.5 text-[9px] font-black text-white shadow-md shadow-[#ff5a3d]/25 transition-all duration-300 active:scale-95 sm:px-3 sm:text-[10px]",
               hasAdHref ? "hover:from-[#ff7259] hover:to-[#ff8a72]" : "cursor-not-allowed opacity-70"
             )}
           >
@@ -371,15 +371,15 @@ export function DesktopVideoMapCard({
 
   if (isTheater) {
     return (
-      <div className="pointer-events-auto w-full max-w-[480px] space-y-3">
+      <div className="pointer-events-auto w-full max-w-[480px] space-y-2 sm:space-y-3">
         {renderPlatformBanner()}
         <article className={cn("group relative w-full lg:w-[480px] shrink-0 overflow-hidden rounded-xl border bg-[#080808] text-sm text-white", cardBorderClassName)}>
           <div className="pointer-events-none absolute -right-20 -top-20 h-48 w-48 rounded-full bg-[radial-gradient(circle_at_center,rgba(239,68,68,0.04),transparent_60%)]" />
 
-          <header className="relative px-4 pb-3 pt-4">
+          <header className="relative px-3 pb-2.5 pt-3 sm:px-4 sm:pb-3 sm:pt-4">
             <div className="min-w-0 text-left">
-              <h2 className="line-clamp-2 pr-8 text-left text-[21px] font-extrabold leading-[1.1] text-white">{selectedVideo.title}</h2>
-              <div className="mt-1.5 flex items-center justify-between gap-2">
+              <h2 className="line-clamp-2 pr-8 text-left text-[17px] font-extrabold leading-[1.1] text-white sm:text-[21px]">{selectedVideo.title}</h2>
+              <div className="mt-2 flex flex-col items-start gap-2 sm:mt-1.5 sm:flex-row sm:items-center sm:justify-between">
                 <p className="flex min-w-0 items-center gap-1.5 text-[11px] font-bold text-zinc-500">
                   <span className="rounded bg-zinc-900 px-1.5 py-0.5 text-[10px] text-white">
                     <CountryFlag code={selectedVideo.country_code} size={12} className="mr-1 align-[-1px]" />
@@ -388,7 +388,7 @@ export function DesktopVideoMapCard({
                   <span>•</span>
                   <span className="text-[#ff5a3d]">Video {currentIndex + 1} de {Math.max(1, orderedVideos.length)}</span>
                 </p>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex shrink-0 items-center gap-1">
                   <button
                     type="button"
                     onClick={() => activity.toggleVideoFeatured(selectedVideo.youtube_video_id)}
@@ -419,18 +419,19 @@ export function DesktopVideoMapCard({
                 </div>
               </div>
             </div>
-            <div className="absolute right-4 top-4 flex items-center gap-1">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex h-7 w-7 items-center justify-center text-red-500 transition-all hover:text-red-400 active:scale-95"
-              >
+            <div className="absolute right-3 top-3 flex items-center gap-1 sm:right-4 sm:top-4">
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label="Cerrar video seleccionado"
+                    className="flex h-7 w-7 items-center justify-center text-red-500 transition-all hover:text-red-400 active:scale-95"
+                  >
                 <X size={18} weight="bold" />
               </button>
             </div>
           </header>
 
-          <div className="grid grid-cols-3 items-center gap-2 border-t border-white/[0.04] bg-[#0c0c0c]/85 px-4 py-3">
+          <div className="grid grid-cols-3 items-center gap-1.5 border-t border-white/[0.04] bg-[#0c0c0c]/85 px-2 py-2 sm:gap-2 sm:px-4 sm:py-3">
             <button type="button" onClick={() => go(-1)} className="flex h-8 items-center justify-center gap-1 rounded border border-white/[0.04] bg-[#141414] text-[9px] font-black tracking-wider text-zinc-300 transition-all hover:border-red-500/20 hover:bg-red-600/10 hover:text-red-500 active:scale-95">
               <CaretLeft size={13} weight="bold" />
               ANTERIOR
@@ -483,7 +484,7 @@ export function DesktopVideoMapCard({
             </button>
           </div>
 
-          <div className="px-4 pb-2">
+          <div className="px-2 pb-1.5 sm:px-4 sm:pb-2">
             <div className="relative overflow-hidden bg-black">
               {isDemoMode ? (
                 <DemoVideoEmbedPreview
@@ -532,8 +533,8 @@ export function DesktopVideoMapCard({
             </div>
           </div>
 
-          <div className="border-t border-zinc-700/60 bg-[#0c0c0c]/85 px-4 py-3">
-            <div className="grid grid-cols-3 items-center divide-x divide-white/[0.08] text-[11px] text-white">
+          <div className="border-t border-zinc-700/60 bg-[#0c0c0c]/85 px-2 py-2.5 sm:px-4 sm:py-3">
+            <div className="grid grid-cols-3 items-center divide-x divide-white/[0.08] text-[9px] text-white sm:text-[11px]">
               <span className="flex min-w-0 items-center justify-center gap-1 truncate px-2 font-semibold uppercase">
                 <MapPin size={11} className="text-white" />
                 <span className="truncate">{formatVideoPlace(selectedVideo)}</span>

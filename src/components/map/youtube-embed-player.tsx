@@ -60,6 +60,10 @@ type YTPlayerOptions = {
 
 type YTPlayerConstructor = new (element: HTMLElement, options: YTPlayerOptions) => YTPlayerInstance;
 
+type LockableScreenOrientation = ScreenOrientation & {
+  lock?: (orientation: "landscape") => Promise<void>;
+};
+
 declare global {
   interface Window {
     YT?: {
@@ -112,6 +116,21 @@ function getErrorMessage(errorReason: EmbedErrorReason) {
       return "YouTube devolvio un error al intentar reproducir este video en el embed oficial.";
     default:
       return "Preparando el reproductor oficial de YouTube.";
+  }
+}
+
+async function lockMobileLandscapeOrientation() {
+  if (typeof window === "undefined") return;
+  if (!window.matchMedia("(max-width: 767px)").matches) return;
+
+  const orientation = window.screen.orientation as LockableScreenOrientation | undefined;
+  if (typeof orientation?.lock !== "function") return;
+
+  try {
+    await orientation.lock("landscape");
+  } catch {
+    // Orientation lock support varies by browser and operating system. Fullscreen
+    // playback remains active even when the device declines the lock.
   }
 }
 
@@ -271,6 +290,7 @@ export function YouTubeEmbedPlayer({
     hasRequestedFullscreenRef.current = true;
     try {
       await frame.requestFullscreen({ navigationUI: "hide" });
+      await lockMobileLandscapeOrientation();
       return true;
     } catch {
       hasRequestedFullscreenRef.current = false;
@@ -287,11 +307,9 @@ export function YouTubeEmbedPlayer({
     const fullscreenRequest = requestFullscreenOnPlay();
     playerRef.current.playVideo?.();
 
-    void fullscreenRequest.then((didEnterFullscreen) => {
-      if (didEnterFullscreen) return;
-      playerRef.current?.pauseVideo?.();
-      setIsWaitingForFullscreenPlay(true);
-    });
+    // iOS uses playsinline=0 below as its native fullscreen fallback. Other
+    // browsers continue playback if they decline the Fullscreen API request.
+    void fullscreenRequest;
   }, [requestFullscreenOnPlay, status]);
 
   useEffect(() => {
@@ -327,7 +345,11 @@ export function YouTubeEmbedPlayer({
           width: "100%",
           height: "100%",
           videoId: normalizedVideoId,
-          playerVars: getOfficialYouTubeEmbedPlayerVars(window.location.origin, allowFullscreen),
+          playerVars: getOfficialYouTubeEmbedPlayerVars(
+            window.location.origin,
+            allowFullscreen,
+            !fullscreenOnPlay,
+          ),
           events: {
             onReady: () => {
               if (cancelled) return;

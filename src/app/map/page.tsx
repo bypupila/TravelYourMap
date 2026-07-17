@@ -52,7 +52,13 @@ export default async function MapPage({ searchParams }: MapPageProps) {
           voterFingerprint: getMapVoterFingerprintFromCookieStore(cookieStore),
         }));
   const isDemoMap = requestedChannelId === DEMO_CHANNEL_SLUG || payload?.channel.id === DEMO_CHANNEL_ID;
-  const forceViewerMode = isDemoMap || isPublicReadOnlyHandle(payload?.channel.canonicalHandle || null);
+  const forceViewerMode =
+    isDemoMap ||
+    Boolean(
+      payload &&
+      !payload.viewer.isOwner &&
+      isPublicReadOnlyHandle(payload.channel.canonicalHandle || null)
+    );
   const headerEyebrow = requestedChannelId === payload?.channel.id ? "Mapa público" : isDemoMap ? "Modo demo · sin persistencia" : "Demo de respaldo";
   if (!payload) {
     return (

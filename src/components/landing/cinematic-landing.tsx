@@ -14,6 +14,7 @@ import {
 import { MiniMapModel } from "@/components/landing/mini-map-model";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { ContactStrip } from "@/components/site/contact-strip";
+import { LogoutButton } from "@/components/landing/logout-button";
 import { DemoChannelShowcase } from "@/components/landing/demo-channel-showcase";
 import { HowItWorksSection } from "@/components/landing/how-it-works-section";
 import { BY_PUPILA_SOCIAL_LINKS } from "@/lib/brand-links";
@@ -155,20 +156,26 @@ function CreatorNav({
               <Link href={spanishHref} className={`rounded-full px-2.5 py-1.5 transition active:scale-95 ${locale === "es" ? "bg-[#ff5147] text-white shadow-[0_6px_16px_-8px_rgba(255,71,59,0.9)]" : "text-white/48"}`} aria-current={locale === "es" ? "page" : undefined} aria-label={locale === "es" ? copy.nav.spanish : "Cambiar a español"}>ES</Link>
             </div>
             {sessionProfile ? (
-              <Link
-                href={buildLocalizedHref(sessionProfile.href, locale)}
-                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] py-1 pl-1 pr-3 text-white transition hover:border-white/20 hover:bg-white/[0.08]"
-                aria-label={`Abrir mapa de ${sessionProfile.displayName}`}
-              >
-                <span className="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-white/10 text-[10px] font-extrabold">
-                  {sessionProfile.imageUrl ? (
-                    <Image src={sessionProfile.imageUrl} alt={`Foto de perfil de ${sessionProfile.displayName}`} fill sizes="32px" className="object-cover" />
-                  ) : (
-                    getProfileInitials(sessionProfile.displayName)
-                  )}
-                </span>
-                <span className="max-w-32 truncate text-[12px] font-bold">@{sessionProfile.username}</span>
-              </Link>
+              <>
+                <Link
+                  href={buildLocalizedHref(sessionProfile.href, locale)}
+                  className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] py-1 pl-1 pr-3 text-white transition hover:border-white/20 hover:bg-white/[0.08]"
+                  aria-label={`Abrir mapa de ${sessionProfile.displayName}`}
+                >
+                  <span className="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-white/10 text-[10px] font-extrabold">
+                    {sessionProfile.imageUrl ? (
+                      <Image src={sessionProfile.imageUrl} alt={`Foto de perfil de ${sessionProfile.displayName}`} fill sizes="32px" className="object-cover" />
+                    ) : (
+                      getProfileInitials(sessionProfile.displayName)
+                    )}
+                  </span>
+                  <span className="max-w-32 truncate text-[12px] font-bold">@{sessionProfile.username}</span>
+                </Link>
+                <LogoutButton
+                  label={locale === "es" ? "Cerrar sesión" : "Sign out"}
+                  redirectHref={buildLocalizedHref("/", locale)}
+                />
+              </>
             ) : (
               <>
                 <Link href={buildLocalizedHref("/auth", locale)} className="hidden min-h-10 items-center gap-2 rounded-full px-3.5 py-2 text-white/68 transition duration-200 hover:bg-white/[0.055] hover:text-white sm:inline-flex">
@@ -183,21 +190,27 @@ function CreatorNav({
           </div>
         </div>
         {sessionProfile ? (
-          <Link
-            href={buildLocalizedHref(sessionProfile.href, locale)}
-            className="mt-2 flex min-h-12 items-center gap-3 rounded-[18px] border border-white/[0.06] bg-white/[0.035] p-1.5 pr-3 sm:hidden"
-            aria-label={`Abrir mapa de ${sessionProfile.displayName}`}
-          >
-            <span className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-[13px] bg-white/10 text-[10px] font-extrabold">
-              {sessionProfile.imageUrl ? (
-                <Image src={sessionProfile.imageUrl} alt={`Foto de perfil de ${sessionProfile.displayName}`} fill sizes="36px" className="object-cover" />
-              ) : (
-                getProfileInitials(sessionProfile.displayName)
-              )}
-            </span>
-            <span className="min-w-0 flex-1 truncate text-[12px] font-bold text-white">@{sessionProfile.username}</span>
-            <span className="text-[11px] font-semibold text-white/55">Ver mapa</span>
-          </Link>
+          <div className="mt-2 flex items-center gap-2 sm:hidden">
+            <Link
+              href={buildLocalizedHref(sessionProfile.href, locale)}
+              className="flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-[18px] border border-white/[0.06] bg-white/[0.035] p-1.5 pr-3"
+              aria-label={`Abrir mapa de ${sessionProfile.displayName}`}
+            >
+              <span className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-[13px] bg-white/10 text-[10px] font-extrabold">
+                {sessionProfile.imageUrl ? (
+                  <Image src={sessionProfile.imageUrl} alt={`Foto de perfil de ${sessionProfile.displayName}`} fill sizes="36px" className="object-cover" />
+                ) : (
+                  getProfileInitials(sessionProfile.displayName)
+                )}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-[12px] font-bold text-white">@{sessionProfile.username}</span>
+              <span className="shrink-0 text-[11px] font-semibold text-white/55">Ver mapa</span>
+            </Link>
+            <LogoutButton
+              label={locale === "es" ? "Cerrar sesión" : "Sign out"}
+              redirectHref={buildLocalizedHref("/", locale)}
+            />
+          </div>
         ) : (
           <div className="mt-2 grid grid-cols-2 items-center gap-2 rounded-[18px] border border-white/[0.06] bg-white/[0.035] p-1.5 sm:hidden">
             <Link href={buildLocalizedHref("/auth", locale)} className="inline-flex min-h-9 items-center gap-2 rounded-[13px] px-2.5 py-1.5 text-[12px] font-semibold text-white/72 transition duration-200 hover:bg-white/[0.06] hover:text-white active:scale-[0.98]">

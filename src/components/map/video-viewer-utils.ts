@@ -140,9 +140,13 @@ export function getOfficialYouTubeEmbedUrl(videoId?: string | null, origin?: str
   return url.toString();
 }
 
-export function getOfficialYouTubeEmbedPlayerVars(origin: string, allowFullscreen = true) {
+export function getOfficialYouTubeEmbedPlayerVars(
+  origin: string,
+  allowFullscreen = true,
+  playsInline = true,
+) {
   return {
-    playsinline: 1,
+    playsinline: playsInline ? 1 : 0,
     controls: 1,
     fs: allowFullscreen ? 1 : 0,
     origin,

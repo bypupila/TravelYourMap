@@ -28,6 +28,7 @@ type MapVideoCardProps = {
   highlightedVideoId?: string | null;
   isDemoMode?: boolean;
   className?: string;
+  responsiveRail?: boolean;
   imagePriority?: boolean;
   onSelect?: (video: TravelVideoLocation) => void;
 };
@@ -41,6 +42,7 @@ export function MapVideoCard({
   highlightedVideoId = null,
   isDemoMode = false,
   className,
+  responsiveRail = false,
   imagePriority = false,
   onSelect,
 }: MapVideoCardProps) {
@@ -78,7 +80,10 @@ export function MapVideoCard({
       : undefined;
 
   const cardShellClassName = cn(
-    "group relative w-[260px] shrink-0 overflow-hidden rounded-xl border-2 bg-transparent transition-all duration-300 cursor-pointer flex flex-col",
+    "group relative shrink-0 overflow-hidden rounded-xl border-2 bg-transparent transition-all duration-300 cursor-pointer flex flex-col",
+    responsiveRail
+      ? "h-[108px] w-[184px] md:h-[132px] md:w-[220px] lg:h-[165px] lg:w-[260px]"
+      : "h-[165px] w-[260px]",
     isNew
       ? "border-violet-400 shadow-[0_0_18px_rgba(168,85,247,0.25)]"
       : isWatched
@@ -190,7 +195,6 @@ export function MapVideoCard({
   return (
     <div
       className={cardShellClassName}
-      style={{ height: "165px" }}
       role="button"
       tabIndex={0}
       onClick={() => onSelect?.(video)}
@@ -205,7 +209,7 @@ export function MapVideoCard({
         alt={video.title}
         fill
         priority={imagePriority}
-        sizes="260px"
+        sizes={responsiveRail ? "(max-width: 767px) 184px, (max-width: 1023px) 220px, 260px" : "260px"}
         style={{ objectPosition: "center 78%" }}
         className="absolute inset-0 h-full w-full scale-[1.07] object-cover object-center transition-transform duration-500 group-hover:scale-[1.11]"
       />

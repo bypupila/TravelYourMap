@@ -7,6 +7,7 @@ import posthog from "posthog-js";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { CountryFlag } from "@/components/ui/country-flag";
+import { DesktopVideoMapCard } from "@/components/map/desktop-video-map-card";
 import type { VideoActivityController } from "@/components/map/video-activity";
 import {
   buildCountryVideoSections,
@@ -23,6 +24,7 @@ import { YouTubeEmbedPlayer } from "@/components/map/youtube-embed-player";
 import { getDemoMapPreviewImage } from "@/lib/demo-video-previews";
 import { getSponsorCardStyleLabel } from "@/lib/sponsor-card-style";
 import type { TravelVideoLocation } from "@/lib/types";
+import type { MapRailSponsor } from "@/lib/map-types";
 import { cn } from "@/lib/utils";
 import { toCompactYouTubeThumbnail } from "@/lib/youtube-thumbnails";
 
@@ -30,6 +32,15 @@ interface VideoSelectionSheetProps {
   open: boolean;
   videos: TravelVideoLocation[];
   currentVideo: TravelVideoLocation | null;
+  presentation?: "default" | "desktop-card";
+  sponsors?: MapRailSponsor[];
+  hidePlatformAds?: boolean;
+  platformAd?: {
+    title: string;
+    description?: string | null;
+    cta_label?: string | null;
+    href?: string | null;
+  } | null;
   resolveSponsorNames?: (video: TravelVideoLocation | null | undefined) => string[];
   activity: VideoActivityController;
   onClose: () => void;
@@ -47,7 +58,71 @@ interface VideoSelectionSheetProps {
   isDemoMode?: boolean;
 }
 
-export function VideoSelectionSheet({ open, videos, currentVideo, resolveSponsorNames, activity, onClose, onChangeVideo, onOpenInYouTube, openButtonLabel, playbackCommand, initialStartSeconds = null, onPlaybackStateChange, onPlaybackProgress, isDemoMode = false }: VideoSelectionSheetProps) {
+export function VideoSelectionSheet(props: VideoSelectionSheetProps) {
+  if (props.presentation === "desktop-card") {
+    return <DesktopCardVideoSelectionSheet {...props} />;
+  }
+
+  return <LegacyVideoSelectionSheet {...props} />;
+}
+
+function DesktopCardVideoSelectionSheet({
+  open,
+  videos,
+  currentVideo,
+  sponsors = [],
+  hidePlatformAds = false,
+  platformAd = null,
+  activity,
+  onClose,
+  onChangeVideo,
+  onOpenInYouTube,
+  openButtonLabel,
+  playbackCommand,
+  initialStartSeconds = null,
+  onPlaybackStateChange,
+  onPlaybackProgress,
+  isDemoMode = false,
+}: VideoSelectionSheetProps) {
+  return (
+    <Sheet open={open} onOpenChange={(nextOpen) => (!nextOpen ? onClose() : undefined)}>
+      <SheetContent
+        side="bottom"
+        showCloseButton={false}
+        overlayClassName="bg-[#020305]/82 backdrop-blur-[6px]"
+        className="travel-video-sheet-content z-[460] overflow-y-auto overscroll-contain rounded-none border-0 bg-[radial-gradient(circle_at_50%_12%,rgba(255,90,61,0.08),transparent_34%),rgba(3,6,10,0.98)] p-0 text-white shadow-none sm:max-w-none data-[side=bottom]:h-[100dvh] data-[side=bottom]:max-h-[100dvh]"
+      >
+        <SheetTitle className="sr-only">Visor de video del mapa</SheetTitle>
+        <SheetDescription className="sr-only">
+          El mismo visor de desktop, adaptado para pantallas mobile y tablet.
+        </SheetDescription>
+
+        <div className="flex min-h-full w-full items-start justify-center px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.75rem,env(safe-area-inset-top))] sm:items-center sm:px-6 sm:py-6">
+          <DesktopVideoMapCard
+            videos={videos}
+            currentVideo={currentVideo}
+            sponsors={sponsors}
+            hidePlatformAds={hidePlatformAds}
+            platformAd={platformAd}
+            activity={activity}
+            onClose={onClose}
+            onChangeVideo={onChangeVideo}
+            onOpenInYouTube={onOpenInYouTube}
+            openButtonLabel={openButtonLabel}
+            playbackCommand={playbackCommand}
+            initialStartSeconds={initialStartSeconds}
+            onPlaybackStateChange={onPlaybackStateChange}
+            onPlaybackProgress={onPlaybackProgress}
+            variant="youtube-theater"
+            isDemoMode={isDemoMode}
+          />
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function LegacyVideoSelectionSheet({ open, videos, currentVideo, resolveSponsorNames, activity, onClose, onChangeVideo, onOpenInYouTube, openButtonLabel, playbackCommand, initialStartSeconds = null, onPlaybackStateChange, onPlaybackProgress, isDemoMode = false }: VideoSelectionSheetProps) {
   const currentCountryCode = String(currentVideo?.country_code || "").toUpperCase();
   const sections = useMemo(() => buildCountryVideoSections(videos, currentVideo), [currentVideo, videos]);
 
