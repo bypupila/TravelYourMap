@@ -269,6 +269,17 @@ Reglas base:
 - En mapas Mobile, votacion y paneles secundarios comienzan colapsados; en landscape bajo se prioriza el globo y el rail mantiene al menos `Ver todos`.
 - Animar solo `transform` y `opacity`; `prefers-reduced-motion` desactiva loops no esenciales.
 
+### Chrome responsive del mapa
+
+- Desde `lg` se conserva el grid desktop de tres columnas sin cambios de composicion.
+- Debajo de `lg`, el rail permanente de videos no ocupa altura del canvas: videos y destinos se abren desde el chrome tactil.
+- Mobile usa dock inferior con `Mapa`, `Destinos`, `Videos` y `Mas`, respetando safe area inferior.
+- Tablet transforma el dock en utility rail vertical para liberar altura y sostener el globo como superficie principal.
+- Los paneles responsive son modales tactiles: bottom sheet en Mobile y panel lateral en Tablet, con cierre visible, `Escape`, scroll interno y bloqueo del scroll de fondo.
+- Fan vote y fullscreen reservan una franja independiente del dock; no pueden superponerse con la navegacion responsive.
+- El visor de video ocupa `100dvh` en Mobile y mantiene una sola superficie sin overflow horizontal: cabecera compacta, reproductor `16:9`, navegación de 44px, metadatos en franja horizontal, métricas condensadas y lista relacionada en el alto restante con scroll propio.
+- Desde `lg`, el visor conserva la composición desktop de reproductor principal y rail relacionado en dos columnas.
+
 Accesibilidad:
 
 - todos los `Dialog` y `Sheet` incluyen `Title`

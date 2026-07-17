@@ -6,6 +6,7 @@ import "@/app/globals.css";
 import { cn } from "@/lib/utils";
 import { LOCALE_COOKIE_NAME, normalizeLocale } from "@/lib/i18n";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { DesinInspectorRuntime } from "@/components/site/desin-inspector-runtime";
 import { LocaleDocumentSync } from "@/components/site/locale-document-sync";
 import { ComingSoonProvider } from "@/components/site/coming-soon-provider";
 
@@ -73,6 +74,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <LocaleDocumentSync />
           </Suspense>
           <ComingSoonProvider>{children}</ComingSoonProvider>
+          <DesinInspectorRuntime enabled={process.env.NODE_ENV === "development"} />
         </TooltipProvider>
       </body>
     </html>

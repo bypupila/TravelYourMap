@@ -2,24 +2,22 @@ import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowRight,
-  ChartBar,
   CurrencyDollar,
   GlobeHemisphereWest,
-  MapPin,
   Play,
   RocketLaunch,
   SignIn,
   Users,
   UsersThree,
   Video,
-  CheckCircle,
-  XCircle,
 } from "@phosphor-icons/react/dist/ssr";
 import { MiniMapModel } from "@/components/landing/mini-map-model";
 import { PricingSection } from "@/components/landing/pricing-section";
 import { ContactStrip } from "@/components/site/contact-strip";
 import { DemoChannelShowcase } from "@/components/landing/demo-channel-showcase";
+import { HowItWorksSection } from "@/components/landing/how-it-works-section";
 import { BY_PUPILA_SOCIAL_LINKS } from "@/lib/brand-links";
+import type { LandingSessionProfile } from "@/lib/current-user";
 import { DEMO_VIDEO_LOCATIONS } from "@/lib/demo-data";
 import { buildLocalizedHref, type Locale } from "@/lib/i18n";
 import type { TravelVideoLocation } from "@/lib/types";
@@ -44,10 +42,20 @@ const landingCopy = {
     stats: [{ value: "2406", label: "videos mapeados", icon: Video }, { value: "165", label: "países cubiertos", icon: GlobeHemisphereWest }],
     keyFeatures: ["Influencers de viajes", "Agencias", "Sponsors", "Colaboraciones", "Mapas interactivos"],
     brand: { eyebrow: "Perfil comercial", title: "Trabajamos con", description: "Influencers de viajes, agencias y sponsors que necesitan presentar su cobertura con contexto geográfico." },
-    how: { titleLead: "De tu canal", titleMiddle: "a un mapa en", titleAccent: "minutos." },
-    steps: ["Conecta tu canal de YouTube", "Detectamos tus destinos", "Organizamos tu mapa", "Publica y comparte tu página"],
+    how: {
+      eyebrow: "Cómo funciona",
+      titleLead: "De tu canal a un",
+      titleMiddle: "mapa en",
+      titleAccent: "minutos",
+      description: "Transformamos el contenido de tus videos en experiencias de viaje interactivas. Conecta tu canal de YouTube y deja que nuestra IA haga el resto.",
+      steps: [
+        { title: "Conecta tu canal", description: "Conecta tu canal de YouTube de forma segura. Leemos tus títulos, descripciones y metadatos para entender tus viajes." },
+        { title: "Detectamos destinos", description: "Identificamos los países, ciudades y lugares que aparecen en tus videos para organizar cada viaje." },
+        { title: "Organizamos tu mapa", description: "Convertimos tus destinos en un mapa interactivo que presenta tu contenido con contexto geográfico." },
+        { title: "Publica y comparte", description: "Publica tu página y compártela con tu comunidad, marcas y sponsors desde un único enlace." },
+      ],
+    },
     features: { titleLead: "Todo lo que necesitas para", titleAccent: "crecer", titleEnd: "como creador de viajes", description: "Una plataforma, todas las herramientas para mostrar tu mundo.", cards: [{ title: "Mapa 3D Interactivo", text: "Tus videos organizados por destinos en un mapa visual espectacular." }, { title: "Videos Oficiales de YouTube", text: "Usamos el embed oficial. No pierdes views, ingresos, ni control." }, { title: "Sponsors por Destino", text: "Activa sponsors por país, ciudad o ruta. Tú eliges dónde y cómo." }, { title: "Analytics por País", text: "Descubre qué destinos generan más interés y cómo crece tu audiencia." }, { title: "Votaciones de Fans", text: "Deja que tu comunidad vote tu próximo destino y aumente el engagement." }, { title: "Página Pública SEO", text: "Tu propio sitio web optimizado para buscadores. Comparte tu enlace y destaca." }] },
-    comparison: { titleLead: "¿Por qué", titleAccent: "TravelYourMap", titleEnd: "te ayuda a cerrar mejores deals?", description: "Las marcas compran destinos, audiencias y relevancia geográfica. Muéstralo todo en segundos.", note: "Un solo sponsorship puede pagar tu suscripción anual.", without: "Sin TravelYourMap", withoutItems: ["PDFs estáticos", "Videos sueltos", "Datos difíciles de entender", "Sin contexto geográfico", "Propuestas poco efectivas"], with: "Con TravelYourMap", withItems: ["Mapa interactivo", "Cobertura por destino", "Sponsors visibles", "Datos claros y visuales", "Propuestas que convierten"] },
     faq: { title: "Preguntas frecuentes", questions: ["¿TravelYourMap reemplaza a YouTube?", "¿Puedo activar sponsors por país o ciudad?", "¿Pierdo mis views o ingresos?", "¿Necesito editar mis videos?", "¿Qué tipos de creadores pueden usarlo?", "¿Cuánto tarda configurarlo?"], answers: ["No. TravelYourMap complementa tu canal: YouTube sigue siendo la fuente oficial de tus videos, mientras la plataforma organiza tu contenido por destino y lo convierte en un media kit público para marcas.", "Sí. Puedes plantear oportunidades comerciales por país, ciudad o ruta, mostrar el contexto de cada destino y gestionar propuestas desde tu espacio de sponsors. Las condiciones finales siempre las acuerdas tú con cada marca.", "No. Usamos el embed oficial de YouTube: no descargamos ni re-subimos tus videos. Tus views, ingresos y control del canal siguen dependiendo de YouTube y de sus propias políticas.", "No. Puedes comenzar con tu catálogo existente. El sistema importa los datos del canal, detecta destinos y te permite revisar o corregir la información antes de publicar tu mapa.", "Está pensado para creadores de viajes con canal de YouTube, agencias o managers que representan talento y proyectos editoriales que necesitan presentar cobertura geográfica de forma profesional.", "La configuración inicial puede comenzar en pocos minutos. El tiempo total depende del tamaño de tu catálogo y de la revisión de destinos; la importación continúa en segundo plano para que puedas avanzar sin esperar."] },
     cta: { titleLead: "Tu contenido ya existe.", titleMiddle: "Ahora necesita", titleAccent: "verse profesional.", description: "Transforma tu canal en un media kit interactivo listo para sponsors, marcas y partnerships.", create: "Crear mi mapa gratis", demo: "Ver demo en vivo", credit: "Requiere tarjeta de crédito", setup: "Configuración en minutos", contactDescription: "Escribe a soporte si algo no funciona, a marketing para alianzas o a hello para consultas generales." },
     pricing: { rows: ["Videos ilimitados", "Competitor analytics", "Sponsor hub", "Sync prioritaria", "Página pública avanzada"] },
@@ -58,10 +66,20 @@ const landingCopy = {
     stats: [{ value: "2406", label: "mapped videos", icon: Video }, { value: "165", label: "covered countries", icon: GlobeHemisphereWest }],
     keyFeatures: ["Travel influencers", "Agencies", "Sponsors", "Collaborations", "Interactive maps"],
     brand: { eyebrow: "Commercial profile", title: "We work with", description: "Travel influencers, agencies and sponsors who need to present their coverage with geographic context." },
-    how: { titleLead: "From your channel", titleMiddle: "to a map in", titleAccent: "minutes." },
-    steps: ["Connect your YouTube channel", "We detect your destinations", "We organize your map", "Publish and share your page"],
+    how: {
+      eyebrow: "How it works",
+      titleLead: "From your channel to a",
+      titleMiddle: "map in",
+      titleAccent: "minutes",
+      description: "We turn your video catalog into interactive travel experiences. Connect your YouTube channel and let our AI handle the rest.",
+      steps: [
+        { title: "Connect your channel", description: "Connect your YouTube channel securely. We read titles, descriptions and metadata to understand your travels." },
+        { title: "We detect destinations", description: "We identify the countries, cities and places in your videos to organize every journey." },
+        { title: "We organize your map", description: "We turn your destinations into an interactive map that presents your content with geographic context." },
+        { title: "Publish and share", description: "Publish your page and share it with your community, brands and sponsors from one link." },
+      ],
+    },
     features: { titleLead: "Everything you need to", titleAccent: "grow", titleEnd: "as a travel creator", description: "One platform, every tool to show your world.", cards: [{ title: "Interactive 3D Map", text: "Your videos organized by destination in a spectacular visual map." }, { title: "Official YouTube Videos", text: "We use the official embed. You keep your views, revenue and control." }, { title: "Sponsors by Destination", text: "Activate sponsors by country, city or route. You choose where and how." }, { title: "Analytics by Country", text: "Discover which destinations drive the most interest and how your audience grows." }, { title: "Fan Voting", text: "Let your community vote on your next destination and increase engagement." }, { title: "SEO Public Page", text: "Your own search-optimized website. Share your link and stand out." }] },
-    comparison: { titleLead: "Why", titleAccent: "TravelYourMap", titleEnd: "helps you close better deals", description: "Brands buy destinations, audiences and geographic relevance. Show it all in seconds.", note: "One sponsorship can pay for your annual subscription.", without: "Without TravelYourMap", withoutItems: ["Static PDFs", "Scattered videos", "Hard-to-understand data", "No geographic context", "Weak proposals"], with: "With TravelYourMap", withItems: ["Interactive map", "Coverage by destination", "Visible sponsors", "Clear visual data", "Proposals that convert"] },
     faq: { title: "Frequently asked questions", questions: ["Does TravelYourMap replace YouTube?", "Can I activate sponsors by country or city?", "Do I lose my views or revenue?", "Do I need to edit my videos?", "What types of creators can use it?", "How long does setup take?"], answers: ["No. TravelYourMap complements your channel: YouTube remains the official source for your videos, while the platform organizes your content by destination and turns it into a public media kit for brands.", "Yes. You can build commercial opportunities by country, city or route, show the context around each destination and manage proposals from your sponsor space. You always agree the final terms with each brand.", "No. We use the official YouTube embed, so your videos are not downloaded or re-uploaded. Your views, revenue and channel control remain subject to YouTube and its own policies.", "No. You can start with your existing catalog. The system imports channel data, detects destinations and lets you review or correct the information before publishing your map.", "It is built for travel creators with a YouTube channel, agencies or managers representing talent and editorial projects that need to present geographic coverage professionally.", "Initial setup can start in a few minutes. Total time depends on the size of your catalog and destination review; importing continues in the background so you can keep moving."] },
     cta: { titleLead: "Your content already exists.", titleMiddle: "Now it needs to", titleAccent: "look professional.", description: "Turn your channel into an interactive media kit ready for sponsors, brands and partnerships.", create: "Create my free map", demo: "View live demo", credit: "Credit card required", setup: "Set up in minutes", contactDescription: "Contact support if something is not working, marketing for partnerships or hello for general questions." },
     pricing: { rows: ["Unlimited videos", "Competitor analytics", "Sponsor hub", "Priority sync", "Advanced public page"] },
@@ -69,7 +87,13 @@ const landingCopy = {
 } satisfies Record<Locale, unknown>;
 type LandingCopy = (typeof landingCopy)[Locale];
 
-export async function CinematicLanding({ locale = "es" }: { locale?: Locale }) {
+export async function CinematicLanding({
+  locale = "es",
+  sessionProfile = null,
+}: {
+  locale?: Locale;
+  sessionProfile?: LandingSessionProfile | null;
+}) {
   const videoLocations = DEMO_VIDEO_LOCATIONS;
   const copy = landingCopy[locale];
 
@@ -77,12 +101,11 @@ export async function CinematicLanding({ locale = "es" }: { locale?: Locale }) {
     <main className="creator-landing min-h-[100dvh] overflow-x-clip bg-[#070a0d] text-[#f5f2ed]">
       <div className="pointer-events-none fixed inset-0 z-0 creator-noise" />
       <div className="relative z-[1] mx-auto w-full max-w-[1500px] px-5 py-4 sm:px-8 lg:px-14">
-        <CreatorNav locale={locale} copy={copy} />
+        <CreatorNav locale={locale} copy={copy} sessionProfile={sessionProfile} />
         <HeroSection videoLocations={videoLocations} locale={locale} copy={copy} />
         <BrandStrip copy={copy} />
-        <HowItWorks copy={copy} />
+        <HowItWorksSection content={copy.how} />
         <FeatureGrid copy={copy} />
-        <SponsorComparison copy={copy} />
         <DemoChannelShowcase locale={locale} />
         <PricingSection locale={locale} />
         <FaqSection copy={copy} />
@@ -92,7 +115,15 @@ export async function CinematicLanding({ locale = "es" }: { locale?: Locale }) {
   );
 }
 
-function CreatorNav({ locale, copy }: { locale: Locale; copy: LandingCopy }) {
+function CreatorNav({
+  locale,
+  copy,
+  sessionProfile,
+}: {
+  locale: Locale;
+  copy: LandingCopy;
+  sessionProfile: LandingSessionProfile | null;
+}) {
   const englishHref = buildLocalizedHref("/", "en");
   const spanishHref = buildLocalizedHref("/", "es");
   return (
@@ -117,32 +148,78 @@ function CreatorNav({ locale, copy }: { locale: Locale; copy: LandingCopy }) {
             <a href="#pricing" className="transition hover:text-white">{copy.nav.pricing}</a>
             <a href="#examples" className="transition hover:text-white">{copy.nav.examples}</a>
             <a href="#faq" className="transition hover:text-white">{copy.nav.resources}</a>
-            <Link href={buildLocalizedHref("/explore", locale)} className="transition hover:text-white">{copy.nav.explore}</Link>
           </div>
           <div className="hidden items-center gap-1.5 text-[13px] font-semibold sm:flex sm:gap-2">
             <div role="group" aria-label={copy.nav.language} className="hidden items-center rounded-full border border-white/10 bg-white/[0.045] p-1 text-[10px] font-extrabold tracking-[0.08em] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:inline-flex">
               <Link href={englishHref} className={`rounded-full px-2.5 py-1.5 transition duration-200 hover:bg-white/[0.06] hover:text-white ${locale === "en" ? "bg-[#ff5147] text-white shadow-[0_6px_16px_-8px_rgba(255,71,59,0.9)]" : "text-white/48"}`} aria-current={locale === "en" ? "page" : undefined} aria-label={locale === "en" ? copy.nav.english : "Switch to English"}>EN</Link>
               <Link href={spanishHref} className={`rounded-full px-2.5 py-1.5 transition active:scale-95 ${locale === "es" ? "bg-[#ff5147] text-white shadow-[0_6px_16px_-8px_rgba(255,71,59,0.9)]" : "text-white/48"}`} aria-current={locale === "es" ? "page" : undefined} aria-label={locale === "es" ? copy.nav.spanish : "Cambiar a español"}>ES</Link>
             </div>
-            <Link href={buildLocalizedHref("/auth", locale)} className="hidden min-h-10 items-center gap-2 rounded-full px-3.5 py-2 text-white/68 transition duration-200 hover:bg-white/[0.055] hover:text-white sm:inline-flex">
-              <SignIn size={15} weight="bold" aria-hidden="true" />
-              {copy.nav.login}
-            </Link>
-            <Link href={buildLocalizedHref("/onboarding", locale)} className="inline-flex min-h-10 items-center whitespace-nowrap rounded-full bg-[#ff5147] px-3.5 py-2 text-[11px] leading-5 text-white shadow-[0_14px_30px_-18px_rgba(255,71,59,0.95),inset_0_1px_0_rgba(255,255,255,0.18)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#ff5d54] active:translate-y-0 active:scale-[0.97] sm:px-4 sm:text-[12px] lg:px-5 lg:text-[13px]">
-              {copy.nav.create}
-            </Link>
+            {sessionProfile ? (
+              <Link
+                href={buildLocalizedHref(sessionProfile.href, locale)}
+                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] py-1 pl-1 pr-3 text-white transition hover:border-white/20 hover:bg-white/[0.08]"
+                aria-label={`Abrir mapa de ${sessionProfile.displayName}`}
+              >
+                <span className="relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full bg-white/10 text-[10px] font-extrabold">
+                  {sessionProfile.imageUrl ? (
+                    <Image src={sessionProfile.imageUrl} alt={`Foto de perfil de ${sessionProfile.displayName}`} fill sizes="32px" className="object-cover" />
+                  ) : (
+                    getProfileInitials(sessionProfile.displayName)
+                  )}
+                </span>
+                <span className="max-w-32 truncate text-[12px] font-bold">@{sessionProfile.username}</span>
+              </Link>
+            ) : (
+              <>
+                <Link href={buildLocalizedHref("/auth", locale)} className="hidden min-h-10 items-center gap-2 rounded-full px-3.5 py-2 text-white/68 transition duration-200 hover:bg-white/[0.055] hover:text-white sm:inline-flex">
+                  <SignIn size={15} weight="bold" aria-hidden="true" />
+                  {copy.nav.login}
+                </Link>
+                <Link href={buildLocalizedHref("/onboarding", locale)} className="inline-flex min-h-10 items-center whitespace-nowrap rounded-full bg-[#ff5147] px-3.5 py-2 text-[11px] leading-5 text-white shadow-[0_14px_30px_-18px_rgba(255,71,59,0.95),inset_0_1px_0_rgba(255,255,255,0.18)] transition duration-200 hover:-translate-y-0.5 hover:bg-[#ff5d54] active:translate-y-0 active:scale-[0.97] sm:px-4 sm:text-[12px] lg:px-5 lg:text-[13px]">
+                  {copy.nav.create}
+                </Link>
+              </>
+            )}
           </div>
         </div>
-        <div className="mt-2 grid grid-cols-2 items-center gap-2 rounded-[18px] border border-white/[0.06] bg-white/[0.035] p-1.5 sm:hidden">
-          <Link href={buildLocalizedHref("/auth", locale)} className="inline-flex min-h-9 items-center gap-2 rounded-[13px] px-2.5 py-1.5 text-[12px] font-semibold text-white/72 transition duration-200 hover:bg-white/[0.06] hover:text-white active:scale-[0.98]">
-            <SignIn size={16} weight="bold" aria-hidden="true" />
-            {copy.nav.login}
+        {sessionProfile ? (
+          <Link
+            href={buildLocalizedHref(sessionProfile.href, locale)}
+            className="mt-2 flex min-h-12 items-center gap-3 rounded-[18px] border border-white/[0.06] bg-white/[0.035] p-1.5 pr-3 sm:hidden"
+            aria-label={`Abrir mapa de ${sessionProfile.displayName}`}
+          >
+            <span className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-[13px] bg-white/10 text-[10px] font-extrabold">
+              {sessionProfile.imageUrl ? (
+                <Image src={sessionProfile.imageUrl} alt={`Foto de perfil de ${sessionProfile.displayName}`} fill sizes="36px" className="object-cover" />
+              ) : (
+                getProfileInitials(sessionProfile.displayName)
+              )}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-[12px] font-bold text-white">@{sessionProfile.username}</span>
+            <span className="text-[11px] font-semibold text-white/55">Ver mapa</span>
           </Link>
-          <Link href={buildLocalizedHref("/onboarding", locale)} className="inline-flex min-h-9 items-center justify-center rounded-[13px] bg-[#ff5147] px-2.5 py-1.5 text-[12px] font-bold text-white shadow-[0_10px_22px_-14px_rgba(255,71,59,0.95),inset_0_1px_0_rgba(255,255,255,0.18)] transition duration-200 hover:bg-[#ff5d54] active:scale-[0.98]">{copy.nav.create}</Link>
-        </div>
+        ) : (
+          <div className="mt-2 grid grid-cols-2 items-center gap-2 rounded-[18px] border border-white/[0.06] bg-white/[0.035] p-1.5 sm:hidden">
+            <Link href={buildLocalizedHref("/auth", locale)} className="inline-flex min-h-9 items-center gap-2 rounded-[13px] px-2.5 py-1.5 text-[12px] font-semibold text-white/72 transition duration-200 hover:bg-white/[0.06] hover:text-white active:scale-[0.98]">
+              <SignIn size={16} weight="bold" aria-hidden="true" />
+              {copy.nav.login}
+            </Link>
+            <Link href={buildLocalizedHref("/onboarding", locale)} className="inline-flex min-h-9 items-center justify-center rounded-[13px] bg-[#ff5147] px-2.5 py-1.5 text-[12px] font-bold text-white shadow-[0_10px_22px_-14px_rgba(255,71,59,0.95),inset_0_1px_0_rgba(255,255,255,0.18)] transition duration-200 hover:bg-[#ff5d54] active:scale-[0.98]">{copy.nav.create}</Link>
+          </div>
+        )}
       </nav>
     </header>
   );
+}
+
+function getProfileInitials(value: string) {
+  return value
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0] || "")
+    .join("")
+    .toUpperCase();
 }
 
 function HeroSection({
@@ -288,29 +365,6 @@ function BrandStrip({ copy }: { copy: LandingCopy }) {
   );
 }
 
-function HowItWorks({ copy }: { copy: LandingCopy }) {
-  return (
-    <section className="grid gap-8 border-b border-white/8 py-12 lg:grid-cols-[300px_1fr]">
-      <h2 className="text-[34px] font-extrabold leading-[1.05] tracking-[-0.045em] text-white sm:text-[40px]">{copy.how.titleLead}<br />{copy.how.titleMiddle}<br /><span className="text-[#ff473b]">{copy.how.titleAccent}</span></h2>
-      <div className="grid gap-5 md:grid-cols-4">
-        {copy.steps.map((title, index) => <StepCard key={title} index={index + 1} title={title} icon={[Video, MapPin, GlobeHemisphereWest, RocketLaunch][index]} />)}
-      </div>
-    </section>
-  );
-}
-
-function StepCard({ title, icon: Icon, index }: { title: string; icon: typeof Video; index: number }) {
-  return (
-    <div className="relative min-h-[190px] rounded-[17px] border border-white/10 bg-white/[0.035] p-6 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-      <span className="absolute -left-2 -top-3 grid h-9 w-9 place-items-center rounded-full bg-[#ff473b] text-[13px] font-extrabold text-white">{index}</span>
-      <div className="mx-auto grid h-[76px] w-[76px] place-items-center rounded-full border border-[#ff473b]/25 bg-[#ff473b]/8 text-[#ff473b]">
-        <Icon size={37} weight="fill" />
-      </div>
-      <p className="mx-auto mt-5 max-w-[130px] text-[13px] leading-5 text-white/82">{title}</p>
-    </div>
-  );
-}
-
 function FeatureGrid({ copy }: { copy: LandingCopy }) {
   return (
     <section id="features" className="py-16">
@@ -336,41 +390,6 @@ function FeatureCard({ title, text, icon: Icon }: { title: string; text: string;
         <p className="mt-2 max-w-[36ch] text-[13px] leading-5 text-white/62">{text}</p>
       </div>
     </article>
-  );
-}
-
-function SponsorComparison({ copy }: { copy: LandingCopy }) {
-  return (
-    <section className="grid gap-8 border-y border-white/8 py-12 lg:grid-cols-[0.82fr_1.8fr]">
-      <div>
-        <h2 className="text-[31px] font-extrabold leading-[1.08] tracking-[-0.045em] text-white">{copy.comparison.titleLead} <span className="text-[#ff473b]">{copy.comparison.titleAccent}</span><br />{copy.comparison.titleEnd}</h2>
-        <p className="mt-5 max-w-[420px] text-[15px] leading-7 text-white/66">{copy.comparison.description}</p>
-        <div className="mt-10 inline-flex items-center gap-4 rounded-[14px] border border-white/10 bg-white/[0.035] p-4 text-[13px] font-bold text-white/82">
-          <ChartBar size={30} className="text-[#ff473b]" /> {copy.comparison.note}
-        </div>
-      </div>
-      <div className="grid rounded-[18px] border border-white/10 bg-white/[0.035] md:grid-cols-[1fr_auto_1.28fr]">
-        <ComparisonPanel title={copy.comparison.without} bad items={copy.comparison.withoutItems} />
-        <div className="grid place-items-center border-y border-white/10 px-4 py-5 md:border-x md:border-y-0"><span className="rounded-full border border-white/18 px-4 py-3 text-[13px] font-extrabold">VS</span></div>
-        <ComparisonPanel title={copy.comparison.with} items={copy.comparison.withItems} />
-      </div>
-    </section>
-  );
-}
-
-function ComparisonPanel({ title, items, bad = false }: { title: string; items: string[]; bad?: boolean }) {
-  return (
-    <div className="p-6 sm:p-8">
-      <h3 className={`text-[15px] font-extrabold ${bad ? "text-white" : "text-[#ff473b]"}`}>{title}</h3>
-      <div className="mt-6 grid gap-3">
-        {items.map((item) => (
-          <p key={item} className="flex items-center gap-3 text-[13px] text-white/70">
-            {bad ? <XCircle size={18} className="text-[#ff473b]" /> : <CheckCircle size={18} className="text-[#49b86f]" />}
-            {item}
-          </p>
-        ))}
-      </div>
-    </div>
   );
 }
 
@@ -418,13 +437,13 @@ function FinalCta({ locale, copy }: { locale: Locale; copy: LandingCopy }) {
       <div className="mx-auto max-w-[1500px] px-5 pb-14 sm:px-8 lg:px-14">
         <ContactStrip
           title={locale === "en" ? "Contact" : "Contacto"}
-          description={copy.cta.contactDescription}
           items={[
             { label: locale === "en" ? "General" : "General", email: "hello" },
             { label: "Marketing", email: "marketing" },
             { label: locale === "en" ? "Support" : "Soporte", email: "support" },
           ]}
           tone="dark"
+          variant="field-notes"
           locale={locale}
           socialLinks={BY_PUPILA_SOCIAL_LINKS}
           className="mt-0 border-t-white/10"

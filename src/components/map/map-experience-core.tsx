@@ -44,6 +44,7 @@ import {
 } from "@/components/map/poll-editor-form";
 import { useLocalVideoActivity, type VideoActivityController } from "@/components/map/video-activity";
 import { VideoSelectionSheet } from "@/components/map/video-selection-sheet";
+import { ResponsiveMapChrome } from "@/components/map/responsive-map-chrome";
 import {
   compareVideosByActivityPriority,
   getCountryNameInSpanish,
@@ -968,13 +969,10 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
             setSearchQuery={updateSearchQuery}
             isDemoMode={isDemoMode}
             shareUrl={shareUrl}
-            viewerRegisterHref={viewerRegisterHref}
             onCopyUrl={() => flash("URL copiada al portapapeles.")}
             onPreviewViewer={() => setActiveMapMode("viewer")}
             onReturnToCreator={() => setActiveMapMode("creator")}
             canReturnToCreator={viewMode === "creator"}
-            onExtractVideos={() => showComingSoon("map_video_extraction", "map_creator_tools")}
-            onOpenAdmin={openAdminPanel}
             onOpenMenu={() => setMenuOpen(true)}
             lastExtractionAt={channel.last_synced_at || null}
           />
@@ -1002,7 +1000,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                 pointMode="video"
                 showSummaryCard={false}
                 showPointPanel
-                pointPanelClassName="left-1/2 top-4 w-[245px] -translate-x-1/2 sm:w-[245px]"
+                pointPanelClassName="left-1/2 top-[68px] w-[min(245px,calc(100%-2rem))] -translate-x-1/2 lg:top-4 lg:w-[245px]"
                 openVideoOnCountrySelect={false}
                 selectedCountryCode={selectedCountryCode}
                 watchedVideoIds={videoActivity.seenIds}
@@ -1082,7 +1080,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                     <CaretDown size={11} className={cn("transition", dateMenuOpen && "rotate-180")} />
                   </button>
                   {dateMenuOpen ? (
-                    <div className="absolute left-0 top-[calc(100%+6px)] min-w-[145px] overflow-hidden rounded-xl border border-white/10 bg-[#050b10]/95 p-1 shadow-2xl backdrop-blur-xl">
+                    <div className="absolute left-0 top-[calc(100%+6px)] max-h-[min(280px,calc(100dvh-10rem))] min-w-[145px] overflow-y-auto overscroll-contain rounded-xl border border-white/10 bg-[#050b10]/95 p-1 shadow-2xl backdrop-blur-xl">
                       {[
                         { id: "all", label: "Todos", Icon: SquaresFour },
                         { id: "365", label: "365 Días", Icon: Clock },
@@ -1127,7 +1125,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                     <CaretDown size={11} className={cn("transition", activityMenuOpen && "rotate-180")} />
                   </button>
                   {activityMenuOpen ? (
-                    <div className="absolute right-0 top-[calc(100%+6px)] min-w-[165px] overflow-hidden rounded-xl border border-white/10 bg-[#050b10]/95 p-1 shadow-2xl backdrop-blur-xl">
+                    <div className="absolute right-0 top-[calc(100%+6px)] max-h-[min(360px,calc(100dvh-10rem))] min-w-[165px] overflow-y-auto overscroll-contain rounded-xl border border-white/10 bg-[#050b10]/95 p-1 shadow-2xl backdrop-blur-xl">
                       {ACTIVITY_FILTER_OPTIONS.map(({ id, label, Icon }) => (
                         <button
                           key={id}
@@ -1153,15 +1151,21 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
               </>
               ) : null}
 
-              <div className="pointer-events-auto absolute bottom-4 right-4 z-20 lg:left-1/2 lg:right-auto lg:-translate-x-1/2">
+              <div
+                className={cn(
+                  "pointer-events-auto absolute right-4 z-[105] lg:left-1/2 lg:right-auto lg:-translate-x-1/2",
+                  isMapFullscreen ? "bottom-4" : "bottom-[calc(4.9rem+env(safe-area-inset-bottom))] md:bottom-4 lg:bottom-4"
+                )}
+              >
                 {!isMapFullscreen ? (
                   <button
                     type="button"
-                    className="flex h-11 items-center gap-2 rounded-full border border-white/[0.1] bg-[#050b10]/75 px-4 text-[11px] font-bold text-white backdrop-blur-xl hover:bg-[#050b10]/95 lg:h-9"
+                    className="flex h-11 min-w-11 items-center justify-center gap-2 rounded-full border border-white/[0.1] bg-[#050b10]/82 px-3 text-[11px] font-bold text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] backdrop-blur-xl transition hover:bg-[#050b10]/95 active:scale-[0.97] sm:px-4 lg:h-9"
                     onClick={() => setIsMapFullscreen(true)}
+                    aria-label="Abrir mapa en pantalla completa"
                   >
                     <ArrowsOutSimple size={14} />
-                    Pantalla Completa
+                    <span className="hidden sm:inline">Pantalla Completa</span>
                   </button>
                 ) : (
                   <button
@@ -1201,24 +1205,63 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
                   />
                 </div>
               ) : null}
+
+              {!isMapFullscreen && !isVideoFocusMode ? (
+                <ResponsiveMapChrome
+                  channel={channel}
+                  countries={hasMounted ? sortedSidebarCountries : []}
+                  countrySortMode={countrySortMode}
+                  selectedCountryCode={selectedCountryCode}
+                  videos={railSourceVideos}
+                  totalVideos={railVideoTotal}
+                  sponsors={sponsors}
+                  analytics={proposalAnalytics}
+                  mapMode={activeMapMode}
+                  isDemoMode={isDemoMode}
+                  onChangeCountrySortMode={setCountrySortMode}
+                  onSelectCountry={(countryCode, countryName) => {
+                    setSelectedCountryCode(countryCode);
+                    flash(`País seleccionado: ${countryName}`);
+                  }}
+                  onSelectVideo={(video) => requestVideoExit(() => openMapVideo(video))}
+                  onNavigate={(label) => {
+                    if (label === "Explorar") {
+                      setActiveSidebarItem(label);
+                      return;
+                    }
+                    const featureId = MAP_NAV_COMING_SOON_FEATURES[label];
+                    if (featureId) showComingSoon(featureId, "map_sidebar");
+                  }}
+                  onCreateMap={() => window.location.assign("/onboarding")}
+                  onExtractVideos={() => showComingSoon("map_video_extraction", "map_creator_tools")}
+                  onCreatePoll={() => showComingSoon("map_poll_creation", "map_creator_tools")}
+                  onOpenAdmin={openAdminPanel}
+                  onManageSponsors={() => showComingSoon("map_sponsor_management", "map_creator_tools")}
+                  onPreviewViewer={() => setActiveMapMode("viewer")}
+                  onReturnToCreator={() => setActiveMapMode("creator")}
+                  canReturnToCreator={viewMode === "creator"}
+                />
+              ) : null}
             </div>
 
             {/* Bottom Inspiration Videos */}
             {!isMapFullscreen && !isVideoFocusMode ? (
-              <VideoInspirationRail2
-                videos={railSourceVideos}
-                selectedCountryCode={selectedCountryCode}
-                resolveSponsorNames={resolveVideoSponsorNames}
-                resolveSponsorBannerColors={resolveVideoSponsorBannerColors}
-                activity={videoActivity}
-                totalVideos={railVideoTotal}
-                highlightedVideoId={String(pinnedVideo?.youtube_video_id || "").trim() || null}
-                isDemoMode={useDemoMapEmbedPreviews}
-                onOpenAllVideos={() => setShowAllVideosModal(true)}
-                onSelect={(video) => {
-                  requestVideoExit(() => openMapVideo(video));
-                }}
-              />
+              <div className="hidden shrink-0 lg:block">
+                <VideoInspirationRail2
+                  videos={railSourceVideos}
+                  selectedCountryCode={selectedCountryCode}
+                  resolveSponsorNames={resolveVideoSponsorNames}
+                  resolveSponsorBannerColors={resolveVideoSponsorBannerColors}
+                  activity={videoActivity}
+                  totalVideos={railVideoTotal}
+                  highlightedVideoId={String(pinnedVideo?.youtube_video_id || "").trim() || null}
+                  isDemoMode={useDemoMapEmbedPreviews}
+                  onOpenAllVideos={() => setShowAllVideosModal(true)}
+                  onSelect={(video) => {
+                    requestVideoExit(() => openMapVideo(video));
+                  }}
+                />
+              </div>
             ) : null}
 
           </div>
@@ -1533,19 +1576,14 @@ function ProposalSidebar2({
       
       {/* Brand Logo Header */}
       <div className="mb-2.5 flex shrink-0 items-center justify-between lg:block">
-        <Link href="/" className="group flex items-center gap-3 text-left">
-          <span className="flex h-11 w-11 items-center justify-center rounded-lg border border-[#ff5a3d]/25 bg-[#ff5a3d]/10 text-[#ff7b4f] transition group-hover:scale-105">
-            <svg viewBox="0 0 24 24" className="w-6 h-6 fill-none stroke-current" strokeWidth="2.5">
-              <path d="M4.5 16.5 L12 3 L19.5 16.5 Z M12 3 L12 16.5" />
-              <path d="M2.5 21 L21.5 21" />
-            </svg>
+        <Link href="/" className="group flex min-w-0 items-center gap-2 px-1 sm:gap-3 sm:px-0" aria-label="Travel Your Map home">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#ff6258]/35 bg-[radial-gradient(circle_at_35%_25%,#2a2424,#111417_70%)] text-[#ff5147] shadow-[0_10px_28px_-14px_rgba(255,71,59,0.8),inset_0_1px_0_rgba(255,255,255,0.12)] transition-transform duration-300 group-hover:rotate-[-8deg] group-hover:scale-105 sm:h-10 sm:w-10">
+            <GlobeHemisphereWest size={20} weight="fill" className="sm:h-[22px] sm:w-[22px]" />
           </span>
-          <div>
-            <span className="block whitespace-nowrap text-[14px] font-black uppercase leading-none tracking-[0.12em] text-white">TRAVEL YOUR MAP</span>
-            <span className="mt-1 block text-[8px] font-semibold uppercase tracking-[0.22em] text-[#818b95]">
-              BY PUPILA
-            </span>
-          </div>
+          <span className="leading-none">
+            <span className="mb-[5px] block whitespace-nowrap text-[11px] font-extrabold uppercase tracking-[0.08em] text-white sm:text-[13px]">Travel Your Map</span>
+            <span className="block text-[8px] font-bold uppercase tracking-[0.26em] text-white/48 sm:text-[9px]">BY PUPILA</span>
+          </span>
         </Link>
         <button 
           type="button" 
@@ -1704,13 +1742,10 @@ function ProposalTopbar2({
   setSearchQuery,
   isDemoMode,
   shareUrl,
-  viewerRegisterHref,
   onCopyUrl,
   onPreviewViewer,
   onReturnToCreator,
   canReturnToCreator,
-  onExtractVideos,
-  onOpenAdmin,
   onOpenMenu,
   lastExtractionAt
 }: {
@@ -1719,13 +1754,10 @@ function ProposalTopbar2({
   setSearchQuery: (value: string) => void;
   isDemoMode: boolean;
   shareUrl: string;
-  viewerRegisterHref: string;
   onCopyUrl: () => void;
   onPreviewViewer: () => void;
   onReturnToCreator: () => void;
   canReturnToCreator: boolean;
-  onExtractVideos: () => void;
-  onOpenAdmin: () => void;
   onOpenMenu: () => void;
   lastExtractionAt: string | null;
 }) {
@@ -1795,7 +1827,7 @@ function ProposalTopbar2({
 
   return (
     <>
-      <header data-component="ProposalTopbar2" className="relative z-[120] grid gap-3 lg:grid-cols-[minmax(0,0.5fr)_auto] items-center">
+      <header data-component="ProposalTopbar2" className="relative z-[120] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:gap-3 lg:grid-cols-[minmax(0,0.5fr)_auto]">
         {/* Search trigger */}
         <div className="relative flex min-w-0 items-center gap-3">
           <button
@@ -1830,14 +1862,14 @@ function ProposalTopbar2({
         </div>
 
         {/* Control buttons & Avatar */}
-        <div className="flex min-w-0 shrink-0 flex-wrap items-center justify-center gap-2 sm:justify-end lg:flex-nowrap">
+        <div className="flex min-w-0 shrink-0 items-center justify-end gap-2 lg:flex-nowrap">
           {isDemoMode ? (
             <>
               <Link
-                href={viewerRegisterHref}
-                className="hidden h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/55 bg-[#ff5a3d] px-4 text-[12px] font-bold text-white transition hover:bg-[#ff6a50] sm:inline-flex lg:h-10"
+                href="/onboarding?demo=1"
+                className="hidden h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/55 bg-[#ff5a3d] px-4 text-[12px] font-bold text-white transition hover:bg-[#ff6a50] active:scale-[0.98] md:inline-flex lg:h-10"
               >
-                Crear cuenta gratis
+                Crea tu mapa
               </Link>
             </>
           ) : null}
@@ -1850,7 +1882,7 @@ function ProposalTopbar2({
               {canReturnToCreator ? (
                 <button
                   type="button"
-                  className="flex h-11 items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 text-[12px] font-bold text-white transition hover:bg-white/[0.08] lg:h-10"
+                  className="hidden h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/55 bg-transparent px-4 text-[12px] font-bold text-[#ff5a3d] transition hover:bg-[#ff5a3d]/10 active:scale-[0.98] sm:flex lg:h-10"
                   onClick={onReturnToCreator}
                 >
                   <GearSix size={15} />
@@ -1862,27 +1894,11 @@ function ProposalTopbar2({
             <>
               <button
                 type="button"
-                className="flex h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/55 bg-transparent px-4 text-[12px] font-bold text-[#ff5a3d] transition hover:bg-[#ff5a3d]/10 lg:h-10"
+                className="hidden h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/55 bg-transparent px-4 text-[12px] font-bold text-[#ff5a3d] transition hover:bg-[#ff5a3d]/10 active:scale-[0.98] sm:flex lg:h-10"
                 onClick={onPreviewViewer}
               >
                 <Eye size={15} />
                 Seguidor
-              </button>
-              <button
-                type="button"
-                className="hidden h-10 items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 text-[12px] font-bold text-white transition hover:bg-white/[0.08] xl:flex"
-                onClick={onOpenAdmin}
-              >
-                <GearSix size={15} />
-                Admin
-              </button>
-              <button
-                type="button"
-                className="hidden h-10 items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 text-[12px] font-bold text-white transition hover:bg-white/[0.08] xl:flex"
-                onClick={onExtractVideos}
-              >
-                <Video size={15} />
-                Extraer videos
               </button>
             </>
           )}
@@ -2033,7 +2049,7 @@ function MapVotePanel2({
       <button
         type="button"
         data-component="MapVotePanel2Trigger"
-        className="pointer-events-auto absolute bottom-4 left-4 z-[95] flex h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/35 bg-[#050b10]/88 px-4 text-[11px] font-black text-[#ffb4a4] shadow-2xl backdrop-blur-xl"
+        className="pointer-events-auto absolute bottom-[calc(4.9rem+env(safe-area-inset-bottom))] left-4 z-[105] flex h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/35 bg-[#050b10]/88 px-4 text-[11px] font-black text-[#ffb4a4] shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_18px_42px_-24px_rgba(0,0,0,0.92)] backdrop-blur-xl transition active:scale-[0.97] md:bottom-4 lg:bottom-4"
         onClick={() => onOverlayOpenChange?.(true)}
         aria-expanded="false"
       >
@@ -2049,7 +2065,7 @@ function MapVotePanel2({
       className={
         variant === "sidebar"
           ? "w-full"
-          : "pointer-events-none absolute bottom-4 left-4 z-[95] w-[min(220px,calc(100%-2rem))]"
+          : "pointer-events-none absolute bottom-[calc(4.9rem+env(safe-area-inset-bottom))] left-4 z-[105] w-[min(220px,calc(100%-2rem))] md:bottom-4 lg:bottom-4"
       }
       >
       <section className="pointer-events-auto rounded-xl border border-white/[0.08] bg-[#050b10]/82 p-3 text-white shadow-2xl backdrop-blur-xl">
@@ -2332,6 +2348,114 @@ function VideoInspirationRail2({
   onOpenAllVideos: () => void;
   onSelect: (video: TravelVideoLocation) => void;
 }) {
+  const railRef = useRef<HTMLDivElement | null>(null);
+  const mouseDragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startScrollLeft: number;
+    didDrag: boolean;
+    lastX: number;
+    lastTimestamp: number;
+    velocity: number;
+  } | null>(null);
+  const suppressCardClickRef = useRef(false);
+  const scrollAnimationFrameRef = useRef<number | null>(null);
+  const wheelTargetRef = useRef<number | null>(null);
+
+  const stopRailAnimation = useCallback(() => {
+    if (scrollAnimationFrameRef.current !== null) {
+      window.cancelAnimationFrame(scrollAnimationFrameRef.current);
+      scrollAnimationFrameRef.current = null;
+    }
+    wheelTargetRef.current = null;
+  }, []);
+
+  const animateWheelScroll = useCallback((targetScrollLeft: number) => {
+    wheelTargetRef.current = targetScrollLeft;
+    if (scrollAnimationFrameRef.current !== null) return;
+
+    const animate = () => {
+      const rail = railRef.current;
+      const target = wheelTargetRef.current;
+      if (!rail || target === null) {
+        scrollAnimationFrameRef.current = null;
+        return;
+      }
+
+      const distance = target - rail.scrollLeft;
+      if (Math.abs(distance) < 0.75) {
+        rail.scrollLeft = target;
+        wheelTargetRef.current = null;
+        scrollAnimationFrameRef.current = null;
+        return;
+      }
+
+      rail.scrollLeft += distance * 0.2;
+      scrollAnimationFrameRef.current = window.requestAnimationFrame(animate);
+    };
+
+    scrollAnimationFrameRef.current = window.requestAnimationFrame(animate);
+  }, []);
+
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return;
+
+    const handleWheel = (event: WheelEvent) => {
+      if (rail.scrollWidth <= rail.clientWidth) return;
+
+      const dominantDelta = Math.abs(event.deltaX) > Math.abs(event.deltaY)
+        ? event.deltaX
+        : event.deltaY;
+      const deltaMultiplier = event.deltaMode === 1
+        ? 18
+        : event.deltaMode === 2
+          ? rail.clientWidth
+          : 1;
+      const currentTarget = wheelTargetRef.current ?? rail.scrollLeft;
+      const nextScrollLeft = Math.max(
+        0,
+        Math.min(
+          rail.scrollWidth - rail.clientWidth,
+          currentTarget + dominantDelta * deltaMultiplier,
+        ),
+      );
+      if (nextScrollLeft === currentTarget) return;
+
+      event.preventDefault();
+      animateWheelScroll(nextScrollLeft);
+    };
+
+    rail.addEventListener("wheel", handleWheel, { passive: false });
+    return () => rail.removeEventListener("wheel", handleWheel);
+  }, [animateWheelScroll]);
+
+  const startDragMomentum = useCallback((initialVelocity: number) => {
+    const rail = railRef.current;
+    if (!rail || Math.abs(initialVelocity) < 0.08) return;
+
+    let velocity = initialVelocity;
+    let previousTimestamp = performance.now();
+
+    const animate = (timestamp: number) => {
+      const elapsed = Math.min(32, timestamp - previousTimestamp);
+      previousTimestamp = timestamp;
+      const previousScrollLeft = rail.scrollLeft;
+      rail.scrollLeft += velocity * elapsed;
+      velocity *= Math.pow(0.9, elapsed / 16);
+
+      const reachedBoundary = rail.scrollLeft === previousScrollLeft;
+      if (Math.abs(velocity) < 0.02 || reachedBoundary) {
+        scrollAnimationFrameRef.current = null;
+        return;
+      }
+      scrollAnimationFrameRef.current = window.requestAnimationFrame(animate);
+    };
+
+    scrollAnimationFrameRef.current = window.requestAnimationFrame(animate);
+  }, []);
+
+  useEffect(() => stopRailAnimation, [stopRailAnimation]);
   const selectedCountryName =
     selectedCountryCode
       ? getCountryNameInSpanish(
@@ -2376,7 +2500,76 @@ function VideoInspirationRail2({
         </div>
       </div>
 
-      <div className="tym-scroll-row flex select-none gap-4 pb-5 pr-4">
+      <div
+        ref={railRef}
+        className="tym-scroll-row flex min-w-0 max-w-full cursor-grab select-none gap-4 overflow-x-auto overscroll-x-contain pb-5 pr-4 active:cursor-grabbing"
+        role="region"
+        aria-label="Videos para inspirarte"
+        tabIndex={0}
+        style={{ scrollSnapType: "none" }}
+        onKeyDown={(event) => {
+          if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+          event.preventDefault();
+          stopRailAnimation();
+          event.currentTarget.scrollBy({
+            left: event.key === "ArrowRight" ? 276 : -276,
+            behavior: "smooth",
+          });
+        }}
+        onPointerDown={(event) => {
+          if (event.pointerType !== "mouse" || event.button !== 0) return;
+          stopRailAnimation();
+          mouseDragRef.current = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            startScrollLeft: event.currentTarget.scrollLeft,
+            didDrag: false,
+            lastX: event.clientX,
+            lastTimestamp: performance.now(),
+            velocity: 0,
+          };
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          const drag = mouseDragRef.current;
+          if (!drag || drag.pointerId !== event.pointerId) return;
+
+          const distance = event.clientX - drag.startX;
+          if (Math.abs(distance) > 4) drag.didDrag = true;
+          event.currentTarget.scrollLeft = drag.startScrollLeft - distance;
+
+          const timestamp = performance.now();
+          const elapsed = Math.max(1, timestamp - drag.lastTimestamp);
+          const instantaneousVelocity = -(event.clientX - drag.lastX) / elapsed;
+          drag.velocity = drag.velocity * 0.65 + instantaneousVelocity * 0.35;
+          drag.lastX = event.clientX;
+          drag.lastTimestamp = timestamp;
+        }}
+        onPointerUp={(event) => {
+          const drag = mouseDragRef.current;
+          if (!drag || drag.pointerId !== event.pointerId) return;
+
+          suppressCardClickRef.current = drag.didDrag;
+          mouseDragRef.current = null;
+          if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+          }
+          if (drag.didDrag) startDragMomentum(drag.velocity);
+          window.setTimeout(() => {
+            suppressCardClickRef.current = false;
+          }, 0);
+        }}
+        onPointerCancel={() => {
+          mouseDragRef.current = null;
+          suppressCardClickRef.current = false;
+        }}
+        onClickCapture={(event) => {
+          if (!suppressCardClickRef.current) return;
+          event.preventDefault();
+          event.stopPropagation();
+          suppressCardClickRef.current = false;
+        }}
+      >
         {railVideos.map((video, index) => {
           const sponsorNames = resolveSponsorNames(video);
 
@@ -2544,11 +2737,8 @@ function ProposalRightRail2({
               } catch {
                 sponsorHost = sponsor.affiliate_url || "";
               }
-              return (
-                <div
-                  key={sponsor.id}
-                  className="flex items-center gap-3 rounded-xl border border-white/[0.03] bg-white/[0.01] p-2 transition group hover:border-white/[0.07]"
-                >
+              const sponsorContent = (
+                <>
                   {sponsor.logo_url ? (
                     <span className="relative block h-10 w-10 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
                       <Image src={sponsor.logo_url} alt={sponsor.brand_name} fill sizes="40px" className="object-contain p-1.5" />
@@ -2560,19 +2750,34 @@ function ProposalRightRail2({
                     {sponsorHost ? <p className="truncate text-[9px] font-semibold leading-none text-slate-500">{sponsorHost}</p> : null}
                   </div>
                   {sponsor.affiliate_url ? (
-                    <button
-                      type="button"
+                    <span
                       className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-white/10 bg-white/[0.02] text-white transition-all hover:border-white/20 hover:bg-white/[0.07] lg:h-8 lg:w-8"
-                      aria-label={`Ir al sitio de ${sponsor.brand_name}`}
-                      title={`Ir al sitio de ${sponsor.brand_name}`}
-                      onClick={() => {
-                        onAction(`Redirigiendo a sponsor: ${sponsor.brand_name}`);
-                        window.open(sponsorHref, "_blank", "noopener");
-                      }}
+                      aria-hidden="true"
                     >
                       <ArrowsOutSimple size={13} weight="bold" />
-                    </button>
+                    </span>
                   ) : null}
+                </>
+              );
+
+              return sponsor.affiliate_url ? (
+                <a
+                  key={sponsor.id}
+                  href={sponsorHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group flex items-center gap-3 rounded-xl border border-white/[0.03] bg-white/[0.01] p-2 transition hover:border-white/[0.12] hover:bg-white/[0.035] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#ff5a3d]/70"
+                  aria-label={`Visitar el sitio de ${sponsor.brand_name}`}
+                  onClick={() => onAction(`Redirigiendo a sponsor: ${sponsor.brand_name}`)}
+                >
+                  {sponsorContent}
+                </a>
+              ) : (
+                <div
+                  key={sponsor.id}
+                  className="group flex items-center gap-3 rounded-xl border border-white/[0.03] bg-white/[0.01] p-2"
+                >
+                  {sponsorContent}
                 </div>
               );
             })}
@@ -2668,7 +2873,7 @@ function MobileDrawer2({
 
   if (!open) return null;
   return (
-    <div data-component="MobileDrawer2" className="fixed inset-0 z-[90] bg-black/85 backdrop-blur-sm xl:hidden" onClick={onClose}>
+    <div data-component="MobileDrawer2" className="fixed inset-0 z-[420] bg-black/85 backdrop-blur-sm xl:hidden" onClick={onClose}>
       <aside className="h-full w-[265px] border-r border-white/10 bg-[#04080d] p-5 flex flex-col gap-5" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">

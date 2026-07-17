@@ -1,32 +1,40 @@
 "use client";
 
 import {
+  ArrowLeft,
   ArrowUpRight,
   Bell,
+  Briefcase,
   ChartBar,
+  Check,
   CheckCircle,
   Clock,
+  DotsThreeVertical,
   Eye,
   EyeSlash,
   Flag,
   GlobeHemisphereWest,
   House,
   List,
+  MagnifyingGlass,
+  MapPin,
   PencilSimple,
   Play,
+  Plus,
   Star,
   Tag,
+  TrendUp,
   Users,
   WarningCircle,
   X,
 } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { SponsorCreatorWizard, type SponsorWizardPayload } from "@/components/creator/sponsor-creator-wizard";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type {
   CreatorAdminCountry,
   CreatorAdminAlert,
@@ -286,7 +294,7 @@ type BusinessAgendaItem = {
 const TABS: Array<{ id: CreatorAdminTab; label: string; icon: typeof House; secondary?: boolean }> = [
   { id: "resumen", label: "Resumen", icon: House },
   { id: "videos", label: "Videos", icon: Play },
-  { id: "paises", label: "Paises", icon: GlobeHemisphereWest },
+  { id: "paises", label: "Países", icon: GlobeHemisphereWest },
   { id: "votaciones", label: "Votaciones", icon: ChartBar },
   { id: "sponsors", label: "Sponsors", icon: Tag },
   { id: "media-kit", label: "Media Kit", icon: Star },
@@ -317,17 +325,9 @@ export function MapAdminProposalV2({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [alertsOpen, setAlertsOpen] = useState(true);
+  const [alertsOpen, setAlertsOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-
-  useEffect(() => {
-    const tabletQuery = window.matchMedia("(max-width: 1023px)");
-    const syncAlertsForViewport = () => setAlertsOpen(!tabletQuery.matches);
-    syncAlertsForViewport();
-    tabletQuery.addEventListener("change", syncAlertsForViewport);
-    return () => tabletQuery.removeEventListener("change", syncAlertsForViewport);
-  }, []);
 
   const tab = normalizeTab(searchParams.get("tab") || activeTab);
   const statusFilter = searchParams.get("status") || initialFilters.status || "all";
@@ -392,8 +392,8 @@ export function MapAdminProposalV2({
   }
 
   return (
-    <div className="creator-panel-responsive min-h-[100dvh] bg-[#07090d] text-[#f5f7fb]">
-      <div className="grid min-h-[100dvh] grid-cols-1 lg:grid-cols-[96px_minmax(0,1fr)]">
+    <div className="creator-panel-responsive creator-editorial min-h-[100dvh] bg-[#07090d] text-[#f5f7fb]">
+      <div className="grid min-h-[100dvh] grid-cols-1 lg:grid-cols-[224px_minmax(0,1fr)]">
         <AdminSidebar
           payload={payload}
           tab={tab}
@@ -413,7 +413,7 @@ export function MapAdminProposalV2({
             onToggleAlerts={() => setAlertsOpen((current) => !current)}
           />
 
-          <div className="mx-auto w-full max-w-[1480px] gap-4 px-3 pb-8 pt-4 md:px-5">
+          <div className="mx-auto w-full max-w-[1480px] gap-4 px-3 pb-24 pt-4 md:px-6 lg:pb-10 lg:pt-6">
             <div className="min-w-0 space-y-4">
               {notice ? (
                 <div className="rounded-lg border border-[#ff5a3d]/30 bg-[#ff5a3d]/10 px-3 py-2 text-[12px] text-[#ffd3ca]">
@@ -452,8 +452,8 @@ export function MapAdminProposalV2({
               ) : null}
               {tab === "media-kit" ? <MediaKitTab payload={payload} /> : null}
               {tab === "negocio" ? <BusinessTab payload={payload} /> : null}
-              {tab === "audiencia" ? <AudienceTab payload={payload} /> : null}
-              {tab === "actividad" ? <ActivityTab payload={payload} /> : null}
+              {tab === "audiencia" ? <AudienceTab payload={payload} onNavigate={updateQuery} /> : null}
+              {tab === "actividad" ? <ActivityTab payload={payload} onNavigate={updateQuery} /> : null}
             </div>
           </div>
 
@@ -465,6 +465,12 @@ export function MapAdminProposalV2({
           />
         </section>
       </div>
+
+      <MobileBottomNav
+        tab={tab}
+        onTab={(nextTab) => updateQuery({ tab: nextTab, status: null, country: null, modal: null, id: null })}
+        onMenu={() => setMobileNavOpen(true)}
+      />
 
       {modal === "edit-video" && selectedVideo ? (
         <EditVideoModal video={selectedVideo} countries={payload.countries} onClose={closeModal} onSubmit={patchVideo} />
@@ -499,19 +505,21 @@ function AdminSidebar({
   const pendingVideos = payload.videos.filter((video) => video.ui_status === "pending" || video.ui_status === "unlocated").length;
   const activeVotes = payload.polls.filter((poll) => poll.status === "live").length;
   const sidebar = (
-    <aside className="flex h-full flex-col border-r border-white/10 bg-[#0a0d13] px-3 py-4 lg:items-center lg:px-2">
-      <div className="flex items-center justify-between px-2 lg:w-full lg:justify-center lg:px-0">
-        <div className="min-w-0 lg:flex lg:h-10 lg:w-10 lg:items-center lg:justify-center lg:rounded-lg lg:border lg:border-white/10 lg:bg-white/[0.04]">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#ff6a4e] lg:sr-only">TravelYourMap</p>
-          <h1 className="mt-1 text-[17px] font-black tracking-tight text-white lg:sr-only">Creator Admin</h1>
-          <span className="hidden text-[11px] font-black tracking-tight text-white lg:inline">TYM</span>
-        </div>
-        <button type="button" className="rounded-lg p-2 text-[#9aa3af] lg:hidden" onClick={onCloseMobile} aria-label="Cerrar menu">
-          <X size={18} />
-        </button>
-      </div>
+    <aside className="flex h-full flex-col border-r border-white/10 bg-[#0a0d13] px-3 py-5 lg:sticky lg:top-0 lg:h-[100dvh] lg:px-4">
+      <Link href="/" className="group flex min-w-0 items-center gap-2 px-1 sm:gap-3 sm:px-0" aria-label="Travel Your Map home">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#ff6258]/35 bg-[radial-gradient(circle_at_35%_25%,#2a2424,#111417_70%)] text-[#ff5147] shadow-[0_10px_28px_-14px_rgba(255,71,59,0.8),inset_0_1px_0_rgba(255,255,255,0.12)] transition-transform duration-300 group-hover:rotate-[-8deg] group-hover:scale-105 sm:h-10 sm:w-10">
+          <GlobeHemisphereWest size={20} weight="fill" className="sm:h-[22px] sm:w-[22px]" />
+        </span>
+        <span className="leading-none">
+          <span className="mb-[5px] block whitespace-nowrap text-[11px] font-extrabold uppercase tracking-[0.08em] text-white sm:text-[13px]">Travel Your Map</span>
+          <span className="block text-[8px] font-bold uppercase tracking-[0.26em] text-white/48 sm:text-[9px]">BY PUPILA</span>
+        </span>
+      </Link>
+      <button type="button" className="absolute right-4 top-5 rounded-lg p-2 text-[#9aa3af] lg:hidden" onClick={onCloseMobile} aria-label="Cerrar menu">
+        <X size={18} />
+      </button>
 
-      <nav className="mt-5 w-full space-y-1 lg:flex lg:flex-col lg:items-center">
+      <nav className="mt-7 w-full space-y-1">
         {TABS.filter((item) => !item.secondary).map((item) => (
           <SidebarButton
             key={item.id}
@@ -524,12 +532,32 @@ function AdminSidebar({
       </nav>
 
       <div className="mt-5 w-full border-t border-white/10 pt-4">
-        <p className="px-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#6f7a88] lg:sr-only">Secundario</p>
-        <nav className="mt-2 space-y-1 lg:flex lg:flex-col lg:items-center">
+        <p className="px-2 text-[9px] font-black uppercase tracking-[0.18em] text-[#6f7a88]">Lectura</p>
+        <nav className="mt-2 space-y-1">
           {TABS.filter((item) => item.secondary).map((item) => (
             <SidebarButton key={item.id} item={item} active={tab === item.id} onClick={() => onTab(item.id)} />
           ))}
         </nav>
+      </div>
+
+      <div className="mt-auto flex items-center gap-3 border-t border-white/10 px-2 pt-4">
+        <div className="relative grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-full border border-white/15 bg-white/[0.04] text-[11px] font-black text-white">
+          {payload.channel.thumbnail_url ? (
+            <Image
+              src={payload.channel.thumbnail_url}
+              alt={`Foto de perfil de ${payload.channel.channel_name}`}
+              fill
+              sizes="36px"
+              className="object-cover"
+            />
+          ) : (
+            payload.channel.channel_name.slice(0, 2).toUpperCase()
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-[12px] font-bold text-white">{payload.channel.channel_name}</p>
+          <p className="text-[10px] text-[#7d8794]">Creator</p>
+        </div>
       </div>
     </aside>
   );
@@ -560,31 +588,23 @@ function SidebarButton({
 }) {
   const Icon = item.icon;
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <button
-          type="button"
-          onClick={onClick}
-          className={cn(
-            "relative flex h-10 w-full items-center gap-3 rounded-lg border border-transparent px-3 text-left text-[12px] font-bold transition active:translate-y-px lg:h-11 lg:w-11 lg:justify-center lg:gap-0 lg:px-0",
-            active ? "border-[#ff5a3d]/25 bg-[#ff5a3d]/12 text-[#ff7d63]" : "text-[#c2cad4] hover:bg-white/[0.05] hover:text-white"
-          )}
-          aria-label={item.label}
-          title={item.label}
-        >
-          <Icon size={18} weight={active ? "fill" : "regular"} className="shrink-0" />
-          <span className="min-w-0 flex-1 truncate lg:sr-only">{item.label}</span>
-          {badge ? (
-            <span className="rounded-full bg-[#ff5a3d] px-1.5 py-0.5 text-[9px] font-black text-white lg:absolute lg:right-0.5 lg:top-0.5 lg:min-w-4 lg:px-1 lg:text-[8px]">
-              {badge}
-            </span>
-          ) : null}
-        </button>
-      </TooltipTrigger>
-      <TooltipContent side="right" sideOffset={8} className="hidden border border-white/10 bg-[#111722] text-white shadow-xl lg:inline-flex">
-        {item.label}
-      </TooltipContent>
-    </Tooltip>
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "relative flex min-h-11 w-full items-center gap-3 rounded-lg border border-transparent px-3 text-left text-[13px] font-semibold transition active:translate-y-px",
+        active ? "border-[#ff5a3d]/25 bg-[#ff5a3d]/12 text-[#ff7d63]" : "text-[#c2cad4] hover:bg-white/[0.05] hover:text-white"
+      )}
+      aria-label={item.label}
+    >
+      <Icon size={19} weight={active ? "fill" : "regular"} className="shrink-0" />
+      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+      {badge ? (
+        <span className="grid min-h-5 min-w-5 place-items-center rounded-full bg-[#ff5a3d] px-1 text-[9px] font-black text-white">
+          {badge}
+        </span>
+      ) : null}
+    </button>
   );
 }
 
@@ -601,14 +621,14 @@ function TopBar({
 }) {
   const health = payload.summary.pending_review > 0 || payload.alerts.some((alert) => alert.severity === "error") ? "Requiere revision" : "Operativo";
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07090d]/92 px-3 py-3 backdrop-blur-xl md:px-5">
+    <header className="sticky top-0 z-30 border-b border-white/10 bg-[#07090d]/96 px-3 py-3 md:px-6">
       <div className="mx-auto flex max-w-[1480px] items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <button type="button" className="rounded-lg border border-white/10 p-2 text-white lg:hidden" onClick={onOpenMobile} aria-label="Abrir menu">
             <List size={18} />
           </button>
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#7d8794]">Panel operacional</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#7d8794]">Panel del creador</p>
             <h2 className="truncate text-[16px] font-black text-white">{payload.channel.channel_name}</h2>
           </div>
         </div>
@@ -616,14 +636,15 @@ function TopBar({
           <span className={cn("hidden rounded-full border px-3 py-1 text-[11px] font-bold md:inline-flex", health === "Operativo" ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300" : "border-[#ffbf47]/25 bg-[#ffbf47]/10 text-[#ffd07a]")}>
             {health}
           </span>
-          <a href={payload.mapUrl} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-[12px] font-bold text-white hover:bg-white/[0.08]">
-            Ver mi mapa
-            <ArrowUpRight size={14} />
-          </a>
+          <Link href={payload.mapUrl} aria-label="Volver al mapa en modo creador" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-[12px] font-bold text-white hover:bg-white/[0.08]">
+            <ArrowLeft size={14} weight="bold" />
+            <span className="hidden sm:inline">Volver al mapa</span>
+            <span className="sm:hidden">Mapa</span>
+          </Link>
           <button
             type="button"
             className={cn(
-              "hidden h-9 w-9 items-center justify-center rounded-lg border text-white transition md:inline-flex",
+              "hidden h-11 w-11 items-center justify-center rounded-lg border text-white transition md:inline-flex",
               alertsOpen ? "border-[#ffbf47]/25 bg-[#ffbf47]/10 text-[#ffd07a]" : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08]"
             )}
             aria-label={alertsOpen ? "Cerrar alertas" : "Ver alertas"}
@@ -635,6 +656,40 @@ function TopBar({
         </div>
       </div>
     </header>
+  );
+}
+
+function MobileBottomNav({
+  tab,
+  onTab,
+  onMenu,
+}: {
+  tab: CreatorAdminTab;
+  onTab: (tab: CreatorAdminTab) => void;
+  onMenu: () => void;
+}) {
+  const items = [
+    { id: "resumen" as const, label: "Resumen", icon: House },
+    { id: "videos" as const, label: "Videos", icon: Play },
+    { id: "negocio" as const, label: "Negocio", icon: Briefcase },
+  ];
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-white/10 bg-[#0a0d13]/98 px-2 pb-[max(0.4rem,env(safe-area-inset-bottom))] pt-1.5 lg:hidden" aria-label="Navegacion principal">
+      {items.map((item) => {
+        const Icon = item.icon;
+        const active = tab === item.id;
+        return (
+          <button key={item.id} type="button" className={cn("flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold", active ? "text-[#ff6a4e]" : "text-[#aab2bc]")} onClick={() => onTab(item.id)} aria-current={active ? "page" : undefined}>
+            <Icon size={21} weight={active ? "fill" : "regular"} />
+            {item.label}
+          </button>
+        );
+      })}
+      <button type="button" className="flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-lg text-[11px] font-semibold text-[#aab2bc]" onClick={onMenu}>
+        <List size={21} />
+        Menu
+      </button>
+    </nav>
   );
 }
 
@@ -772,8 +827,8 @@ function SummaryTab({
   onOpenAlerts: () => void;
 }) {
   const lastVideo = payload.videos[0] || null;
-  const topCountry = payload.countries[0] || null;
   const topMapCountry = payload.audience.top_countries[0] || null;
+  const topMapCountryData = payload.countries.find((country) => country.country_code === topMapCountry?.country_code) || null;
   const topMapVideo = payload.audience.top_videos[0] || null;
   const sponsorClicks = payload.audience.sponsor_clicks.reduce((sum, row) => sum + row.clicks, 0);
   const mapInteractions = payload.audience.top_countries.reduce((sum, row) => sum + row.events, 0);
@@ -783,8 +838,12 @@ function SummaryTab({
     .sort((a, b) => b.total_views - a.total_views || b.videos_count - a.videos_count)[0] || null;
   const visibleVideos = Math.max(1, payload.summary.videos_mapped + payload.summary.videos_hidden);
   const mapHealth = Math.round((payload.summary.videos_mapped / visibleVideos) * 100);
+  const heroVideo = payload.videos.find((video) => video.youtube_video_id === topMapVideo?.youtube_video_id) || lastVideo;
+  const primaryLabel = payload.summary.pending_review > 0
+    ? `Revisar ${payload.summary.pending_review} ${payload.summary.pending_review === 1 ? "video" : "videos"}`
+    : "Ver videos";
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {payload.videos.length === 0 ? (
         <EmptyState
           title="Tu mapa esta vacio"
@@ -793,77 +852,61 @@ function SummaryTab({
           onAction={() => window.location.assign("/onboarding")}
         />
       ) : null}
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi title="Salud del mapa" value={mapHealth} suffix="%" detail={`${payload.summary.videos_mapped} visibles · ${payload.summary.pending_review} pendientes`} tone={payload.summary.pending_review > 0 ? "warning" : "success"} onClick={() => onNavigate({ tab: "videos", status: payload.summary.pending_review > 0 ? "pending" : null })} />
-        <Kpi title="Metricas del mapa" value={mapInteractions} detail={topMapCountry ? `Top pais: ${topMapCountry.country_code}` : "Sin eventos first-party"} onClick={() => onNavigate({ tab: "audiencia" })} />
-        <Kpi title="Sponsor clicks" value={sponsorClicks} detail={payload.audience.sponsor_clicks[0]?.brand_name || "Sin clicks registrados"} onClick={() => onNavigate({ tab: "audiencia" })} />
-        <Kpi title="Oportunidades" value={unmonetizedCountries.length} detail={bestCommercialCountry ? `${bestCommercialCountry.country_name} sin sponsor` : "Inventario cubierto"} tone={unmonetizedCountries.length > 0 ? "warning" : "success"} onClick={() => onNavigate({ tab: bestCommercialCountry ? "paises" : "sponsors", country: bestCommercialCountry?.country_code || null })} />
+      <section className="overflow-hidden rounded-[18px] border border-white/10 bg-[#0c1016] lg:grid lg:min-h-[430px] lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="order-2 flex flex-col justify-center px-5 py-7 sm:px-8 lg:order-1 lg:px-12">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff6a4e]">Estado del mapa</p>
+          <h2 className="mt-4 max-w-[620px] text-[clamp(2.15rem,4.4vw,4.6rem)] font-semibold leading-[0.98] tracking-[-0.05em] text-white">
+            Tu mapa esta casi listo para compartir
+          </h2>
+          <p className="mt-4 max-w-lg text-[15px] leading-6 text-[#aeb7c2]">Revisa los pendientes y publica una experiencia limpia para tu audiencia.</p>
+          <div className="mt-6 flex items-center gap-4">
+            <div className="grid h-20 w-20 shrink-0 place-items-center rounded-full border-[7px] border-[#ff5a3d] font-mono text-[25px] font-bold text-white">{mapHealth}%</div>
+            <div>
+              <p className="text-[14px] font-bold text-white">Salud del mapa</p>
+              <p className="mt-1 text-[14px] text-[#9aa3af]">{payload.summary.videos_mapped} visibles · {payload.summary.pending_review} pendientes</p>
+            </div>
+          </div>
+          <button type="button" className="mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ff5a3d] px-5 text-[15px] font-bold text-white hover:bg-[#ff6d54] sm:w-fit" onClick={() => onNavigate({ tab: "videos", status: payload.summary.pending_review > 0 ? "pending" : null })}>
+            <Play size={18} weight="fill" />
+            {primaryLabel}
+          </button>
+        </div>
+        <div className="relative order-1 min-h-[280px] overflow-hidden lg:order-2 lg:min-h-full">
+          {heroVideo?.thumbnail_url ? <Image src={heroVideo.thumbnail_url} alt={heroVideo.title} fill sizes="(max-width: 1023px) 100vw, 54vw" className="object-cover" priority /> : <div className="absolute inset-0 bg-[#151b22]" />}
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,transparent_58%,rgba(7,9,13,0.82))] lg:bg-[linear-gradient(90deg,#0c1016_0%,transparent_34%)]" />
+          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3 lg:left-auto lg:right-5">
+            <div className="rounded-lg bg-black/70 px-3 py-2 text-[12px] font-semibold text-white lg:hidden">{heroVideo?.title || "Tu ultimo destino"}</div>
+            <div className="ml-auto inline-flex items-center gap-1.5 rounded-lg bg-black/75 px-3 py-2 text-[12px] font-semibold text-white"><MapPin size={15} weight="fill" />{heroVideo?.city || heroVideo?.country_name || "Destino"}</div>
+          </div>
+        </div>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-3">
-        <InsightCard
-          eyebrow="Travel Your Map"
-          title={topMapVideo ? topMapVideo.title : "Sin video lider aun"}
-          value={topMapVideo ? topMapVideo.events : 0}
-          detail={topMapVideo ? "Interacciones registradas dentro del mapa." : "Cuando la audiencia abra videos desde el mapa, se priorizaran aca."}
-          action="Ver audiencia"
-          onAction={() => onNavigate({ tab: "audiencia" })}
-        />
-        <InsightCard
-          eyebrow="YouTube + mapa"
-          title={topCountry ? topCountry.country_name : "Sin pais principal"}
-          value={topCountry ? topCountry.videos_count : 0}
-          detail={topCountry ? `${formatCompact(topCountry.total_views)} views de YouTube · ${topCountry.cities_count} ciudades.` : "La cobertura por pais se calcula desde tus videos mapeados."}
-          action="Ver paises"
-          onAction={() => onNavigate({ tab: "paises", country: topCountry?.country_code || null })}
-        />
-        <InsightCard
-          eyebrow="Operacion"
-          title="Alertas activas"
-          value={payload.alerts.length}
-          detail={payload.alerts.length > 0 ? "Revisa el rail lateral para ver la prioridad actual." : "No hay alertas activas. El panel lateral sigue disponible para estado operativo."}
-          tone={payload.alerts.length > 0 ? "warning" : "success"}
-          action="Abrir alertas"
-          onAction={onOpenAlerts}
-        />
+      <section className="grid divide-y divide-white/10 rounded-[16px] border border-white/10 bg-[#0c1016] sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+        {[
+          { label: "Senales del mapa", value: mapInteractions, icon: TrendUp, onClick: () => onNavigate({ tab: "audiencia" }) },
+          { label: "Oportunidades", value: unmonetizedCountries.length, icon: Star, onClick: () => onNavigate({ tab: bestCommercialCountry ? "paises" : "sponsors", country: bestCommercialCountry?.country_code || null }) },
+          { label: "Clicks sponsor", value: sponsorClicks, icon: Tag, onClick: () => onNavigate({ tab: "audiencia" }) },
+        ].map((item) => {
+          const Icon = item.icon;
+          return <button key={item.label} type="button" onClick={item.onClick} className="flex min-h-[96px] items-center gap-4 px-5 text-left hover:bg-white/[0.03]"><span className="grid h-10 w-10 place-items-center rounded-full bg-white/[0.06] text-[#ff7d63]"><Icon size={20} /></span><span><strong className="block font-mono text-[24px] text-white">{formatCompact(item.value)}</strong><span className="text-[12px] text-[#9aa3af]">{item.label}</span></span></button>;
+        })}
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[1fr_0.95fr]">
-        <Panel title="Actividad reciente" description="Cambios editoriales, sync y operaciones importantes." action="Ver todo" onAction={() => onNavigate({ tab: "actividad" })}>
-          <div className="divide-y divide-white/10">
-            {payload.activity.slice(0, 5).map((item) => (
-              <ActivityRow key={item.id} item={item} />
-            ))}
-            {payload.activity.length === 0 ? <InlineEmpty text="Todavia no hay actividad editorial registrada." /> : null}
+      <section className="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="rounded-[16px] border border-white/10 bg-[#0c1016] p-5">
+          <div className="flex items-center justify-between gap-3"><h3 className="text-[14px] font-bold text-white">Pulso reciente</h3><button type="button" className="inline-flex min-h-11 items-center px-1 text-[12px] font-semibold text-[#ff7d63]" onClick={() => onNavigate({ tab: "audiencia" })}>Ver audiencia</button></div>
+          <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <SourcePill label="País líder" value={<CountryLabel countryCode={topMapCountryData?.country_code} countryName={topMapCountryData?.country_name} fallback="Sin datos" />} />
+            <SourcePill label="Video lider" value={formatCompact(topMapVideo?.events || 0)} />
+            <SourcePill label="Países" value={formatNumber(payload.summary.countries_covered)} />
+            <SourcePill label="Ciudades" value={formatNumber(payload.summary.cities_covered)} />
           </div>
-        </Panel>
-        <Panel title="Mapa listo para compartir" description="Cobertura editorial y ultimo contenido detectado.">
-          <div className="space-y-4">
-            {topCountry ? (
-              <div>
-                <div className="flex items-center justify-between text-[12px]">
-                  <span className="font-bold text-white">Cobertura visible</span>
-                  <span className="font-mono text-[#9aa3af]">{mapHealth}%</span>
-                </div>
-                <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full rounded-full bg-[#ff5a3d]" style={{ width: `${Math.max(4, mapHealth)}%` }} />
-                </div>
-                <p className="mt-2 text-[12px] text-[#9aa3af]">
-                  {payload.summary.countries_covered} paises, {payload.summary.cities_covered} ciudades y {payload.summary.videos_hidden} videos ocultos.
-                </p>
-              </div>
-            ) : null}
-            {lastVideo ? (
-              <button type="button" className="flex w-full items-center gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-2 text-left" onClick={() => onNavigate({ tab: "videos", modal: "edit-video", id: lastVideo.id })}>
-                <VideoThumb video={lastVideo} />
-                <span className="min-w-0">
-                  <span className="block truncate text-[13px] font-bold text-white">{lastVideo.title}</span>
-                  <span className="text-[11px] text-[#8e98a6]">{lastVideo.country_name || "Sin pais"}</span>
-                </span>
-              </button>
-            ) : null}
-          </div>
-        </Panel>
+        </div>
+        <div className="rounded-[16px] border border-white/10 bg-[#0c1016] p-5">
+          <div className="flex items-center justify-between gap-3"><h3 className="text-[14px] font-bold text-white">Actividad reciente</h3><button type="button" className="inline-flex min-h-11 items-center px-1 text-[12px] font-semibold text-[#ff7d63]" onClick={() => onNavigate({ tab: "actividad" })}>Ver actividad</button></div>
+          {payload.activity[0] ? <ActivityRow item={payload.activity[0]} /> : <InlineEmpty text="Todavia no hay actividad editorial registrada." />}
+          {payload.alerts.length > 0 ? <button type="button" onClick={onOpenAlerts} className="mt-2 inline-flex items-center gap-2 text-[12px] font-semibold text-[#ffd07a]"><WarningCircle size={16} />{payload.alerts.length} alertas operativas</button> : null}
+        </div>
       </section>
     </div>
   );
@@ -888,119 +931,47 @@ function VideosTab({
   onOpenVideo: (videoId: string) => void;
   pending: boolean;
 }) {
+  const [query, setQuery] = useState("");
+  const visibleVideos = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return videos;
+    return videos.filter((video) => `${video.title} ${video.country_name || ""} ${video.city || ""}`.toLowerCase().includes(normalized));
+  }, [query, videos]);
+  const selected = visibleVideos.find((video) => video.ui_status === "pending" || video.ui_status === "unlocated") || visibleVideos[0] || null;
+  const pendingCount = payload.videos.filter((video) => video.ui_status === "pending" || video.ui_status === "unlocated").length;
   return (
-    <Panel title="Videos" description="Administra ubicacion, visibilidad y valor comercial de cada video.">
-      <div className="mb-3 grid gap-2 md:grid-cols-[180px_220px_minmax(0,1fr)]">
-        <Select value={statusFilter} onChange={(value) => onFilter({ tab: "videos", status: value })} options={STATUS_OPTIONS} />
-        <Select
-          value={countryFilter}
-          onChange={(value) => onFilter({ tab: "videos", country: value })}
-          options={[{ value: "all", label: "Todos los paises" }, ...payload.countries.map((country) => ({ value: country.country_code, label: country.country_name }))]}
-        />
-        <div className="rounded-lg border border-white/10 bg-white/[0.025] px-3 py-2 text-[12px] text-[#9aa3af]">
-          {videos.length} videos en esta vista
+    <div className="space-y-4">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff6a4e]">Contenido</p><h2 className="mt-2 text-[clamp(2.2rem,5vw,4.25rem)] font-semibold leading-none tracking-[-0.05em] text-white">Videos</h2><p className="mt-2 text-[14px] text-[#9aa3af]">{payload.videos.length} videos conectados a tu mapa.</p></div>
+        {pendingCount > 0 ? <button type="button" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#ff5a3d] px-5 text-[14px] font-bold text-white" onClick={() => onFilter({ tab: "videos", status: "pending" })}><CheckCircle size={18} />Revisar {pendingCount} pendientes</button> : null}
+      </header>
+
+      <div className="grid gap-2 rounded-[14px] border border-white/10 bg-[#0c1016] p-3 md:grid-cols-[180px_220px_minmax(220px,1fr)]">
+        <Select value={statusFilter} onChange={(value) => onFilter({ tab: "videos", status: value })} options={STATUS_OPTIONS} ariaLabel="Filtrar videos por estado" />
+        <Select value={countryFilter} onChange={(value) => onFilter({ tab: "videos", country: value })} options={[{ value: "all", label: "Todos los países" }, ...payload.countries.map((country) => ({ value: country.country_code, label: country.country_name }))]} icon={<GlobeHemisphereWest size={16} />} ariaLabel="Filtrar videos por país" />
+        <label className="flex min-h-11 items-center gap-2 rounded-lg border border-white/10 bg-[#090d13] px-3 text-[#9aa3af]"><MagnifyingGlass size={17} /><input value={query} onChange={(event) => setQuery(event.currentTarget.value)} className="h-10 min-w-0 flex-1 bg-transparent text-[14px] text-white outline-none placeholder:text-[#66717e]" placeholder="Buscar por titulo o destino" aria-label="Buscar videos" /></label>
+      </div>
+
+      <section className="overflow-hidden rounded-[16px] border border-white/10 bg-[#0c1016] xl:grid xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="divide-y divide-white/10">
+          {visibleVideos.map((video, index) => (
+            <article key={video.id} className={cn("grid gap-3 px-3 py-4 transition hover:bg-white/[0.025] sm:grid-cols-[160px_minmax(0,1fr)_auto] sm:items-center lg:grid-cols-[180px_minmax(0,1.2fr)_150px_150px_48px]", selected?.id === video.id && "bg-[#ff5a3d]/[0.055]")}>
+              <button type="button" className="relative aspect-video w-full overflow-hidden rounded-lg bg-white/[0.04] sm:w-[160px] lg:w-[180px]" onClick={() => onOpenVideo(video.id)} aria-label={`Abrir ${video.title}`}>
+                {video.thumbnail_url ? <Image src={video.thumbnail_url} alt="" fill sizes="180px" loading={index === 0 ? "eager" : "lazy"} className="object-cover" /> : <Play size={24} className="absolute inset-0 m-auto text-[#75808d]" />}
+              </button>
+              <button type="button" className="min-w-0 text-left" onClick={() => onOpenVideo(video.id)}><h3 className="line-clamp-2 text-[14px] font-bold leading-5 text-white">{video.title}</h3><div className="mt-1 flex min-w-0 items-center gap-1.5 text-[12px] text-[#9aa3af]"><CountryLabel countryCode={video.country_code} countryName={video.country_name} fallback="Sin ubicar" /><span aria-hidden="true">·</span><span className="shrink-0">{formatCompact(video.view_count)} views</span></div><div className="mt-2 flex flex-wrap items-center gap-2 sm:hidden"><StatusBadge status={video.ui_status} /><span className="inline-flex items-center gap-1 text-[11px] text-[#aeb7c2]">{video.visible_on_map ? <Eye size={14} /> : <EyeSlash size={14} />}{video.visible_on_map ? "Visible" : "Oculto"}</span></div></button>
+              <div className="hidden lg:block"><p className="text-[12px] font-semibold text-white">{video.city || video.region || "Sin ciudad"}</p><StatusBadge status={video.ui_status} /></div>
+              <button type="button" disabled={pending} className="hidden min-h-11 items-center gap-2 rounded-lg px-2 text-left text-[12px] font-semibold text-[#aeb7c2] hover:bg-white/[0.04] lg:flex" onClick={() => void onPatchVideo(video.id, { visible_on_map: !video.visible_on_map }, "Visibilidad actualizada.")}>{video.visible_on_map ? <Eye size={17} className="text-emerald-300" /> : <EyeSlash size={17} />}{video.visible_on_map ? "Visible" : "Oculto"}</button>
+              <button type="button" className="ml-auto grid h-11 w-11 place-items-center rounded-lg border border-white/10 text-white hover:bg-white/[0.06]" onClick={() => onOpenVideo(video.id)} aria-label={`Acciones para ${video.title}`}><DotsThreeVertical size={20} weight="bold" /></button>
+              {(video.ui_status === "pending" || video.ui_status === "unlocated") ? <button type="button" className="col-span-full inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-[#ff5a3d]/30 text-[13px] font-semibold text-[#ff8f77] hover:bg-[#ff5a3d]/10 lg:hidden" onClick={() => onOpenVideo(video.id)}><MapPin size={17} />Confirmar ubicacion</button> : null}
+            </article>
+          ))}
+          {visibleVideos.length === 0 ? <EmptyState title="No hay videos para este filtro" description="Cambia los filtros o sincroniza el canal para importar contenido." /> : null}
         </div>
-      </div>
 
-      <div className="hidden overflow-x-auto md:block">
-        <table className="w-full min-w-[920px] border-separate border-spacing-0 text-left">
-          <thead className="text-[10px] uppercase tracking-[0.14em] text-[#7d8794]">
-            <tr className="[&>th]:border-b [&>th]:border-white/10 [&>th]:px-3 [&>th]:py-2">
-              <th>Video</th>
-              <th>Ubicacion</th>
-              <th>Rendimiento</th>
-              <th>Mapa</th>
-              <th className="text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/10">
-            {videos.map((video) => (
-              <tr key={video.id} className="group hover:bg-white/[0.025]">
-                <td className="max-w-[360px] px-3 py-3">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <VideoThumb video={video} />
-                    <div className="min-w-0">
-                      <p className="truncate text-[13px] font-bold text-white" title={video.title}>{video.title}</p>
-                      <p className="mt-1 text-[11px] text-[#8e98a6]">{formatDate(video.published_at)}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-3 py-3">
-                  <p className="text-[13px] font-semibold text-white">{video.country_name || "Sin ubicar"}</p>
-                  <p className="mt-1 text-[11px] text-[#8e98a6]">{video.city || video.region || "Sin ciudad"}</p>
-                  <StatusBadge status={video.ui_status} />
-                </td>
-                <td className="px-3 py-3">
-                  <p className="font-mono text-[13px] text-white">{formatCompact(video.view_count)} views</p>
-                  <p className="mt-1 text-[11px] text-[#8e98a6]">{formatCompact(video.like_count)} likes · {formatCompact(video.comment_count)} comentarios</p>
-                </td>
-                <td className="px-3 py-3">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      disabled={pending}
-                      className={cn("inline-flex h-8 items-center gap-1.5 rounded-lg border px-2 text-[11px] font-bold", video.visible_on_map ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300" : "border-white/10 bg-white/[0.03] text-[#9aa3af]")}
-                      onClick={() => void onPatchVideo(video.id, { visible_on_map: !video.visible_on_map }, "Visibilidad actualizada.")}
-                    >
-                      {video.visible_on_map ? <Eye size={13} /> : <EyeSlash size={13} />}
-                      {video.visible_on_map ? "Visible" : "Oculto"}
-                    </button>
-                    <button
-                      type="button"
-                      disabled={pending}
-                      className={cn("inline-flex h-8 items-center justify-center rounded-lg border px-2", video.featured ? "border-[#ffbf47]/25 bg-[#ffbf47]/10 text-[#ffcf70]" : "border-white/10 bg-white/[0.03] text-[#9aa3af]")}
-                      onClick={() => void onPatchVideo(video.id, { featured: !video.featured }, "Destacado actualizado.")}
-                      aria-label="Cambiar destacado"
-                    >
-                      <Star size={13} weight={video.featured ? "fill" : "regular"} />
-                    </button>
-                  </div>
-                  {video.sponsor_names.length > 0 ? (
-                    <div className="mt-2 space-y-1">
-                      <p className="truncate text-[11px] text-[#ffb49f]">{video.sponsor_names.join(", ")}</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        <span className="inline-flex rounded-full border border-white/10 bg-white/[0.03] px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] text-[#cfd7e1]">
-                          {video.sponsor_names.length} sponsor{video.sponsor_names.length === 1 ? "" : "s"}
-                        </span>
-                        <span className="inline-flex rounded-full border border-[#ff5a3d]/20 bg-[#ff5a3d]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.08em] text-[#ff9c84]">
-                          {getSponsorCardStyleLabel(video.sponsor_card_style, video.sponsor_names.length)}
-                        </span>
-                      </div>
-                    </div>
-                  ) : null}
-                </td>
-                <td className="px-3 py-3 text-right">
-                  <button type="button" className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-white/10 px-2 text-[11px] font-bold text-white hover:bg-white/[0.06]" onClick={() => onOpenVideo(video.id)}>
-                    <PencilSimple size={13} />
-                    Editar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="space-y-2 md:hidden">
-        {videos.map((video) => (
-          <button key={video.id} type="button" className="w-full rounded-lg border border-white/10 bg-white/[0.03] p-3 text-left" onClick={() => onOpenVideo(video.id)}>
-            <div className="flex gap-3">
-              <VideoThumb video={video} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-[13px] font-bold text-white">{video.title}</p>
-                <p className="mt-1 text-[11px] text-[#8e98a6]">{video.country_name || "Sin ubicar"} · {formatCompact(video.view_count)} views</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <StatusBadge status={video.ui_status} />
-                  <span className="text-[10px] text-[#8e98a6]">{video.visible_on_map ? "Visible" : "Oculto"}</span>
-                </div>
-              </div>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {videos.length === 0 ? <EmptyState title="No hay videos para este filtro" description="Cambia los filtros o sincroniza el canal para importar contenido." /> : null}
-    </Panel>
+        {selected ? <aside className="hidden border-l border-white/10 bg-[#090d13] p-5 xl:block"><div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#7d8794]">Ubicación del video</p><h3 className="mt-2 text-[19px] font-bold text-white">Revisar destino</h3></div><button type="button" className="grid h-11 w-11 place-items-center rounded-lg border border-white/10 text-[#aeb7c2]" onClick={() => onOpenVideo(selected.id)} aria-label={`Editar ubicación de ${selected.title}`}><PencilSimple size={17} /></button></div><div className="relative mt-5 aspect-video overflow-hidden rounded-lg bg-white/[0.04]">{selected.thumbnail_url ? <Image src={selected.thumbnail_url} alt={selected.title} fill sizes="300px" loading="eager" className="object-cover" /> : null}</div><h4 className="mt-4 text-[15px] font-bold leading-5 text-white">{selected.title}</h4><div className="mt-1 flex min-w-0 items-center gap-1.5 text-[12px] text-[#9aa3af]"><CountryLabel countryCode={selected.country_code} countryName={selected.country_name} fallback="Sin país" /><span aria-hidden="true">·</span><span className="shrink-0">{formatCompact(selected.view_count)} views</span></div><div className="mt-5 border-t border-white/10 pt-5"><p className="text-[12px] font-bold text-white">Confianza de ubicación</p><div className="mt-2"><StatusBadge status={selected.ui_status} /></div><p className="mt-3 text-[12px] leading-5 text-[#9aa3af]">Confirma el lugar para mejorar la precisión del mapa público.</p></div><button type="button" className="mt-5 flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ff5a3d] px-4 text-[14px] font-bold text-white" onClick={() => onOpenVideo(selected.id)}><MapPin size={18} />Confirmar ubicación</button></aside> : null}
+      </section>
+    </div>
   );
 }
 
@@ -1013,77 +984,35 @@ function CountriesTab({
   selectedCountry: CreatorAdminCountry | null;
   onNavigate: (updates: Record<string, string | null>) => void;
 }) {
-  const maxVideos = Math.max(1, ...payload.countries.map((country) => country.videos_count));
+  const maxViews = Math.max(1, ...payload.countries.map((country) => country.total_views));
   const countryVideos = selectedCountry ? payload.videos.filter((video) => video.country_code === selectedCountry.country_code).slice(0, 8) : [];
+  const selectedHero = countryVideos[0] || null;
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <Panel title="Paises" description="Lee traccion geografica y oportunidades comerciales por pais.">
-        <div className="divide-y divide-white/10">
-          {payload.countries.map((country) => (
-            <button key={country.country_code} type="button" className="grid w-full gap-3 px-2 py-3 text-left hover:bg-white/[0.025] md:grid-cols-[1fr_1fr_1fr_auto]" onClick={() => onNavigate({ tab: "paises", country: country.country_code })}>
-              <div>
-                <p className="text-[13px] font-black text-white">{country.country_name}</p>
-                <p className="text-[11px] text-[#8e98a6]">{country.country_code}</p>
-              </div>
-              <div>
-                <p className="font-mono text-[13px] text-white">{country.videos_count} videos</p>
-                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10">
-                  <div className="h-full rounded-full bg-[#ff5a3d]" style={{ width: `${Math.max(8, Math.round((country.videos_count / maxVideos) * 100))}%` }} />
-                </div>
-              </div>
-              <div>
-                <p className="font-mono text-[13px] text-white">{formatCompact(country.total_views)} views</p>
-                <p className="text-[11px] text-[#8e98a6]">{country.top_cities.join(", ") || "Sin ciudades"}</p>
-              </div>
-              <div className="md:text-right">
-                <span className={cn("inline-flex rounded-full border px-2 py-1 text-[10px] font-black uppercase", country.has_sponsor ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300" : "border-[#ffbf47]/25 bg-[#ffbf47]/10 text-[#ffd07a]")}>
-                  {country.has_sponsor ? "Monetizado" : "Oportunidad"}
-                </span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </Panel>
-
-      <Panel title={selectedCountry ? selectedCountry.country_name : "Detalle"}>
-        {selectedCountry ? (
-          <div className="space-y-4">
-            <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
-              <p className="text-[12px] font-bold text-white">Oportunidad comercial</p>
-              <p className="mt-2 text-[12px] leading-5 text-[#aeb7c2]">
-                {selectedCountry.has_sponsor
-                  ? `Sponsor activo: ${selectedCountry.sponsor_names.join(", ")}.`
-                  : selectedCountry.total_views > 10000
-                    ? "Este pais tiene trafico sin monetizar. Conviene crear un sponsor local o global."
-                    : selectedCountry.videos_count < 3
-                      ? "Pais con poco contenido. Puede entrar como opcion de proxima votacion."
-                      : "Hay inventario disponible para sponsor por pais."}
-              </p>
-            </div>
-            <div className="grid gap-2">
-              <button type="button" className="h-9 rounded-lg bg-[#ff5a3d] text-[12px] font-black text-white" onClick={() => onNavigate({ tab: "sponsors", modal: "new-sponsor", country: selectedCountry.country_code })}>
-                Agregar sponsor para este pais
-              </button>
-              <button type="button" className="h-9 rounded-lg border border-white/10 text-[12px] font-bold text-white" onClick={() => onNavigate({ tab: "votaciones", modal: "new-vote", country: selectedCountry.country_code })}>
-                Crear votacion con este pais
-              </button>
-              <a href={`${payload.mapUrl}&country=${encodeURIComponent(selectedCountry.country_code)}`} target="_blank" rel="noreferrer" className="inline-flex h-9 items-center justify-center rounded-lg border border-white/10 text-[12px] font-bold text-white">
-                Ver en mapa
-              </a>
-            </div>
-            <div className="divide-y divide-white/10">
-              {countryVideos.map((video) => (
-                <div key={video.id} className="flex items-center gap-3 py-2">
-                  <VideoThumb video={video} />
-                  <p className="min-w-0 flex-1 truncate text-[12px] font-semibold text-white">{video.title}</p>
-                </div>
-              ))}
+    <div className="space-y-4">
+      <header><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff6a4e]">Geografía</p><h2 className="mt-2 text-[clamp(2.2rem,5vw,4.25rem)] font-semibold leading-none tracking-[-0.05em] text-white">Países</h2><p className="mt-2 text-[14px] text-[#9aa3af]">Explora el rendimiento y las oportunidades comerciales por destino.</p></header>
+      <section className="overflow-hidden rounded-[16px] border border-white/10 bg-[#0c1016] xl:grid xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="min-w-0">
+          <div className="relative min-h-[330px] overflow-hidden border-b border-white/10">
+            <Image src="/map-proposal-earth.jpg" alt="Mapa de destinos de TravelYourMap" fill sizes="(max-width: 1279px) 100vw, 70vw" className="object-cover opacity-75" priority />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,9,13,0.08),rgba(7,9,13,0.78))]" />
+            <div className="absolute bottom-6 left-5 right-5 flex items-end justify-between gap-4 sm:left-8 sm:right-8">
+              <div><p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#ff8f77]">Destino seleccionado</p><h3 className="mt-2 text-[clamp(1.8rem,4vw,3.4rem)] font-semibold tracking-[-0.04em] text-white">{selectedCountry ? <CountryLabel countryCode={selectedCountry.country_code} countryName={selectedCountry.country_name} /> : "Tu mapa"}</h3><p className="mt-1 text-[13px] text-[#c6cdd5]">{selectedCountry ? `${selectedCountry.videos_count} videos · ${formatCompact(selectedCountry.total_views)} views` : `${payload.countries.length} países`}</p></div>
+              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-[#ff5a3d]/40 bg-[#ff5a3d]/15 text-[#ff7d63]"><MapPin size={22} weight="fill" /></span>
             </div>
           </div>
-        ) : (
-          <InlineEmpty text="No hay paises mapeados todavia." />
-        )}
-      </Panel>
+          <div className="divide-y divide-white/10">
+            {payload.countries.slice(0, 8).map((country, index) => (
+              <button key={country.country_code} type="button" className={cn("grid w-full gap-3 px-4 py-3 text-left hover:bg-white/[0.025] sm:grid-cols-[36px_minmax(150px,1fr)_110px_120px_minmax(120px,0.8fr)] sm:items-center", selectedCountry?.country_code === country.country_code && "bg-[#ff5a3d]/[0.06]")} onClick={() => onNavigate({ tab: "paises", country: country.country_code })}>
+                <span className="font-mono text-[12px] text-[#7d8794]">{index + 1}</span><strong className="min-w-0 text-[13px] text-white"><CountryLabel countryCode={country.country_code} countryName={country.country_name} /></strong><span className="text-[12px] text-[#aeb7c2]">{country.videos_count} videos</span><span className="font-mono text-[12px] text-white">{formatCompact(country.total_views)}</span><span className="flex items-center gap-3"><span className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/10"><span className="block h-full rounded-full bg-[#ff5a3d]" style={{ width: `${Math.max(8, Math.round((country.total_views / maxViews) * 100))}%` }} /></span><span className="text-[11px] text-[#9aa3af]">{country.has_sponsor ? "Cubierto" : "Disponible"}</span></span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <aside className="border-t border-white/10 bg-[#090d13] p-5 xl:border-l xl:border-t-0">
+          {selectedCountry ? <div className="space-y-5"><div className="relative aspect-[4/3] overflow-hidden rounded-lg bg-white/[0.04]">{selectedHero?.thumbnail_url ? <Image src={selectedHero.thumbnail_url} alt={selectedHero.title} fill sizes="320px" className="object-cover" /> : <Image src="/map-proposal-earth.jpg" alt="" fill sizes="320px" className="object-cover opacity-70" />}</div><div><h3 className="text-[24px] font-semibold tracking-[-0.03em] text-white"><CountryLabel countryCode={selectedCountry.country_code} countryName={selectedCountry.country_name} /></h3><p className="mt-1 text-[12px] text-[#9aa3af]">{selectedCountry.videos_count} videos · {formatCompact(selectedCountry.total_views)} views · {selectedCountry.cities_count} ciudades</p></div><div className="border-t border-white/10 pt-5"><p className="text-[13px] font-bold text-white">Oportunidad comercial</p><p className="mt-2 text-[12px] leading-5 text-[#9aa3af]">{selectedCountry.has_sponsor ? `Sponsor activo: ${selectedCountry.sponsor_names.join(", ")}.` : "Este país tiene tráfico sin monetizar y puede convertirse en inventario para una marca."}</p></div><button type="button" className="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ff5a3d] px-4 text-[14px] font-bold text-white" onClick={() => onNavigate({ tab: "sponsors", modal: "new-sponsor", country: selectedCountry.country_code })}><Tag size={18} />Agregar sponsor</button><div className="grid grid-cols-2 gap-2"><button type="button" className="min-h-11 rounded-lg border border-white/10 text-[12px] font-semibold text-white" onClick={() => onNavigate({ tab: "votaciones", modal: "new-vote", country: selectedCountry.country_code })}>Crear votación</button><Link href={`${payload.mapUrl}&country=${encodeURIComponent(selectedCountry.country_code)}`} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center justify-center rounded-lg border border-white/10 text-[12px] font-semibold text-white">Ver en mapa</Link></div></div> : <InlineEmpty text="No hay países mapeados todavía." />}
+        </aside>
+      </section>
     </div>
   );
 }
@@ -1098,23 +1027,32 @@ function VotesTab({
   onOpenNewVote: () => void;
 }) {
   const activePoll = payload.polls.find((poll) => poll.status === "live") || null;
+  const templates = payload.countries.slice(0, 3).map((country) => ({
+    country,
+    video: payload.videos.find((video) => video.country_code === country.country_code) || null,
+  }));
+  const [selectedTemplate, setSelectedTemplate] = useState(templates[0]?.country.country_code || "");
   return (
-    <div className="space-y-4">
-      <Panel title="Votacion activa" action="Nueva votacion" onAction={onOpenNewVote}>
-        {activePoll ? (
-          <PollCard poll={activePoll} payload={payload} mutate={mutate} />
-        ) : (
-          <EmptyState title="No hay votacion activa" description="Crea una votacion para convertir la audiencia en senales de destino y sponsor." action="Crear votacion" onAction={onOpenNewVote} />
-        )}
-      </Panel>
-      <Panel title="Historial">
-        <div className="divide-y divide-white/10">
-          {payload.polls.filter((poll) => poll.id !== activePoll?.id).map((poll) => (
-            <PollHistoryRow key={poll.id} poll={poll} payload={payload} mutate={mutate} />
-          ))}
-          {payload.polls.length <= (activePoll ? 1 : 0) ? <InlineEmpty text="Todavia no hay historial de votaciones." /> : null}
-        </div>
-      </Panel>
+    <div className="space-y-5">
+      {activePoll ? <><header><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff6a4e]">Votacion activa</p><h2 className="mt-2 text-[clamp(2.2rem,5vw,4.25rem)] font-semibold leading-none tracking-[-0.05em] text-white">{activePoll.title}</h2></header><Panel title="Resultados en vivo"><PollCard poll={activePoll} payload={payload} mutate={mutate} /></Panel></> : (
+        <section className="overflow-hidden rounded-[16px] border border-white/10 bg-[#0c1016] lg:grid lg:grid-cols-[minmax(0,1fr)_420px]">
+          <div className="p-5 sm:p-8">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff6a4e]">Votaciones</p>
+            <h2 className="mt-3 max-w-3xl text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.98] tracking-[-0.05em] text-white">¿A dónde debería viajar después?</h2>
+            <p className="mt-3 text-[14px] text-[#9aa3af]">No hay una votación activa. Elige un set rápido y personalízalo antes de publicar.</p>
+            <div className="mt-7 grid gap-3 sm:grid-cols-3">
+              {templates.map(({ country, video }) => {
+                const selected = selectedTemplate === country.country_code;
+                return <button key={country.country_code} type="button" className={cn("group relative min-h-[170px] overflow-hidden rounded-lg border text-left", selected ? "border-[#ff5a3d]" : "border-white/10")} onClick={() => setSelectedTemplate(country.country_code)}>{video?.thumbnail_url ? <Image src={video.thumbnail_url} alt="" fill sizes="220px" className="object-cover transition duration-300 group-hover:scale-[1.03]" /> : <Image src="/map-proposal-earth.jpg" alt="" fill sizes="220px" className="object-cover" />}<span className="absolute inset-0 bg-black/35" /><span className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2"><strong className="min-w-0 text-[14px] text-white"><CountryLabel countryCode={country.country_code} countryName={country.country_name} /></strong>{selected ? <span className="grid h-7 w-7 place-items-center rounded-full bg-[#ff5a3d] text-white"><Check size={16} weight="bold" /></span> : null}</span></button>;
+              })}
+            </div>
+            <label className="mt-6 block"><span className="text-[12px] font-bold text-white">Pregunta</span><input value="¿Cuál debería ser mi próximo destino?" readOnly aria-label="Pregunta de la votación" className="mt-2 min-h-12 w-full rounded-lg border border-white/10 bg-[#090d13] px-4 text-[14px] text-white outline-none" /></label>
+            <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between"><button type="button" className="min-h-11 px-2 text-[13px] font-semibold text-[#ff8f77]" onClick={onOpenNewVote}>Personalizar opciones</button><button type="button" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-[#ff5a3d] px-5 text-[14px] font-bold text-white" onClick={onOpenNewVote}><ChartBar size={18} />Publicar votación</button></div>
+          </div>
+          <aside className="border-t border-white/10 bg-[#090d13] p-5 lg:border-l lg:border-t-0 lg:p-7"><div className="flex items-center justify-between gap-3"><h3 className="text-[14px] font-bold text-white">Vista previa</h3><span className="text-[11px] text-[#7d8794]">Así se verá en el mapa</span></div><div className="mt-5 rounded-[14px] border border-white/10 bg-[#0c1016] p-4"><div className="flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-full bg-white/[0.06] text-[11px] font-black text-white">PN</div><div><p className="text-[13px] font-bold text-white">{payload.channel.channel_name}</p><p className="text-[11px] text-[#7d8794]">17 jul 2026</p></div></div><h4 className="mt-5 text-[18px] font-semibold text-white">¿Cuál debería ser mi próximo destino?</h4><div className="mt-4 space-y-2">{templates.map(({ country, video }) => <div key={country.country_code} className="flex min-h-14 items-center gap-3 rounded-lg border border-white/10 p-2"><div className="relative h-11 w-16 shrink-0 overflow-hidden rounded-md bg-white/[0.04]">{video?.thumbnail_url ? <Image src={video.thumbnail_url} alt="" fill sizes="64px" className="object-cover" /> : null}</div><CountryLabel countryCode={country.country_code} countryName={country.country_name} className="min-w-0 flex-1 text-[12px] font-semibold text-white" /><span className={cn("h-5 w-5 rounded-full border", selectedTemplate === country.country_code ? "border-[#ff5a3d] bg-[#ff5a3d]" : "border-white/25")} /></div>)}</div><p className="mt-4 text-[11px] text-[#7d8794]">0 votos · termina en 7 días</p></div></aside>
+        </section>
+      )}
+      <section className="rounded-[16px] border border-white/10 bg-[#0c1016] p-5"><h3 className="text-[20px] font-semibold text-white">Historial</h3><div className="mt-3 divide-y divide-white/10">{payload.polls.filter((poll) => poll.id !== activePoll?.id).map((poll) => <PollHistoryRow key={poll.id} poll={poll} payload={payload} mutate={mutate} />)}{payload.polls.length <= (activePoll ? 1 : 0) ? <InlineEmpty text="Todavia no hay historial. Los resultados apareceran despues de publicar." /> : null}</div></section>
     </div>
   );
 }
@@ -1134,7 +1072,7 @@ function PollCard({ poll, payload, mutate }: { poll: CreatorAdminPoll; payload: 
         {poll.options.map((option) => (
           <div key={`${option.country_code}-${option.city || "country"}`}>
             <div className="mb-1 flex justify-between text-[12px]">
-              <span className="font-bold text-white">{option.country_name}{option.city ? `, ${option.city}` : ""}</span>
+              <span className="min-w-0 font-bold text-white"><CountryLabel countryCode={option.country_code} countryName={`${option.country_name}${option.city ? `, ${option.city}` : ""}`} /></span>
               <span className="font-mono text-[#9aa3af]">{option.votes} · {option.percentage}%</span>
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-white/10">
@@ -1158,7 +1096,7 @@ function PollHistoryRow({ poll, payload, mutate }: { poll: CreatorAdminPoll; pay
     <div className="grid gap-3 py-3 md:grid-cols-[1fr_auto_auto] md:items-center">
       <div>
         <p className="text-[13px] font-bold text-white">{poll.title}</p>
-        <p className="mt-1 text-[11px] text-[#8e98a6]">{poll.total_votes} votos · ganador: {winner ? `${winner.country_name}${winner.city ? `, ${winner.city}` : ""}` : "sin votos"}</p>
+        <div className="mt-1 flex min-w-0 items-center gap-1.5 text-[11px] text-[#8e98a6]"><span>{poll.total_votes} votos · ganador:</span>{winner ? <CountryLabel countryCode={winner.country_code} countryName={`${winner.country_name}${winner.city ? `, ${winner.city}` : ""}`} /> : <span>sin votos</span>}</div>
       </div>
       <span className="text-[11px] text-[#8e98a6]">{poll.converted_to_destination ? "Convertida en destino" : "No convertida"}</span>
       <ActionButton onClick={() => void mutate("/api/map-admin/polls", { method: "POST", body: JSON.stringify({ action: "convert", channelId: payload.channel.id, pollId: poll.id }) }, "Destino actualizado.")}>
@@ -1198,15 +1136,14 @@ function SponsorsTab({
   const [reportEmailDrafts, setReportEmailDrafts] = useState<Record<string, string>>({});
   const [scheduleEmailDrafts, setScheduleEmailDrafts] = useState<Record<string, string>>({});
   const [scheduleCadenceDrafts, setScheduleCadenceDrafts] = useState<Record<string, SponsorReportCadence>>({});
+  const [showSponsorOperations, setShowSponsorOperations] = useState(false);
   const activeSponsors = payload.sponsors.filter((sponsor) => sponsor.active);
-  const pausedSponsors = payload.sponsors.length - activeSponsors.length;
   const inventory = payload.countries
     .filter((country) => !country.has_sponsor && country.videos_count > 0)
     .sort((a, b) => b.total_views - a.total_views || b.videos_count - a.videos_count);
   const sponsorClicks = payload.sponsors.reduce((sum, sponsor) => sum + sponsor.click_count, 0);
   const sponsoredVideos = new Set(payload.sponsors.flatMap((sponsor) => sponsor.video_ids)).size;
   const sponsoredCountries = new Set(payload.sponsors.flatMap((sponsor) => sponsor.country_codes)).size;
-  const globalSponsors = payload.sponsors.filter((sponsor) => sponsor.scope === "global" && sponsor.active).length;
   const bulkCountryOptions = useMemo(() => {
     return payload.countries
       .map((country) => ({ code: country.country_code, name: country.country_name }))
@@ -1232,7 +1169,7 @@ function SponsorsTab({
         return {
           id: videoId,
           title: video.title,
-          country: String(video.country_name || video.country_code || "-"),
+          country: String(video.country_name || "Destino sin identificar"),
           countryCode: String(video.country_code || "").toUpperCase(),
           status,
           sponsorNames: Array.from(new Set((video.sponsor_names || []).filter(Boolean))),
@@ -1337,7 +1274,7 @@ function SponsorsTab({
       `Te comparto el reporte privado de resultados de ${sponsor.brand_name} en TravelYourMap:`,
       url,
       "",
-      "El reporte incluye clicks, alcance dentro del mapa, videos destacados, paises con mayor actividad y contexto importado desde YouTube.",
+      "El reporte incluye clics, alcance dentro del mapa, videos destacados, países con mayor actividad y contexto importado desde YouTube.",
       "",
       `Saludos,`,
       payload.channel.channel_name,
@@ -1654,50 +1591,61 @@ function SponsorsTab({
     }
   }
 
+  const leadInventory = inventory[0] || null;
   const sponsorSidebar = (
-    <div className="space-y-4">
-      <Panel title="Espacios disponibles" description="Paises con inventario de videos y views de YouTube sin sponsor activo.">
-        <div className="divide-y divide-white/10">
-          {inventory.slice(0, 8).map((country) => (
-            <div key={country.country_code} className="py-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="truncate text-[13px] font-bold text-white">{country.country_name}</p>
-                  <p className="text-[11px] text-[#8e98a6]">{country.videos_count} videos · {formatCompact(country.total_views)} views</p>
-                </div>
-                <button type="button" className="h-8 rounded-lg bg-[#ff5a3d] px-2 text-[11px] font-black text-white" onClick={() => onNew(country.country_code)}>
-                  Crear
-                </button>
-              </div>
+    <section className="overflow-hidden rounded-[16px] border border-white/10 bg-[#0c1016] xl:grid xl:grid-cols-[minmax(0,1fr)_380px]">
+      <div className="min-w-0 p-5 sm:p-7">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff6a4e]">Sponsors</p>
+        <h2 className="mt-3 max-w-3xl text-[clamp(2.2rem,5vw,4.5rem)] font-semibold leading-[0.98] tracking-[-0.05em] text-white">Convierte tu mapa en inventario para marcas</h2>
+        <p className="mt-3 text-[14px] text-[#9aa3af]">{inventory.length} países disponibles · {activeSponsors.length} sponsors activos</p>
+        <div className="relative mt-6 min-h-[270px] overflow-hidden rounded-[12px] border border-white/10">
+          <Image src="/map-proposal-earth.jpg" alt="Cobertura comercial por destino" fill sizes="(max-width: 1279px) 100vw, 65vw" className="object-cover opacity-70" priority />
+          <div className="absolute inset-0 bg-black/30" />
+          <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#ff8f77]">Mayor oportunidad</p><h3 className="mt-1 text-[22px] font-semibold text-white">{leadInventory ? <CountryLabel countryCode={leadInventory.country_code} countryName={leadInventory.country_name} /> : "Inventario cubierto"}</h3><p className="text-[12px] text-[#c6cdd5]">{leadInventory ? `${leadInventory.videos_count} videos · ${formatCompact(leadInventory.total_views)} views` : "Todos los destinos tienen cobertura"}</p></div><span className="rounded-lg bg-black/65 px-3 py-2 font-mono text-[12px] text-white">{sponsoredCountries} / {payload.countries.length} monetizados</span></div>
+        </div>
+        <div className="mt-4 divide-y divide-white/10">{inventory.slice(0, 6).map((country, index) => <button key={country.country_code} type="button" className="grid min-h-14 w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 py-3 text-left hover:bg-white/[0.025] sm:grid-cols-[30px_minmax(0,1fr)_90px_90px] sm:gap-3" onClick={() => onNew(country.country_code)}><span className="row-span-2 self-start pt-0.5 font-mono text-[11px] text-[#7d8794] sm:row-span-1 sm:self-center sm:pt-0">{index + 1}</span><CountryLabel countryCode={country.country_code} countryName={country.country_name} className="min-w-0 text-[13px] font-semibold text-white" /><span className="col-start-2 text-[11px] text-[#9aa3af] sm:col-start-auto">{country.videos_count} videos</span><span className="col-start-3 row-span-2 row-start-1 text-right font-mono text-[11px] text-white sm:col-start-auto sm:row-span-1 sm:row-start-auto">{formatCompact(country.total_views)}</span></button>)}{inventory.length === 0 ? <InlineEmpty text="Todos los países activos tienen sponsor asignado." /> : null}</div>
+      </div>
+      <aside className="border-t border-white/10 bg-[#090d13] p-5 xl:border-l xl:border-t-0 xl:p-6">
+        <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#7d8794]">Define el alcance</p>
+        <h3 className="mt-2 text-[24px] font-semibold text-white">{leadInventory ? <CountryLabel countryCode={leadInventory.country_code} countryName={leadInventory.country_name} /> : "Nuevo sponsor"}</h3>
+        <p className="mt-1 text-[12px] text-[#9aa3af]">Elige dónde aparecerá la marca.</p>
+        <div className="mt-6 divide-y divide-white/10 rounded-lg border border-white/10">
+          {[
+            { label: "Este país", detail: "Todo el contenido del destino" },
+            { label: "Videos específicos", detail: "Solo en los videos elegidos" },
+            { label: "Todo el mapa", detail: "Cobertura global" },
+          ].map((scope, index) => (
+            <div key={scope.label} className="flex min-h-[74px] items-start gap-3 p-3">
+              <span className={cn("mt-1 h-5 w-5 shrink-0 rounded-full border", index === 0 ? "border-[#ff5a3d] bg-[#ff5a3d]" : "border-white/25")} />
+              <span><strong className="block text-[13px] text-white">{scope.label}</strong><span className="mt-1 block text-[11px] text-[#8e98a6]">{scope.detail}</span></span>
             </div>
           ))}
-          {inventory.length === 0 ? <InlineEmpty text="Todos los paises activos tienen sponsor asignado." /> : null}
         </div>
-      </Panel>
-      <Panel title="Asignacion y diseno" description="El wizard conserva preview, CTA, cupones, colores y alcance por pais o video.">
-        <div className="space-y-3 text-[12px] leading-5 text-[#aeb7c2]">
-          <p>Usa alcance global para marcas generales, pais para sponsors locales y video para integraciones puntuales.</p>
-          <p>Cuando dos o mas sponsors caen en una misma card, el mapa usa Multi sponsor automaticamente.</p>
-          <button type="button" className="h-9 w-full rounded-lg border border-white/10 text-[12px] font-black text-white hover:bg-white/[0.06]" onClick={() => onNew(null)}>
-            Abrir wizard completo
-          </button>
+        <div className="mt-6 border-t border-white/10 pt-5">
+          <p className="text-[12px] font-bold text-white">Resumen de cobertura</p>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#ff5a3d]" style={{ width: `${Math.max(3, Math.round((sponsoredCountries / Math.max(1, payload.countries.length)) * 100))}%` }} /></div>
+          <p className="mt-2 text-[11px] text-[#8e98a6]">{sponsoredVideos} videos cubiertos · {sponsorClicks} clicks</p>
         </div>
-      </Panel>
-    </div>
+        <button type="button" className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-[#ff5a3d] px-4 text-[14px] font-bold text-white" onClick={() => onNew(leadInventory?.country_code || null)}><Plus size={18} />Crear sponsor{leadInventory ? <> para <CountryLabel countryCode={leadInventory.country_code} countryName={leadInventory.country_name} /></> : null}</button>
+        <button type="button" className="mt-2 min-h-11 w-full text-[12px] font-semibold text-[#ff8f77]" onClick={() => onNew(null)}>Abrir wizard completo</button>
+      </aside>
+    </section>
   );
 
   return (
     <div className="space-y-4">
       {sponsorSidebar}
 
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi title="Sponsors activos" value={activeSponsors.length} detail={pausedSponsors ? `${pausedSponsors} archivados conservan historial` : "Todos los sponsors estan activos"} onClick={() => onNew(null)} />
-        <Kpi title="Clicks sponsor" value={sponsorClicks} detail="Conversiones capturadas en el mapa" />
-        <Kpi title="Videos cubiertos" value={sponsoredVideos} detail={`${globalSponsors} sponsor global${globalSponsors === 1 ? "" : "es"}`} />
-        <Kpi title="Paises monetizados" value={sponsoredCountries} detail={inventory[0] ? `${inventory[0].country_name} es oportunidad` : "Sin paises pendientes"} tone={inventory.length > 0 ? "warning" : "success"} />
-      </section>
+      <button
+        type="button"
+        onClick={() => setShowSponsorOperations((current) => !current)}
+        className="flex min-h-12 w-full items-center justify-between gap-4 rounded-xl border border-white/10 bg-white/[0.025] px-4 text-left text-[12px] font-black text-white transition hover:bg-white/[0.05]"
+      >
+        <span>{showSponsorOperations ? "Ocultar operaciones avanzadas" : "Gestionar sponsors, reportes y asignaciones"}</span>
+        <span className="text-[#ff7b63]">{showSponsorOperations ? "Cerrar" : "Abrir"}</span>
+      </button>
 
-      <div className="grid gap-4">
+      {showSponsorOperations ? <div className="grid gap-4">
         <Panel title="Sponsors activos" description="Gestiona marca, estilo visual, CTA, alcance y pausa sin perder metricas." action="Nuevo sponsor" onAction={() => onNew(null)}>
           <div className="divide-y divide-white/10">
             {payload.sponsors.map((sponsor) => {
@@ -1714,7 +1662,7 @@ function SponsorsTab({
                         <div className="min-w-0">
                           <p className="truncate text-[13px] font-black text-white">{sponsor.brand_name}</p>
                           <p className="mt-1 truncate text-[11px] text-[#8e98a6]">
-                            {sponsor.category_name || "Sin categoria"} · {formatSponsorScope(sponsor)}
+                            {sponsor.category_name || "Sin categoria"} · <SponsorScopeLabel sponsor={sponsor} countries={payload.countries} />
                           </p>
                         </div>
                       </div>
@@ -1826,8 +1774,6 @@ function SponsorsTab({
           {reportMessage ? <p className="mt-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] text-[#b7d9ff]">{reportMessage}</p> : null}
         </Panel>
 
-      </div>
-
       <div className="rounded-lg border border-white/10 bg-white/[0.02] p-3">
         <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[#c4cbd4]">Asignación masiva por video</p>
         <div className="mt-2 grid gap-2 md:grid-cols-4">
@@ -1837,12 +1783,13 @@ function SponsorsTab({
               setBulkCountryFilter(event.target.value);
               setBulkPage(1);
             }}
+            aria-label="Filtrar asignaciones por pais"
             className="h-9 rounded-lg border border-white/10 bg-white/[0.03] px-2 text-[12px] text-[#f5f7fb] outline-none"
           >
             <option value="all">Todos los países</option>
             {bulkCountryOptions.map((country) => (
               <option key={country.code} value={country.code}>
-                {country.name} ({country.code})
+                {country.name}
               </option>
             ))}
           </select>
@@ -1984,15 +1931,14 @@ function SponsorsTab({
                         "inline-flex max-w-full items-center gap-2 rounded-full border px-2.5 py-1 text-[10px] font-semibold",
                         getBulkPillToneClasses(row.status)
                       )}
-                      title={`${row.country} (${row.countryCode})`}
+                      title={row.country}
                     >
                       {row.countryCode ? (
-                        <span className={`fi fi-${row.countryCode.toLowerCase()} shrink-0 text-[12px] leading-none`} />
+                        <span className={`fi fi-${row.countryCode.toLowerCase()} shrink-0 text-[12px] leading-none`} aria-hidden="true" />
                       ) : (
-                        <span className="shrink-0 text-[11px] leading-none">🌍</span>
+                        <GlobeHemisphereWest size={13} className="shrink-0" aria-hidden="true" />
                       )}
                       <span className="min-w-0 truncate">{row.country}</span>
-                      <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.08em] text-white/55">{row.countryCode || "--"}</span>
                     </span>
                   </td>
                   <td className="px-2 py-2">{formatSponsorStatus(row.status)}</td>
@@ -2050,6 +1996,7 @@ function SponsorsTab({
           </div>
         </div>
       </div>
+      </div> : null}
     </div>
   );
 }
@@ -2076,7 +2023,21 @@ function MediaKitTab({ payload }: { payload: CreatorAdminPayload }) {
           setFormState(body.mediaKit.settings);
         }
       } catch (error) {
-        if (!cancelled) setMessage(error instanceof Error ? error.message : "No se pudo cargar el media kit.");
+        if (!cancelled) {
+          setFormState({
+            public_enabled: false,
+            headline: `${payload.channel.channel_name} — viajes que se convierten en intención`,
+            bio: "Creo contenido de viaje que inspira a planear, elegir y reservar. Conecto destinos, experiencias y marcas con una comunidad que viaja con curiosidad.",
+            audience_note: "Audiencia interesada en cultura local, rutas prácticas y experiencias auténticas.",
+            partnership_email: null,
+            rate_card_url: null,
+            preferred_cta_label: "Contactar para partnership",
+            featured_country_codes: payload.countries.slice(0, 3).map((country) => country.country_code),
+          });
+          setMessage(error instanceof Error && !error.message.includes("Channel not found")
+            ? error.message
+            : "No pudimos cargar los datos guardados. Puedes editar esta copia y volver a publicar.");
+        }
       } finally {
         if (!cancelled) setBusy("idle");
       }
@@ -2085,7 +2046,7 @@ function MediaKitTab({ payload }: { payload: CreatorAdminPayload }) {
     return () => {
       cancelled = true;
     };
-  }, [payload.channel.id]);
+  }, [payload.channel.channel_name, payload.channel.id, payload.countries]);
 
   function updateField<K extends keyof MediaKitAdminPayload["settings"]>(key: K, value: MediaKitAdminPayload["settings"][K]) {
     setFormState((current) => current ? { ...current, [key]: value } : current);
@@ -2136,18 +2097,18 @@ function MediaKitTab({ payload }: { payload: CreatorAdminPayload }) {
   }
 
   const selectedCountries = new Set(formState?.featured_country_codes || []);
+  const completedFields = formState ? [formState.headline, formState.bio, formState.partnership_email, formState.audience_note, formState.featured_country_codes.length > 0 ? "destinations" : ""].filter(Boolean).length : 0;
+  const completion = Math.round((completedFields / 5) * 100);
+  const previewCountries = payload.countries.filter((country) => selectedCountries.has(country.country_code)).slice(0, 3);
+  const visiblePreviewCountries = previewCountries.length > 0 ? previewCountries : payload.countries.slice(0, 3);
+  const heroVideo = payload.videos.find((video) => selectedCountries.has(video.country_code || "") && video.thumbnail_url) || payload.videos.find((video) => video.thumbnail_url) || null;
 
   return (
-    <div className="space-y-4">
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi title="Videos comerciales" value={mediaKit?.summary.videos || payload.summary.videos_mapped} detail="Inventario visible para marcas" />
-        <Kpi title="Paises vendibles" value={mediaKit?.summary.countries || payload.summary.countries_covered} detail={`${mediaKit?.summary.cities || payload.summary.cities_covered} ciudades`} />
-        <Kpi title="Sponsors activos" value={mediaKit?.summary.active_sponsors || payload.sponsors.filter((sponsor) => sponsor.active).length} detail="Prueba comercial visible" />
-        <Kpi title="Leads 30d" value={mediaKit?.summary.inquiries_30d || 0} detail="Solicitudes recibidas desde sponsor forms" />
-      </section>
+    <div className="space-y-5">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff6a4e]">Media Kit</p><h2 className="mt-2 text-[clamp(2.2rem,5vw,4.25rem)] font-semibold leading-none tracking-[-0.05em] text-white">Tu historia para marcas</h2><p className="mt-2 text-[14px] text-[#9aa3af]">Edita la presentación y comprueba el resultado en vivo.</p></div><div className="w-full max-w-xs"><div className="flex items-center justify-between text-[12px]"><span className="font-semibold text-white">{completion}% listo para publicar</span><span className="text-[#7d8794]">Presentación</span></div><div className="mt-2 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-[#ff5a3d]" style={{ width: `${Math.max(4, completion)}%` }} /></div></div></header>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
-        <Panel title="Configuracion del Media Kit" description="Edita la pagina publica que una marca puede usar para evaluar partnership contigo.">
+      <div className="grid gap-4 xl:grid-cols-[380px_minmax(0,1fr)]">
+        <Panel title="Presentacion" description="Solo los campos necesarios para este paso.">
           {busy === "loading" ? <InlineEmpty text="Cargando media kit..." /> : null}
           {formState ? (
             <div className="space-y-4">
@@ -2166,49 +2127,23 @@ function MediaKitTab({ payload }: { payload: CreatorAdminPayload }) {
               </label>
 
               <Field
-                label="Headline"
+                label="Titulo"
                 value={formState.headline || ""}
                 maxLength={140}
                 onChange={(event) => updateField("headline", event.currentTarget.value)}
               />
               <TextArea
-                label="Bio comercial"
+                label="Sobre mi"
                 value={formState.bio || ""}
                 maxLength={900}
                 rows={5}
                 onChange={(event) => updateField("bio", event.currentTarget.value)}
               />
-              <TextArea
-                label="Nota de audiencia"
-                value={formState.audience_note || ""}
-                maxLength={500}
-                rows={3}
-                onChange={(event) => updateField("audience_note", event.currentTarget.value)}
-              />
-              <div className="grid gap-3 md:grid-cols-3">
-                <Field
-                  label="Email partnership"
-                  type="email"
-                  value={formState.partnership_email || ""}
-                  onChange={(event) => updateField("partnership_email", event.currentTarget.value)}
-                />
-                <Field
-                  label="Rate card URL"
-                  type="url"
-                  value={formState.rate_card_url || ""}
-                  onChange={(event) => updateField("rate_card_url", event.currentTarget.value)}
-                />
-                <Field
-                  label="CTA principal"
-                  value={formState.preferred_cta_label || ""}
-                  maxLength={80}
-                  onChange={(event) => updateField("preferred_cta_label", event.currentTarget.value)}
-                />
-              </div>
+              <Field label="Email de contacto" type="email" value={formState.partnership_email || ""} onChange={(event) => updateField("partnership_email", event.currentTarget.value)} />
 
               <div>
-                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[#9aa3af]">Paises destacados</p>
-                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.1em] text-[#9aa3af]">Países destacados</p>
+                <div className="grid gap-2 sm:grid-cols-2">
                   {payload.countries.slice(0, 12).map((country) => (
                     <label key={country.country_code} className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] text-white">
                       <input
@@ -2216,50 +2151,21 @@ function MediaKitTab({ payload }: { payload: CreatorAdminPayload }) {
                         checked={selectedCountries.has(country.country_code)}
                         onChange={() => toggleFeaturedCountry(country.country_code)}
                       />
-                      <span className="min-w-0 truncate">{country.country_name}</span>
+                      <CountryLabel countryCode={country.country_code} countryName={country.country_name} className="min-w-0" />
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <Button type="button" onClick={() => void saveMediaKit()} disabled={busy !== "idle"}>
-                  {busy === "saving" ? "Guardando..." : "Guardar Media Kit"}
-                </Button>
-                <Button type="button" variant="outline" onClick={() => void copyMediaKitLink()} disabled={!mediaKit?.urls.absoluteMediaKitUrl}>
-                  Copiar link
-                </Button>
-                <Button type="button" variant="outline" onClick={() => mediaKit?.urls.absoluteMediaKitUrl ? window.open(mediaKit.urls.absoluteMediaKitUrl, "_blank", "noopener,noreferrer") : setMessage("El link del media kit no esta disponible.")} disabled={!mediaKit?.urls.absoluteMediaKitUrl}>
-                  Abrir pagina
-                </Button>
-              </div>
+              <details className="rounded-lg border border-white/10 bg-white/[0.02] p-3"><summary className="cursor-pointer text-[12px] font-semibold text-white">Ajustes avanzados</summary><div className="mt-3 space-y-3"><TextArea label="Nota de audiencia" value={formState.audience_note || ""} maxLength={500} rows={3} onChange={(event) => updateField("audience_note", event.currentTarget.value)} /><Field label="Rate card URL" type="url" value={formState.rate_card_url || ""} onChange={(event) => updateField("rate_card_url", event.currentTarget.value)} /><Field label="CTA principal" value={formState.preferred_cta_label || ""} maxLength={80} onChange={(event) => updateField("preferred_cta_label", event.currentTarget.value)} /></div></details>
+              <Button type="button" className="min-h-12 w-full" onClick={() => void saveMediaKit()} disabled={busy !== "idle"}>{busy === "saving" ? "Guardando..." : "Guardar y publicar"}</Button>
+              <div className="grid grid-cols-2 gap-2"><Button type="button" variant="outline" onClick={() => void copyMediaKitLink()} disabled={!mediaKit?.urls.absoluteMediaKitUrl}>Copiar link</Button><Button type="button" variant="outline" onClick={() => mediaKit?.urls.absoluteMediaKitUrl ? window.open(mediaKit.urls.absoluteMediaKitUrl, "_blank", "noopener,noreferrer") : setMessage("El link del media kit no está disponible.")} disabled={!mediaKit?.urls.absoluteMediaKitUrl}>Ver página</Button></div>
               {message ? <p className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] text-[#b7d9ff]">{message}</p> : null}
             </div>
           ) : null}
         </Panel>
 
-        <div className="space-y-4">
-          <Panel title="Preview comercial" description="Lo que una marca entiende antes de escribirte.">
-            <div className="space-y-3">
-              <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8e98a6]">URL publica</p>
-                <p className="mt-2 break-all text-[12px] font-bold text-white">{mediaKit?.urls.absoluteMediaKitUrl || "Pendiente de cargar"}</p>
-              </div>
-              <SourcePill label="YouTube importado" value={`${formatCompact(mediaKit?.summary.youtube_views || 0)} views`} />
-              <SourcePill label="TravelYourMap 30d" value={`${formatCompact(mediaKit?.summary.map_events_30d || 0)} senales`} />
-              <SourcePill label="Clicks sponsor 30d" value={`${formatCompact(mediaKit?.summary.sponsor_clicks_30d || 0)} clicks`} />
-            </div>
-          </Panel>
-          <Panel title="Destinos destacados">
-            <RankList
-              rows={(mediaKit?.topCountries || []).map((country) => ({
-                label: `${country.country_name} · ${country.videos_count} videos`,
-                value: country.youtube_views,
-              }))}
-              empty="Todavia no hay destinos suficientes para mostrar."
-            />
-          </Panel>
-        </div>
+        <section className="overflow-hidden rounded-[16px] border border-white/10 bg-[#0c1016]"><div className="grid lg:grid-cols-[0.82fr_1.18fr]"><div className="flex flex-col justify-center p-6 sm:p-8"><p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff6a4e]">Media Kit</p><h3 className="mt-3 text-[clamp(2rem,4vw,3.6rem)] font-semibold leading-none tracking-[-0.04em] text-white">{payload.channel.channel_name}</h3><p className="mt-4 text-[13px] font-semibold leading-5 text-[#d8dde3]">{formState?.headline || "Viajes que se convierten en intención"}</p><p className="mt-3 line-clamp-5 text-[13px] leading-6 text-[#aeb7c2]">{formState?.bio || "Comparte tu historia, tu audiencia y los destinos que hacen único tu contenido."}</p><div className="mt-6 flex gap-8"><div><strong className="block font-mono text-[28px] text-white">{mediaKit?.summary.videos || payload.summary.videos_mapped}</strong><span className="text-[11px] text-[#8e98a6]">videos comerciales</span></div><div><strong className="block font-mono text-[28px] text-white">{mediaKit?.summary.countries || payload.summary.countries_covered}</strong><span className="text-[11px] text-[#8e98a6]">países vendibles</span></div></div><p className="mt-5 text-[11px] text-[#7d8794]">{mediaKit?.summary.active_sponsors || 0} sponsors activos · {mediaKit?.summary.inquiries_30d || 0} leads en 30 días</p></div><div className="relative min-h-[300px] bg-white/[0.03]">{heroVideo?.thumbnail_url ? <Image src={heroVideo.thumbnail_url} alt={heroVideo.title} fill sizes="(max-width:1023px) 100vw, 45vw" className="object-cover" /> : <Image src="/map-proposal-earth.jpg" alt="" fill sizes="45vw" className="object-cover" />}</div></div><div className="border-t border-white/10 p-6"><h4 className="text-[22px] font-semibold text-white">Destinos destacados</h4><div className="mt-4 grid gap-3 sm:grid-cols-3">{visiblePreviewCountries.map((country) => { const video = payload.videos.find((item) => item.country_code === country.country_code && item.thumbnail_url); return <article key={country.country_code} className="overflow-hidden rounded-lg border border-white/10"><div className="relative aspect-video bg-white/[0.04]">{video?.thumbnail_url ? <Image src={video.thumbnail_url} alt="" fill sizes="220px" className="object-cover" /> : null}</div><div className="p-3"><CountryLabel countryCode={country.country_code} countryName={country.country_name} className="text-[13px] font-bold text-white" /><p className="mt-1 text-[11px] text-[#8e98a6]">{country.videos_count} videos · {formatCompact(country.total_views)} views</p></div></article>; })}</div><div className="mt-5 flex flex-col gap-3 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="text-[14px] font-bold text-white">¿Listos para trabajar juntos?</p><p className="mt-1 text-[11px] text-[#8e98a6]">Colaboraciones auténticas conectadas con viajeros reales.</p></div><button type="button" className="min-h-11 rounded-lg bg-[#ff5a3d] px-4 text-[13px] font-bold text-white">{formState?.preferred_cta_label || "Contactar para partnership"}</button></div></div></section>
       </div>
     </div>
   );
@@ -2306,7 +2212,7 @@ type BusinessSubview = (typeof BUSINESS_SUBVIEWS)[number];
 const BUSINESS_SUBVIEW_LABELS: Record<BusinessSubview, string> = {
   resumen: "Resumen",
   leads: "Leads",
-  campanas: "Campanas",
+  campanas: "Campañas",
   colaboraciones: "Colaboraciones",
   balance: "Balance",
   agenda: "Agenda",
@@ -2703,7 +2609,6 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
   const campaigns = crm?.campaigns || [];
   const inquiries = crm?.inquiries || [];
   const collaborations = campaigns.filter((campaign) => Boolean(campaign.agreement_type));
-  const evaluatingCollaborations = collaborations.filter((campaign) => ["lead", "proposal", "negotiation"].includes(campaign.status));
   const activeCollaborations = collaborations.filter((campaign) => ["active", "delivered", "paid"].includes(campaign.status));
   const staleLead = inquiries.find((inquiry) => ["new", "reviewed"].includes(inquiry.status) && daysSince(inquiry.created_at) >= 3) || null;
   const overduePayment = campaigns
@@ -2804,19 +2709,82 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
       return new Date(a.due_date).getTime() - new Date(b.due_date).getTime();
     })
     .slice(0, 8);
+  const friendlyMessage = message?.includes("Channel not found")
+    ? "YouTube aún no está conectado. Revisa la conexión para completar las recomendaciones comerciales."
+    : message?.includes("Could not load sponsor CRM")
+      ? "No pudimos cargar el CRM comercial. Intenta de nuevo en unos segundos."
+      : message;
+  const pipelineColumns = [
+    {
+      label: "Por responder",
+      tone: "text-[#ffcf70]",
+      items: inquiries.filter((inquiry) => ["new", "reviewed"].includes(inquiry.status)).slice(0, 3).map((inquiry) => ({
+        id: `inquiry:${inquiry.id}`,
+        title: inquiry.brand_name,
+        detail: inquiry.brief,
+        amount: inquiry.proposed_budget_usd,
+      })),
+    },
+    {
+      label: "En negociacion",
+      tone: "text-[#ff7b63]",
+      items: campaigns.filter((campaign) => ["lead", "proposal", "negotiation"].includes(campaign.status)).slice(0, 3).map((campaign) => ({
+        id: `campaign:${campaign.id}`,
+        title: campaign.brand_name,
+        detail: campaign.title,
+        amount: campaign.budget_usd,
+      })),
+    },
+    {
+      label: "Activas",
+      tone: "text-[#62d6a9]",
+      items: campaigns.filter((campaign) => campaign.status === "active").slice(0, 3).map((campaign) => ({
+        id: `active:${campaign.id}`,
+        title: campaign.brand_name,
+        detail: campaign.title,
+        amount: campaign.budget_usd,
+      })),
+    },
+  ];
 
   return (
-    <div className="space-y-4">
-      <div className="overflow-x-auto rounded-lg border border-white/10 bg-white/[0.025] p-1">
-        <div className="flex min-w-max gap-1">
+    <div className="space-y-6">
+      <header className="flex flex-col gap-5 border-b border-white/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#ff7b63]">Operación comercial</p>
+          <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white md:text-4xl">Negocio</h2>
+          <p className="mt-2 max-w-xl text-[13px] leading-6 text-[#98a1ad]">Oportunidades, entregables y cobros en una sola vista de trabajo.</p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setBusinessView("colaboraciones")}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#ff5a3d] px-5 text-[13px] font-black text-white transition hover:bg-[#ff6a50]"
+        >
+          <Plus size={16} weight="bold" /> Agregar oportunidad
+        </button>
+      </header>
+
+      <label className="block lg:hidden">
+        <span className="sr-only">Vista de negocio</span>
+        <select
+          value={businessView}
+          onChange={(event) => setBusinessView(event.target.value as BusinessSubview)}
+          className="min-h-12 w-full rounded-xl border border-white/10 bg-[#111416] px-4 text-[13px] font-bold text-white outline-none focus:border-[#ff5a3d]"
+        >
+          {BUSINESS_SUBVIEWS.map((view) => <option key={view} value={view}>{BUSINESS_SUBVIEW_LABELS[view]}</option>)}
+        </select>
+      </label>
+
+      <div className="hidden border-b border-white/10 lg:block">
+        <div className="flex gap-7">
           {BUSINESS_SUBVIEWS.map((view) => (
             <button
               key={view}
               type="button"
               onClick={() => setBusinessView(view)}
               className={cn(
-                "h-9 rounded-md px-3 text-[12px] font-black transition",
-                businessView === view ? "bg-[#ff5a3d] text-white" : "text-[#9aa3af] hover:bg-white/[0.06] hover:text-white"
+                "relative min-h-11 pb-3 text-[12px] font-black transition",
+                businessView === view ? "text-white after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 after:bg-[#ff5a3d]" : "text-[#8c95a1] hover:text-white"
               )}
             >
               {BUSINESS_SUBVIEW_LABELS[view]}
@@ -2827,29 +2795,61 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
 
       {businessView === "resumen" ? (
       <>
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
-        <Kpi title="Leads abiertos" value={openLeadCount} detail="Marcas por responder" />
-        <Kpi title="Campañas activas" value={activeCampaignCount} detail="Propuesta, negociacion o activa" />
-        <Kpi title="Colaboraciones" value={collaborations.length} detail={`${evaluatingCollaborations.length} en evaluacion`} />
-        <Kpi title="Pipeline" value={crm?.summary.pipeline_usd || 0} prefix="$" detail="USD potencial" />
-        <Kpi title="Pagos pendientes" value={crm?.summary.pending_payments_usd || 0} prefix="$" detail="Por cobrar" tone={(crm?.summary.pending_payments_usd || 0) > 0 ? "warning" : "success"} />
-        <Kpi title="Entregables vencidos" value={crm?.summary.overdue_deliverables || 0} detail="Requieren accion" tone={(crm?.summary.overdue_deliverables || 0) > 0 ? "warning" : "success"} />
+      <section className="grid grid-cols-2 divide-x divide-y divide-white/10 border-y border-white/10 md:grid-cols-3 md:divide-y-0 xl:grid-cols-6">
+        {[
+          ["Leads abiertos", formatNumber(openLeadCount)],
+          ["Campañas activas", formatNumber(activeCampaignCount)],
+          ["Colaboraciones", formatNumber(collaborations.length)],
+          ["Pipeline", `$${formatCompact(crm?.summary.pipeline_usd || 0)}`],
+          ["Por cobrar", `$${formatCompact(crm?.summary.pending_payments_usd || 0)}`],
+          ["Vencidos", formatNumber(crm?.summary.overdue_deliverables || 0)],
+        ].map(([label, value]) => (
+          <div key={label} className="px-3 py-4 first:pl-0 md:px-5">
+            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#737c88]">{label}</p>
+            <p className="mt-2 font-mono text-xl font-black text-white">{value}</p>
+          </div>
+        ))}
       </section>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/[0.03] p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[13px] font-black text-white">Operaciones comerciales</p>
-          <p className="mt-1 text-[11px] text-[#8e98a6]">Exporta datos para contabilidad o comparte un resumen ejecutivo del pipeline.</p>
+          <p className="text-[13px] font-black text-white">Pipeline actual</p>
+          <p className="mt-1 text-[11px] text-[#8e98a6]">Ordenado por próxima acción.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <ActionButton onClick={exportBusinessCsv} disabled={!crm || busy === "loading"}>Exportar CSV</ActionButton>
           <ActionButton onClick={() => void copyBusinessSummary()} disabled={!crm || busy === "loading"}>Copiar resumen</ActionButton>
         </div>
       </div>
+
+      <section className="grid overflow-hidden rounded-2xl border border-white/10 bg-white/[0.025] lg:grid-cols-3 lg:divide-x lg:divide-white/10">
+        {pipelineColumns.map((column) => (
+          <div key={column.label} className="min-w-0 border-b border-white/10 p-4 last:border-b-0 lg:border-b-0">
+            <div className="flex items-center justify-between gap-3">
+              <p className={cn("text-[11px] font-black uppercase tracking-[0.14em]", column.tone)}>{column.label}</p>
+              <span className="font-mono text-[11px] text-[#737c88]">{column.items.length}</span>
+            </div>
+            <div className="mt-4 space-y-2">
+              {column.items.map((item) => (
+                <article key={item.id} className="rounded-xl border border-white/10 bg-[#111416] p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-black text-white">{item.title}</p>
+                      <p className="mt-1 line-clamp-2 text-[11px] leading-5 text-[#8e98a6]">{item.detail}</p>
+                    </div>
+                    {item.amount ? <span className="shrink-0 font-mono text-[11px] font-black text-[#d5d9df]">${formatCompact(item.amount)}</span> : null}
+                  </div>
+                </article>
+              ))}
+              {column.items.length === 0 ? <p className="py-6 text-center text-[11px] text-[#68717d]">Sin oportunidades en esta etapa.</p> : null}
+            </div>
+          </div>
+        ))}
+      </section>
       </>
       ) : null}
 
-      {message ? <p className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] text-[#b7d9ff]">{message}</p> : null}
+      {friendlyMessage ? <p className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] text-[#b7d9ff]">{friendlyMessage}</p> : null}
       {busy === "loading" ? <InlineEmpty text="Cargando CRM comercial..." /> : null}
 
       {(businessView === "resumen" || businessView === "agenda") ? (
@@ -2945,7 +2945,7 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
             {pricingOpportunities.map(({ country, pricing }) => (
               <article key={country.country_code} className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.03] p-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
                 <div className="min-w-0">
-                  <p className="truncate text-[13px] font-black text-white">{country.country_name}</p>
+                  <CountryLabel countryCode={country.country_code} countryName={country.country_name} className="text-[13px] font-black text-white" />
                   <p className="mt-1 text-[11px] text-[#8e98a6]">{country.videos_count} videos · {formatCompact(country.total_views)} views · {country.cities_count} ciudades</p>
                   <p className="mt-2 font-mono text-[16px] font-black text-[#ffcf70]">${formatNumber(pricing.min)}-${formatNumber(pricing.max)}</p>
                 </div>
@@ -3049,7 +3049,7 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
               <Field name="contactEmail" label="Email" type="email" placeholder="marca@ejemplo.com" />
               <SelectField label="Moneda" name="currencyCode" options={CURRENCY_OPTIONS.map((currency) => ({ value: currency, label: currency }))} />
               <Field name="budgetUsd" label="Budget / valor base" type="number" min={1} placeholder="1500" />
-              <Field name="countryCode" label="Pais ISO" maxLength={2} placeholder="MX" />
+              <SelectField label="Pais" name="countryCode" options={[{ value: "", label: "Sin pais definido" }, ...payload.countries.map((country) => ({ value: country.country_code, label: country.country_name }))]} icon={<GlobeHemisphereWest size={15} />} />
               <Field name="destinationLabel" label="Destino" maxLength={160} placeholder="Ciudad, region o hotel" />
               <Field name="startDate" label="Inicio" type="date" />
               <Field name="endDate" label="Fin" type="date" />
@@ -3072,7 +3072,7 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
                       <SponsorBadge tone={campaign.status === "lost" ? "neutral" : campaign.status === "paid" ? "success" : "warning"}>{formatCampaignStatus(campaign.status)}</SponsorBadge>
                       <SponsorBadge>{formatAgreementType(campaign.agreement_type)}</SponsorBadge>
                       <SponsorBadge tone={campaign.evaluation_result === "good_fit" ? "success" : campaign.evaluation_result === "poor_fit" ? "warning" : "neutral"}>{formatEvaluationResult(campaign.evaluation_result)}</SponsorBadge>
-                      {campaign.country_code ? <SponsorBadge>{campaign.country_code}</SponsorBadge> : null}
+                      {campaign.country_code ? <SponsorBadge><CountryLabel countryCode={campaign.country_code} countryName={payload.countries.find((country) => country.country_code === campaign.country_code)?.country_name} fallback="Pais sin identificar" /></SponsorBadge> : null}
                     </div>
                     <p className="mt-2 truncate text-[15px] font-black text-white">{campaign.brand_name} · {campaign.title}</p>
                     <p className="mt-1 text-[12px] text-[#9aa3af]">{campaign.destination_label || "Sin destino"} · {campaign.contact_email || "Sin contacto"}</p>
@@ -3096,7 +3096,7 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
                     <SelectField label="Acepta canje" name="acceptsBarter" options={[{ value: "", label: "Sin definir" }, { value: "yes", label: "Si" }, { value: "no", label: "No" }]} defaultValue={campaign.accepts_barter === true ? "yes" : campaign.accepts_barter === false ? "no" : ""} />
                     <Field name="contactName" label="Contacto" defaultValue={campaign.contact_name || ""} />
                     <Field name="contactEmail" label="Email" type="email" defaultValue={campaign.contact_email || ""} />
-                    <Field name="countryCode" label="Pais ISO" maxLength={2} defaultValue={campaign.country_code || ""} />
+                    <SelectField label="Pais" name="countryCode" options={[{ value: "", label: "Sin pais definido" }, ...payload.countries.map((country) => ({ value: country.country_code, label: country.country_name }))]} defaultValue={campaign.country_code || ""} icon={<GlobeHemisphereWest size={15} />} />
                     <Field name="destinationLabel" label="Destino" defaultValue={campaign.destination_label || ""} />
                     <Field name="agreementTypeOther" label="Otro tipo" defaultValue={campaign.agreement_type_other || ""} />
                     <SelectField label="Volveria" name="wouldCollaborateAgain" options={[{ value: "", label: "Sin definir" }, { value: "yes", label: "Si" }, { value: "maybe", label: "Tal vez" }, { value: "no", label: "No" }]} defaultValue={campaign.would_collaborate_again || ""} />
@@ -3398,82 +3398,141 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
   );
 }
 
-function AudienceTab({ payload }: { payload: CreatorAdminPayload }) {
+function AudienceTab({ payload, onNavigate }: { payload: CreatorAdminPayload; onNavigate: (updates: Record<string, string | null>) => void }) {
   const mapInteractions = payload.audience.top_countries.reduce((sum, row) => sum + row.events, 0);
   const videoInteractions = payload.audience.top_videos.reduce((sum, row) => sum + row.events, 0);
   const sponsorClicks = payload.audience.sponsor_clicks.reduce((sum, row) => sum + row.clicks, 0);
   const pollVotes = payload.audience.poll_votes;
-  const strongestSignal = [
-    { label: "Paises explorados", value: mapInteractions },
-    { label: "Videos abiertos", value: videoInteractions },
-    { label: "Clicks sponsor", value: sponsorClicks },
-    { label: "Votos", value: pollVotes },
-  ].sort((a, b) => b.value - a.value)[0];
+  const leadCountry = payload.audience.top_countries[0];
+  const leadCountryData = payload.countries.find((country) => country.country_code === leadCountry?.country_code) || null;
+  const leadCountryName = leadCountryData?.country_name || "tu audiencia";
+  const leadVideoSignal = payload.audience.top_videos[0];
+  const leadVideo = payload.videos.find((video) => video.youtube_video_id === leadVideoSignal?.youtube_video_id) || payload.videos[0];
+  const totalSignals = mapInteractions + videoInteractions + sponsorClicks + pollVotes;
   return (
-    <div className="space-y-4">
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <Kpi title="Paises explorados" value={mapInteractions} detail="Interacciones first-party por destino" />
-        <Kpi title="Videos abiertos" value={videoInteractions} detail="Contenido que el mapa hace descubrir" />
-        <Kpi title="Clicks sponsor" value={sponsorClicks} detail="Intencion comercial dentro del mapa" />
-        <Kpi title="Votos audiencia" value={pollVotes} detail="Demanda declarada de proximos destinos" />
+    <div className="space-y-7">
+      <header className="flex flex-col gap-4 border-b border-white/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#ff7b63]">Señales propias</p>
+          <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white md:text-4xl">Audiencia</h2>
+          <p className="mt-2 max-w-xl text-[13px] leading-6 text-[#98a1ad]">Qué destinos despiertan curiosidad y qué contenido convierte esa intención.</p>
+        </div>
+        <button type="button" onClick={() => onNavigate({ tab: "videos", status: "pending" })} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#ff5a3d] px-5 text-[13px] font-black text-white transition hover:bg-[#ff6a50]">
+          Convertir señal en contenido <ArrowUpRight size={16} weight="bold" />
+        </button>
+      </header>
+
+      <section className="grid overflow-hidden rounded-3xl border border-white/10 bg-[#111416] lg:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
+        <div className="relative min-h-[360px] overflow-hidden lg:min-h-[500px]">
+          {leadVideo?.thumbnail_url ? <Image src={leadVideo.thumbnail_url} alt={leadVideo.title} fill loading="eager" className="object-cover" sizes="(max-width: 1024px) 100vw, 64vw" /> : null}
+          <div className="absolute inset-0 bg-gradient-to-t from-[#07090d] via-[#07090d]/30 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 p-6 md:p-9">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#ff8c76]">Historia principal</p>
+            <h3 className="mt-3 max-w-2xl text-3xl font-black leading-[0.98] tracking-[-0.04em] text-white md:text-5xl"><CountryLabel countryCode={leadCountryData?.country_code} countryName={leadCountryName} /> concentra la atencion.</h3>
+            <p className="mt-4 max-w-xl text-[13px] leading-6 text-[#d1d5da]">{leadVideoSignal?.title || "Tu mapa esta empezando a revelar que quiere descubrir la comunidad."}</p>
+          </div>
+        </div>
+        <aside className="flex flex-col justify-between border-t border-white/10 p-6 lg:border-l lg:border-t-0 lg:p-8">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#737c88]">Lectura editorial</p>
+            <p className="mt-4 text-xl font-black leading-7 text-white">Convierte el interes por <CountryLabel countryCode={leadCountryData?.country_code} countryName={leadCountryName} /> en una guia, un short o una propuesta de sponsor.</p>
+            <p className="mt-3 text-[12px] leading-6 text-[#939ca7]">Las aperturas del mapa suman contexto que YouTube no muestra: destino, exploracion y accion comercial.</p>
+          </div>
+          <div className="mt-8 grid grid-cols-2 gap-x-4 gap-y-6 border-t border-white/10 pt-6">
+            {[["Paises", mapInteractions], ["Videos", videoInteractions], ["Votos", pollVotes], ["Sponsors", sponsorClicks]].map(([label, value]) => (
+              <div key={label}>
+                <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#737c88]">{label}</p>
+                <p className="mt-1 font-mono text-xl font-black text-white">{formatNumber(Number(value))}</p>
+              </div>
+            ))}
+          </div>
+        </aside>
       </section>
 
-      <Panel title="Lectura ejecutiva" description="Senales propias que YouTube Console no puede explicar por si sola.">
-        <div className="grid gap-3 md:grid-cols-3">
-          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8e98a6]">Senal dominante</p>
-            <p className="mt-2 text-[15px] font-black text-white">{strongestSignal?.label || "Sin actividad"}</p>
-            <p className="mt-1 text-[12px] text-[#9aa3af]">{formatNumber(strongestSignal?.value || 0)} eventos registrados.</p>
+      <section className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div>
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#737c88]">Destinos</p><h3 className="mt-1 text-xl font-black text-white">Donde exploran</h3></div>
+            <span className="font-mono text-[11px] text-[#8e98a6]">{formatNumber(mapInteractions)} eventos</span>
           </div>
-          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8e98a6]">Oportunidad de contenido</p>
-            <p className="mt-2 text-[15px] font-black text-white">{payload.audience.top_videos[0]?.title || "Sin video lider"}</p>
-            <p className="mt-1 text-[12px] text-[#9aa3af]">Usa estos videos para decidir shorts, guias o nuevos destinos.</p>
-          </div>
-          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8e98a6]">Oportunidad comercial</p>
-            <p className="mt-2 text-[15px] font-black text-white">{payload.audience.sponsor_clicks[0]?.brand_name || "Sin sponsor lider"}</p>
-            <p className="mt-1 text-[12px] text-[#9aa3af]">Los clicks del mapa son una senal directa para propuestas a marcas.</p>
-          </div>
+          <RankList rows={payload.audience.top_countries.map((row) => ({ label: payload.countries.find((country) => country.country_code === row.country_code)?.country_name || "Pais sin identificar", value: row.events, countryCode: row.country_code }))} empty="Todavia no hay eventos por pais." />
         </div>
-      </Panel>
+        <div>
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#737c88]">Contenido</p><h3 className="mt-1 text-xl font-black text-white">Que abren</h3></div>
+            <span className="font-mono text-[11px] text-[#8e98a6]">{formatNumber(videoInteractions)} aperturas</span>
+          </div>
+          <RankList rows={payload.audience.top_videos.map((row) => ({ label: row.title, value: row.events }))} empty="Todavia no hay aperturas registradas." />
+        </div>
+      </section>
 
-      <div className="grid gap-4 xl:grid-cols-2">
-      <Panel title="Consumo del mapa" description="Metricas del mapa generadas dentro de Travel Your Map.">
-        <RankList rows={payload.audience.top_countries.map((row) => ({ label: row.country_code, value: row.events }))} empty="Todavia no hay eventos por pais." />
-      </Panel>
-      <Panel title="Videos que el mapa hace descubrir">
-        <RankList rows={payload.audience.top_videos.map((row) => ({ label: row.title, value: row.events }))} empty="Todavia no hay aperturas registradas." />
-      </Panel>
-      <Panel title="Sponsors con mas clicks">
-        <RankList rows={payload.audience.sponsor_clicks.map((row) => ({ label: row.brand_name, value: row.clicks }))} empty="Todavia no hay clicks de sponsors." />
-      </Panel>
-      <Panel title="YouTube vs Travel Your Map">
-        <div className="space-y-3 text-[12px] leading-5 text-[#aeb7c2]">
-          <p>
-            YouTube explica alcance del canal: views, likes, comentarios y publicacion. Travel Your Map explica intencion dentro del mapa: paises explorados, videos abiertos, votos y clicks sponsor.
-          </p>
-          <div className="grid gap-2 sm:grid-cols-2">
-            <SourcePill label="YouTube" value={`${formatCompact(payload.countries.reduce((sum, country) => sum + country.total_views, 0))} views`} />
-            <SourcePill label="Travel Your Map" value={`${formatNumber(mapInteractions + videoInteractions + sponsorClicks + pollVotes)} senales`} />
-          </div>
+      <section className="grid gap-4 border-t border-white/10 pt-6 sm:grid-cols-2">
+        <div className="flex items-end justify-between gap-4 rounded-2xl bg-white/[0.025] p-5">
+          <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#737c88]">YouTube</p><p className="mt-2 text-[13px] font-bold text-white">Alcance del canal</p></div>
+          <p className="font-mono text-2xl font-black text-white">{formatCompact(payload.countries.reduce((sum, country) => sum + country.total_views, 0))}</p>
         </div>
-      </Panel>
-      </div>
+        <div className="flex items-end justify-between gap-4 rounded-2xl bg-white/[0.025] p-5">
+          <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#737c88]">Travel Your Map</p><p className="mt-2 text-[13px] font-bold text-white">Intencion registrada</p></div>
+          <p className="font-mono text-2xl font-black text-[#ff7b63]">{formatCompact(totalSignals)}</p>
+        </div>
+      </section>
     </div>
   );
 }
 
-function ActivityTab({ payload }: { payload: CreatorAdminPayload }) {
+function ActivityTab({ payload, onNavigate }: { payload: CreatorAdminPayload; onNavigate: (updates: Record<string, string | null>) => void }) {
+  const [activityFilter, setActivityFilter] = useState<"todo" | "alertas" | "contenido">("todo");
+  const visibleActivity = activityFilter === "contenido"
+    ? payload.activity.filter((item) => item.entity_type === "video")
+    : payload.activity;
   return (
-    <div className="space-y-4">
-      <Panel title="Timeline editorial y operativo">
-        <div className="divide-y divide-white/10">
-          {payload.activity.map((item) => <ActivityRow key={item.id} item={item} />)}
-          {payload.activity.length === 0 ? <InlineEmpty text="No hay actividad registrada." /> : null}
+    <div className="space-y-7">
+      <header className="flex flex-col gap-4 border-b border-white/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#ff7b63]">Registro operativo</p>
+          <h2 className="mt-2 text-3xl font-black tracking-[-0.04em] text-white md:text-4xl">Actividad</h2>
+          <p className="mt-2 max-w-xl text-[13px] leading-6 text-[#98a1ad]">Cambios importantes, revisiones pendientes y salud de sincronizacion.</p>
         </div>
-      </Panel>
-      <SystemAlerts payload={payload} />
+        <button type="button" onClick={() => onNavigate({ tab: "videos", status: "pending" })} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#ff5a3d] px-5 text-[13px] font-black text-white transition hover:bg-[#ff6a50]">
+          Revisar pendientes <ArrowUpRight size={16} weight="bold" />
+        </button>
+      </header>
+
+      <div className="flex flex-wrap gap-2">
+        {(["todo", "alertas", "contenido"] as const).map((filter) => (
+          <button key={filter} type="button" onClick={() => setActivityFilter(filter)} className={cn("min-h-11 rounded-full border px-4 text-[11px] font-black capitalize transition", activityFilter === filter ? "border-[#ff5a3d] bg-[#ff5a3d] text-white" : "border-white/10 text-[#919aa6] hover:text-white")}>{filter}</button>
+        ))}
+      </div>
+
+      <section className="grid gap-8 xl:grid-cols-[minmax(0,1.35fr)_minmax(300px,0.65fr)]">
+        <div className="min-w-0">
+          <div className="mb-4 flex items-end justify-between gap-4">
+            <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#737c88]">Hoy · 17 julio 2026</p><h3 className="mt-1 text-xl font-black text-white">Timeline</h3></div>
+            <span className="font-mono text-[11px] text-[#737c88]">{visibleActivity.length} eventos</span>
+          </div>
+          <div className="border-y border-white/10">
+            {activityFilter === "alertas" ? payload.alerts.map((alert) => (
+              <button key={alert.id} type="button" onClick={() => onNavigate({ tab: "videos", status: "pending" })} className="flex min-h-20 w-full items-start gap-4 border-b border-white/10 py-4 text-left last:border-b-0">
+                <span className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#ffbf47]/10 text-[#ffcf70]"><WarningCircle size={17} /></span>
+                <span className="min-w-0"><span className="block text-[13px] font-black text-white">{alert.title}</span><span className="mt-1 block text-[11px] leading-5 text-[#8e98a6]">{alert.description}</span></span>
+              </button>
+            )) : visibleActivity.map((item) => <ActivityRow key={item.id} item={item} />)}
+            {(activityFilter === "alertas" ? payload.alerts.length === 0 : visibleActivity.length === 0) ? <InlineEmpty text="No hay actividad para este filtro." /> : null}
+          </div>
+        </div>
+
+        <aside className="self-start rounded-2xl border border-white/10 bg-white/[0.025] p-5 xl:sticky xl:top-24">
+          <p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#737c88]">Estado del sistema</p>
+          <div className="mt-5 flex items-center gap-3">
+            <span className={cn("h-2.5 w-2.5 rounded-full", payload.syncStatus.last_status === "completed" ? "bg-emerald-400" : "bg-[#ffbf47]")} />
+            <div><p className="text-[13px] font-black text-white">{payload.syncStatus.last_status === "completed" ? "Sincronizacion al dia" : "Sincronizacion en revision"}</p><p className="mt-1 text-[11px] text-[#8e98a6]">{formatDateTime(payload.syncStatus.last_run_at || "2026-07-17T12:00:00.000Z")}</p></div>
+          </div>
+          <div className="mt-6 border-t border-white/10 pt-5">
+            <p className="text-[11px] leading-5 text-[#8e98a6]">{payload.alerts.length ? `${payload.alerts.length} alerta requiere una decision editorial.` : "No hay alertas operativas activas."}</p>
+          </div>
+          <button type="button" onClick={() => onNavigate({ tab: "resumen", status: null })} className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-white/10 px-4 text-[11px] font-black text-white transition hover:bg-white/[0.05]">Volver al resumen</button>
+        </aside>
+      </section>
     </div>
   );
 }
@@ -3720,7 +3779,7 @@ function EditVideoModal({
           ) : null}
         </div>
         <div className="grid gap-3 md:grid-cols-2">
-          <Field label="Pais ISO" name="country_code" defaultValue={video.country_code || countries[0]?.country_code || ""} required />
+          <SelectField label="Pais" name="country_code" options={countries.map((country) => ({ value: country.country_code, label: country.country_name }))} defaultValue={video.country_code || countries[0]?.country_code || ""} icon={<GlobeHemisphereWest size={15} />} />
           <Field label="Nombre del pais" name="country_name" defaultValue={video.country_name || countries.find((country) => country.country_code === video.country_code)?.country_name || ""} />
           <Field label="Ciudad / region" name="city" defaultValue={video.city || ""} />
           <Field label="Region" name="region" defaultValue={video.region || ""} />
@@ -3933,89 +3992,6 @@ function Panel({
   );
 }
 
-function Kpi({
-  title,
-  value,
-  detail,
-  prefix = "",
-  suffix = "",
-  tone = "neutral",
-  onClick,
-}: {
-  title: string;
-  value: number;
-  detail: string;
-  prefix?: string;
-  suffix?: string;
-  tone?: "neutral" | "warning" | "success";
-  onClick?: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-2xl border border-white/5 bg-white/[0.01] backdrop-blur-md p-5 text-left transition-all duration-300 hover:bg-[#101722]/50 hover:border-white/10 active:scale-[0.98] group flex flex-col justify-between"
-    >
-      <div>
-        <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#8e98a6]">{title}</p>
-        <p className={cn("mt-2.5 font-mono text-[26px] font-bold tracking-tight", tone === "warning" ? "text-[#ffcf70]" : tone === "success" ? "text-emerald-400" : "text-white")}>
-          {prefix}{formatNumber(value)}{suffix}
-        </p>
-      </div>
-      <p className="mt-2 text-[11px] text-[#8e98a6] line-clamp-1">{detail}</p>
-    </button>
-  );
-}
-
-function InsightCard({
-  eyebrow,
-  title,
-  value,
-  detail,
-  action,
-  tone = "neutral",
-  onAction,
-}: {
-  eyebrow: string;
-  title: string;
-  value: number;
-  detail: string;
-  action: string;
-  tone?: "neutral" | "warning" | "success" | "danger";
-  onAction: () => void;
-}) {
-  return (
-    <article className="rounded-2xl border border-white/5 bg-white/[0.01] backdrop-blur-md p-5 flex flex-col justify-between transition-all duration-300 hover:border-white/10 hover:bg-white/[0.02]">
-      <div className="space-y-2.5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[#8e98a6]">{eyebrow}</p>
-            <h3 className="mt-1.5 line-clamp-2 text-[14px] font-bold leading-5 text-white">{title}</h3>
-          </div>
-          <span
-            className={cn(
-              "rounded-lg border px-2 py-0.5 font-mono text-[11px] font-bold",
-              tone === "success"
-                ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-300"
-                : tone === "warning"
-                  ? "border-[#ffbf47]/25 bg-[#ffbf47]/10 text-[#ffd07a]"
-                  : tone === "danger"
-                    ? "border-red-400/25 bg-red-400/10 text-red-300"
-                    : "border-white/10 bg-white/[0.04] text-white"
-            )}
-          >
-          {formatNumber(value)}
-        </span>
-      </div>
-      <p className="mt-3 min-h-10 text-[12px] leading-5 text-[#9aa3af]">{detail}</p>
-      <button type="button" onClick={onAction} className="mt-4 h-8 rounded-lg border border-white/10 px-2.5 text-[11px] font-black text-white hover:bg-white/[0.06]">
-        {action}
-      </button>
-      </div>
-    </article>
-  );
-}
-
 function StatusBadge({ status }: { status: CreatorAdminUiStatus }) {
   const styles: Record<CreatorAdminUiStatus, string> = {
     auto: "border-emerald-400/25 bg-emerald-400/10 text-emerald-300",
@@ -4033,20 +4009,72 @@ function StatusBadge({ status }: { status: CreatorAdminUiStatus }) {
 }
 
 function ActivityRow({ item }: { item: { id: string; event_type: string; description: string; severity: string; created_at: string } }) {
+  const display = getActivityDisplay(item);
   return (
     <div className="flex items-start gap-3 py-3">
       <span className={cn("mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border", item.severity === "error" ? "border-red-400/25 bg-red-400/10 text-red-300" : item.severity === "warning" ? "border-[#ffbf47]/25 bg-[#ffbf47]/10 text-[#ffcf70]" : "border-white/10 bg-white/[0.04] text-[#9aa3af]")}>
         <Clock size={14} />
       </span>
       <div className="min-w-0">
-        <p className="text-[12px] font-semibold text-white">{item.description}</p>
-        <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-[#7d8794]">{item.event_type} · {formatDateTime(item.created_at)}</p>
+        <p className="text-[13px] font-semibold leading-5 text-white">{display.title}</p>
+        <p className="mt-1 text-[11px] leading-4 text-[#8e98a6]">{display.category} · {formatDateTime(item.created_at)}</p>
       </div>
     </div>
   );
 }
 
-function RankList({ rows, empty }: { rows: Array<{ label: string; value: number }>; empty: string }) {
+function getActivityDisplay(item: { event_type: string; description: string }) {
+  const bulkSponsorMatch = item.description.match(/asign[oó] masivamente sponsor\s+["“]([^"”]+)["”]/i);
+  if (bulkSponsorMatch?.[1]) {
+    return {
+      title: `“${bulkSponsorMatch[1]}” se asignó a varios videos`,
+      category: "Sponsor",
+    };
+  }
+
+  const category = item.event_type.startsWith("sponsor_")
+    ? "Sponsor"
+    : item.event_type.startsWith("poll_") || item.event_type.startsWith("vote_")
+      ? "Votación"
+      : item.event_type.startsWith("video_")
+        ? "Contenido"
+        : item.event_type.startsWith("sync_")
+          ? "Sincronización"
+          : item.event_type.startsWith("media_kit_")
+            ? "Perfil comercial"
+            : "Actividad";
+
+  return { title: item.description, category };
+}
+
+function CountryFlag({ countryCode, className }: { countryCode?: string | null; className?: string }) {
+  const normalizedCode = String(countryCode || "").trim().toLowerCase();
+  if (!/^[a-z]{2}$/.test(normalizedCode)) {
+    return <GlobeHemisphereWest size={15} className={cn("shrink-0 text-[#8e98a6]", className)} aria-hidden="true" />;
+  }
+  return <span className={cn(`fi fi-${normalizedCode}`, "shrink-0 rounded-[2px] text-[14px] leading-none shadow-[0_0_0_1px_rgba(255,255,255,0.14)]", className)} aria-hidden="true" />;
+}
+
+function CountryLabel({
+  countryCode,
+  countryName,
+  fallback = "Destino sin identificar",
+  className,
+}: {
+  countryCode?: string | null;
+  countryName?: string | null;
+  fallback?: string;
+  className?: string;
+}) {
+  return (
+    <span className={cn("inline-flex min-w-0 items-center gap-2 align-middle", className)}>
+      <CountryFlag countryCode={countryCode} />
+      <span className="min-w-0 truncate">{String(countryName || "").trim() || fallback}</span>
+    </span>
+  );
+}
+
+function RankList({ rows, empty }: { rows: Array<{ label: string; value: number; countryCode?: string | null }>; empty: string }) {
   const max = Math.max(1, ...rows.map((row) => row.value));
   if (rows.length === 0) return <InlineEmpty text={empty} />;
   return (
@@ -4054,7 +4082,7 @@ function RankList({ rows, empty }: { rows: Array<{ label: string; value: number 
       {rows.map((row) => (
         <div key={row.label}>
           <div className="flex justify-between gap-3 text-[12px]">
-            <span className="truncate font-bold text-white">{row.label}</span>
+            {row.countryCode ? <CountryLabel countryCode={row.countryCode} countryName={row.label} className="font-bold text-white" /> : <span className="truncate font-bold text-white">{row.label}</span>}
             <span className="font-mono text-[#9aa3af]">{formatNumber(row.value)}</span>
           </div>
           <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10">
@@ -4066,11 +4094,11 @@ function RankList({ rows, empty }: { rows: Array<{ label: string; value: number 
   );
 }
 
-function SourcePill({ label, value }: { label: string; value: string }) {
+function SourcePill({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2">
       <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#8e98a6]">{label}</p>
-      <p className="mt-1 font-mono text-[14px] font-black text-white">{value}</p>
+      <div className="mt-1 font-mono text-[14px] font-black text-white">{value}</div>
     </div>
   );
 }
@@ -4167,10 +4195,21 @@ function SponsorMetric({ label, value }: { label: string; value: number }) {
   );
 }
 
-function formatSponsorScope(sponsor: CreatorAdminSponsor) {
-  if (sponsor.scope === "global") return "GLOBAL";
-  if (sponsor.scope === "country") return `PAIS · ${sponsor.country_codes.join(", ") || "sin paises"}`;
-  return `VIDEO · ${sponsor.video_ids.length} video${sponsor.video_ids.length === 1 ? "" : "s"}`;
+function SponsorScopeLabel({ sponsor, countries }: { sponsor: CreatorAdminSponsor; countries: CreatorAdminCountry[] }) {
+  if (sponsor.scope === "global") {
+    return <span className="inline-flex items-center gap-1.5"><GlobeHemisphereWest size={13} aria-hidden="true" />Todo el mapa</span>;
+  }
+  if (sponsor.scope === "country") {
+    const resolvedCountries = sponsor.country_codes.map((code) => countries.find((country) => country.country_code === code)).filter((country): country is CreatorAdminCountry => Boolean(country));
+    if (resolvedCountries.length === 0) return <span className="inline-flex items-center gap-1.5"><GlobeHemisphereWest size={13} aria-hidden="true" />Sin paises definidos</span>;
+    return (
+      <span className="inline-flex min-w-0 items-center gap-1.5">
+        <span className="inline-flex shrink-0 -space-x-0.5" aria-hidden="true">{resolvedCountries.slice(0, 3).map((country) => <CountryFlag key={country.country_code} countryCode={country.country_code} className="text-[12px]" />)}</span>
+        <span className="truncate">{resolvedCountries.map((country) => country.country_name).join(", ")}</span>
+      </span>
+    );
+  }
+  return <span className="inline-flex items-center gap-1.5"><MapPin size={13} aria-hidden="true" />{sponsor.video_ids.length} video{sponsor.video_ids.length === 1 ? "" : "s"}</span>;
 }
 
 function BaseModal({ title, onClose, children, size = "default" }: { title: string; onClose: () => void; children: React.ReactNode; size?: "default" | "wide" }) {
@@ -4213,28 +4252,34 @@ function TextArea({ label, className, ...props }: React.TextareaHTMLAttributes<H
   );
 }
 
-function Select({ value, onChange, options }: { value: string; onChange: (value: string) => void; options: Array<{ value: string; label: string }> }) {
+function Select({ value, onChange, options, icon, ariaLabel }: { value: string; onChange: (value: string) => void; options: Array<{ value: string; label: string }>; icon?: React.ReactNode; ariaLabel?: string }) {
   return (
-    <select value={value} onChange={(event) => onChange(event.target.value)} className="h-10 rounded-lg border border-white/10 bg-[#090d13] px-3 text-[13px] text-white outline-none">
-      {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-    </select>
+    <span className="relative block min-w-0">
+      {icon ? <span className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-[#9aa3af]" aria-hidden="true">{icon}</span> : null}
+      <select value={value} onChange={(event) => onChange(event.target.value)} aria-label={ariaLabel} className={cn("min-h-11 w-full rounded-lg border border-white/10 bg-[#090d13] px-3 text-[13px] text-white outline-none", icon && "pl-9")}>
+        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </select>
+    </span>
   );
 }
 
-function SelectField({ label, name, options, defaultValue }: { label: string; name: string; options: Array<{ value: string; label: string }>; defaultValue?: string | null }) {
+function SelectField({ label, name, options, defaultValue, icon }: { label: string; name: string; options: Array<{ value: string; label: string }>; defaultValue?: string | null; icon?: React.ReactNode }) {
   return (
     <label>
       <span className="mb-1 block text-[11px] font-bold uppercase tracking-[0.1em] text-[#9aa3af]">{label}</span>
-      <select name={name} defaultValue={defaultValue || undefined} className="h-10 w-full rounded-lg border border-white/10 bg-[#090d13] px-3 text-[13px] text-white outline-none">
-        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-      </select>
+      <span className="relative block">
+        {icon ? <span className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-[#9aa3af]" aria-hidden="true">{icon}</span> : null}
+        <select name={name} defaultValue={defaultValue || undefined} className={cn("min-h-11 w-full rounded-lg border border-white/10 bg-[#090d13] px-3 text-[13px] text-white outline-none", icon && "pl-9")}>
+          {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+        </select>
+      </span>
     </label>
   );
 }
 
 function CheckboxField({ name, label, defaultChecked = false }: { name: string; label: string; defaultChecked?: boolean }) {
   return (
-    <label className="flex min-h-10 items-center gap-2 rounded-lg border border-white/10 bg-[#090d13] px-3 text-[12px] font-bold text-white">
+    <label className="flex min-h-11 items-center gap-2 rounded-lg border border-white/10 bg-[#090d13] px-3 text-[12px] font-bold text-white">
       <input name={name} type="checkbox" defaultChecked={defaultChecked} className="h-4 w-4 accent-[#ff5a3d]" />
       <span>{label}</span>
     </label>
@@ -4244,8 +4289,8 @@ function CheckboxField({ name, label, defaultChecked = false }: { name: string; 
 function ModalFooter({ onClose, submitLabel }: { onClose: () => void; submitLabel: string }) {
   return (
     <div className="flex justify-end gap-2 border-t border-white/10 pt-4">
-      <button type="button" onClick={onClose} className="h-9 rounded-lg border border-white/10 px-3 text-[12px] font-bold text-white">Cancelar</button>
-      <button type="submit" className="h-9 rounded-lg bg-[#ff5a3d] px-3 text-[12px] font-black text-white"> {submitLabel}</button>
+      <button type="button" onClick={onClose} className="min-h-11 rounded-lg border border-white/10 px-3 text-[12px] font-bold text-white">Cancelar</button>
+      <button type="submit" className="min-h-11 rounded-lg bg-[#ff5a3d] px-3 text-[12px] font-black text-white"> {submitLabel}</button>
     </div>
   );
 }
@@ -4267,7 +4312,7 @@ function ActionButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "inline-flex h-8 items-center rounded-lg border px-2.5 text-[11px] font-black active:translate-y-px disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex min-h-11 items-center rounded-lg border px-3 text-[11px] font-black active:translate-y-px disabled:pointer-events-none disabled:opacity-50",
         tone === "danger"
           ? "border-[#ff5a3d]/30 bg-[#ff5a3d]/10 text-[#ffd0c6] hover:bg-[#ff5a3d]/18"
           : "border-white/10 text-white hover:bg-white/[0.06]"
