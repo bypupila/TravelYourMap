@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowSquareOut, WarningCircle } from "@phosphor-icons/react";
+import { ArrowSquareOut, Play, WarningCircle } from "@phosphor-icons/react";
 import {
   getOfficialYouTubeEmbedPlayerVars,
   normalizeYouTubeVideoId,
@@ -148,6 +148,9 @@ export function YouTubeEmbedPlayer({
   const normalizedVideoId = normalizeYouTubeVideoId(videoId);
   const [status, setStatus] = useState<EmbedStatus>(normalizedVideoId ? "loading" : "error");
   const [errorReason, setErrorReason] = useState<EmbedErrorReason>(normalizedVideoId ? null : "invalid_id");
+  const [isWaitingForFullscreenPlay, setIsWaitingForFullscreenPlay] = useState(
+    Boolean(fullscreenOnPlay && normalizedVideoId),
+  );
 
   useEffect(() => {
     onPlaybackStateChangeRef.current = onPlaybackStateChange;
@@ -256,18 +259,40 @@ export function YouTubeEmbedPlayer({
     playerRef.current.playVideo?.();
   }, [playbackCommand]);
 
-  const requestFullscreenOnPlay = useCallback(() => {
-    if (!fullscreenOnPlay || hasRequestedFullscreenRef.current) return;
-    if (typeof document === "undefined" || document.fullscreenElement) return;
+  const requestFullscreenOnPlay = useCallback(async () => {
+    if (!fullscreenOnPlay) return false;
+    if (typeof document === "undefined") return false;
+    if (document.fullscreenElement) return true;
+    if (hasRequestedFullscreenRef.current) return false;
 
     const frame = frameRef.current;
-    if (!frame?.requestFullscreen) return;
+    if (!frame?.requestFullscreen) return false;
 
     hasRequestedFullscreenRef.current = true;
-    void frame.requestFullscreen({ navigationUI: "hide" }).catch(() => {
-      // Browsers may reject fullscreen when the YouTube play gesture happens inside the cross-origin iframe.
-    });
+    try {
+      await frame.requestFullscreen({ navigationUI: "hide" });
+      return true;
+    } catch {
+      hasRequestedFullscreenRef.current = false;
+      return false;
+    }
   }, [fullscreenOnPlay]);
+
+  const startPlaybackInFullscreen = useCallback(() => {
+    if (status !== "ready" || !playerRef.current) return;
+
+    // requestFullscreen must start in this exact user gesture. Waiting for YouTube's
+    // cross-origin onStateChange event makes browsers reject the fullscreen request.
+    setIsWaitingForFullscreenPlay(false);
+    const fullscreenRequest = requestFullscreenOnPlay();
+    playerRef.current.playVideo?.();
+
+    void fullscreenRequest.then((didEnterFullscreen) => {
+      if (didEnterFullscreen) return;
+      playerRef.current?.pauseVideo?.();
+      setIsWaitingForFullscreenPlay(true);
+    });
+  }, [requestFullscreenOnPlay, status]);
 
   useEffect(() => {
     let cancelled = false;
@@ -277,6 +302,7 @@ export function YouTubeEmbedPlayer({
     hasObservedPlayingRef.current = false;
     hasRequestedFullscreenRef.current = false;
     hasAppliedInitialStartRef.current = false;
+    setIsWaitingForFullscreenPlay(Boolean(fullscreenOnPlay && normalizedVideoId));
     isDestroyingRef.current = false;
     stopProgressTracking();
 
@@ -319,7 +345,6 @@ export function YouTubeEmbedPlayer({
               if (cancelled || isDestroyingRef.current) return;
               if (event.data === 1) {
                 hasObservedPlayingRef.current = true;
-                requestFullscreenOnPlay();
                 startProgressTracking();
                 onPlaybackStateChangeRef.current?.("playing");
               }
@@ -350,7 +375,7 @@ export function YouTubeEmbedPlayer({
       playerRef.current?.destroy();
       playerRef.current = null;
     };
-  }, [allowFullscreen, applyInitialStartSeconds, flushPlaybackProgress, isMadeForKids, normalizedVideoId, requestFullscreenOnPlay, startProgressTracking, stopProgressTracking]);
+  }, [allowFullscreen, applyInitialStartSeconds, flushPlaybackProgress, fullscreenOnPlay, isMadeForKids, normalizedVideoId, startProgressTracking, stopProgressTracking]);
 
   function openInYoutube() {
     if (onOpenInYouTube) {
@@ -368,11 +393,6 @@ export function YouTubeEmbedPlayer({
       <div
         ref={frameRef}
         className={cn("yt-fullscreen-frame relative aspect-video min-h-[202px] overflow-hidden rounded-xl border border-white/10 bg-black", frameClassName)}
-        onPointerDownCapture={() => {
-          if (showFallback) return;
-          requestFullscreenOnPlay();
-          onPlaybackStateChangeRef.current?.("playing");
-        }}
       >
         <div
           ref={playerContainerRef}
@@ -414,6 +434,20 @@ export function YouTubeEmbedPlayer({
               </div>
             </div>
           </div>
+        ) : null}
+
+        {fullscreenOnPlay && isWaitingForFullscreenPlay && !showFallback ? (
+          <button
+            type="button"
+            onClick={startPlaybackInFullscreen}
+            disabled={status !== "ready"}
+            className="absolute inset-0 z-10 grid cursor-pointer place-items-center bg-black/10 text-white transition hover:bg-black/20 disabled:cursor-wait"
+            aria-label={status === "ready" ? "Reproducir en pantalla completa" : "Preparando el video"}
+          >
+            <span className="grid h-16 w-20 place-items-center rounded-2xl bg-[#ff0033] shadow-[0_14px_40px_rgba(0,0,0,0.45)] transition-transform hover:scale-105">
+              <Play size={30} weight="fill" aria-hidden="true" />
+            </span>
+          </button>
         ) : null}
       </div>
 

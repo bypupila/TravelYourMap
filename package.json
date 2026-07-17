@@ -27,6 +27,7 @@
     "user:set-role": "node scripts/set-user-role.mjs"
   },
   "dependencies": {
+    "@design-bypupila/inspector": "0.1.0",
     "@google/genai": "^2.11.0",
     "@neondatabase/serverless": "^1.1.0",
     "@phosphor-icons/react": "^2.1.10",
