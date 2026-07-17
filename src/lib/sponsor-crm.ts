@@ -471,7 +471,7 @@ export async function loadSponsorCrm(channelId: string): Promise<SponsorCrmPaylo
         sc.updated_at
       from public.sponsor_campaigns sc
       left join public.sponsor_inquiries si on si.id = sc.inquiry_id
-      where sc.channel_id = ${channelId}
+      where sc.channel_id = $1
       order by
         case sc.status
           when 'active' then 0
