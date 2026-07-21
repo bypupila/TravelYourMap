@@ -65,7 +65,7 @@
     "@types/react-dom": "19.2.3",
     "@types/three": "^0.185.1",
     "@types/topojson-client": "^3.1.5",
-    "autoprefixer": "^10.5.2",
+    "autoprefixer": "^10.5.4",
     "eslint": "9.39.5",
     "eslint-config-next": "16.2.10",
     "playwright": "1.61.1",
