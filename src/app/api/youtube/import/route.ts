@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { randomUUID } from "crypto";
 import { DEMO_CHANNEL, DEMO_CHANNEL_SLUG, DEMO_VIDEO_LOCATIONS } from "@/lib/demo-data";
-import { getValidSessionUserIdFromRequest } from "@/lib/current-user";
+import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { sql } from "@/lib/neon";
+import { enforceRequestRateLimit } from "@/lib/request-rate-limit";
+import { getActiveSubscriptionForUser } from "@/lib/subscription-entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -47,12 +49,29 @@ export async function POST(request: Request) {
       });
     }
 
-    const userId = await getValidSessionUserIdFromRequest(request);
-    if (!userId) {
+    const sessionUser = await getValidSessionUserFromRequest(request);
+    if (!sessionUser) {
       return NextResponse.json(
         { error: "Unauthorized" },
         { status: 401 }
       );
+    }
+    if (sessionUser.role !== "creator" && sessionUser.role !== "superadmin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    const rateLimit = await enforceRequestRateLimit({
+      request,
+      scope: `api:youtube-import:${sessionUser.id}`,
+      windowMinutes: 60,
+      maxAttempts: 3,
+      failClosed: true,
+    });
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: "Demasiados intentos de importación." }, { status: 429 });
+    }
+    const userId = sessionUser.id;
+    if (sessionUser.role !== "superadmin" && !(await getActiveSubscriptionForUser(userId))) {
+      return NextResponse.json({ error: "Necesitas una suscripción activa para importar." }, { status: 402 });
     }
 
     assertImportProvidersConfigured();
@@ -76,7 +95,7 @@ export async function POST(request: Request) {
         null,
         null,
         null,
-        true,
+        false,
         null,
         ${nowIso}
       )

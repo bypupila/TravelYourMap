@@ -92,6 +92,8 @@ type OnboardingCopy = {
   importDemoStatsNote: string;
   acceptTermsLabel: string;
   acceptTermsRequired: string;
+  passwordRequiredError: string;
+  passwordMismatchError: string;
 };
 
 const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
@@ -136,8 +138,8 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
       },
       4: {
         eyebrow: "Brand deals",
-        title: "Muestra tus sponsors en tu mapa",
-        description: "Genera más ingresos promocionando empresas.",
+        title: "Activa Sponsors con Creator Pro",
+        description: "Creator Pro incorpora gestión, exposición y reportes para marcas.",
         icon: Handshake,
       },
       5: {
@@ -149,7 +151,7 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
       6: {
         eyebrow: "Planes",
         title: "Elige tu plan y empieza la prueba de 7 días.",
-        description: "Todos los planes incluyen el trial y luego cobran el plan elegido.",
+        description: "Creator y Creator Pro incluyen el trial y luego cobran el plan elegido.",
         icon: CreditCard,
       },
     },
@@ -162,7 +164,7 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
     overviewFeatures: [
       { title: "Importa videos", copy: "Lee el catálogo del canal y conserva solo contenido long-form." },
       { title: "Mapea países", copy: "Asocia cada video válido a un país real y explorable." },
-      { title: "Monetiza destinos", copy: "Activa sponsors y votación sin romper el flujo." },
+      { title: "Monetiza destinos", copy: "Activa Sponsors con Creator Pro y votación en todos los planes Creator." },
     ],
     importMetricCountries: "Países",
     importMetricMapped: "Videos",
@@ -172,7 +174,7 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
     metricMappedVideos: "Videos",
     metricViews: "Views",
     sponsorsEyebrow: "Sponsors",
-    sponsorsDescription: "Integraciones por destino y tarjetas patrocinadas por país.",
+    sponsorsDescription: "Disponible en Creator Pro: integraciones por destino y tarjetas patrocinadas por país.",
     sponsorsConnect: "Ejemplo de integración",
     fanVoteEyebrow: "Voto fan",
     fanVoteTitle: "Tu audiencia decide el próximo país.",
@@ -202,19 +204,21 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
     testWithoutPaymentAction: "Procesar sin pago (TEST)",
     testWithoutPaymentProcessing: "Preparando modo test...",
     trialBadge: "7 días gratis",
-    trialNote: "Todos los planes arrancan con una prueba de 7 días.",
+    trialNote: "Creator y Creator Pro arrancan con una prueba de 7 días.",
     processingPhrases: [
       "Conectando tu canal...",
       "Filtrando shorts y ruido...",
       "Mapeando países y destinos...",
       "Preparando tu analítica...",
-      "Afinando sponsors y crecimiento...",
+      "Preparando tus herramientas de crecimiento...",
     ],
     unavailablePlanBadge: "Próximamente",
     importRealStatsNote: "Videos y views vienen del canal real vía YouTube Data API oficial. Países se mantienen demo hasta completar importación.",
     importDemoStatsNote: "La vista usa ejemplo visual. El loader ejecuta la importación real después de Polar.",
     acceptTermsLabel: "Acepto los Términos y la Política de Privacidad de TravelYourMap, y reconozco que el producto usa YouTube API Services.",
     acceptTermsRequired: "Debes aceptar términos y privacidad para continuar.",
+    passwordRequiredError: "Crea una contraseña de al menos 8 caracteres para proteger tu cuenta.",
+    passwordMismatchError: "Las contraseñas no coinciden.",
   },
   en: {
     topbarEyebrow: "TravelYourMap",
@@ -257,8 +261,8 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
       },
       4: {
         eyebrow: "Brand deals",
-        title: "Turn destinations into inventory.",
-        description: "Brands attach to countries and routes, not generic placement.",
+        title: "Unlock Sponsors with Creator Pro.",
+        description: "Creator Pro adds brand management, placements, and reporting.",
         icon: Handshake,
       },
       5: {
@@ -270,7 +274,7 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
       6: {
         eyebrow: "Plans",
         title: "Choose a plan and start the 7-day trial.",
-        description: "Every plan begins with the trial and then bills the selected tier.",
+        description: "Creator and Creator Pro begin with the trial and then bill the selected tier.",
         icon: CreditCard,
       },
     },
@@ -283,7 +287,7 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
     overviewFeatures: [
       { title: "Import videos", copy: "Read the channel catalog and keep only long-form travel content." },
       { title: "Map countries", copy: "Attach each valid video to a real, explorable country." },
-      { title: "Monetize destinations", copy: "Unlock sponsors and audience voting without breaking flow." },
+      { title: "Monetize destinations", copy: "Unlock Sponsors with Creator Pro and audience voting on every Creator tier." },
     ],
     importMetricCountries: "Countries",
     importMetricMapped: "Videos",
@@ -293,7 +297,7 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
     metricMappedVideos: "Videos",
     metricViews: "Views",
     sponsorsEyebrow: "Sponsors",
-    sponsorsDescription: "Destination placements and sponsored country cards.",
+    sponsorsDescription: "Available on Creator Pro: destination placements and sponsored country cards.",
     sponsorsConnect: "Connect",
     fanVoteEyebrow: "Fan vote",
     fanVoteTitle: "Your audience picks the next country.",
@@ -323,19 +327,21 @@ const onboardingCopy: Record<OnboardingLocale, OnboardingCopy> = {
     testWithoutPaymentAction: "Process without payment (TEST)",
     testWithoutPaymentProcessing: "Preparing test mode...",
     trialBadge: "7 days included",
-    trialNote: "Every plan starts with a 7-day trial.",
+    trialNote: "Creator and Creator Pro start with a 7-day trial.",
     processingPhrases: [
       "Connecting your channel...",
       "Filtering shorts and noise...",
       "Mapping countries and destinations...",
       "Preparing your analytics...",
-      "Sharpening sponsors and growth...",
+      "Preparing your growth tools...",
     ],
     unavailablePlanBadge: "Coming soon",
     importRealStatsNote: "Videos and views come from the real channel via the official YouTube Data API. Countries stay demo until import finishes.",
     importDemoStatsNote: "This view uses visual sample data while real import runs after Polar.",
     acceptTermsLabel: "I accept TravelYourMap Terms and Privacy Policy, and acknowledge that this product uses YouTube API Services.",
     acceptTermsRequired: "You must accept terms and privacy to continue.",
+    passwordRequiredError: "Create a password of at least 8 characters to protect your account.",
+    passwordMismatchError: "Passwords do not match.",
   },
 };
 
@@ -349,15 +355,28 @@ const sponsorCards = [
 const visiblePlans = PLAN_DEFINITIONS.filter((plan) => plan.slug !== "free");
 const showTestNoPaymentPlan = process.env.NEXT_PUBLIC_ENABLE_TEST_NO_PAYMENT === "1";
 
-export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; locale: OnboardingLocale }) {
+interface AuthenticatedCreatorDraft {
+  displayName: string;
+  email: string;
+}
+
+export function OnboardingFlow({
+  isDemoMode,
+  locale,
+  authenticatedCreator = null,
+}: {
+  isDemoMode: boolean;
+  locale: OnboardingLocale;
+  authenticatedCreator?: AuthenticatedCreatorDraft | null;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showComingSoon } = useComingSoon();
   const [step, setStep] = useState<OnboardingStep>(0);
   const [selectedPlan, setSelectedPlan] = useState<string>(() => resolveCanonicalPlanSlug(searchParams.get("plan") || "") || "creator_pro");
   const [channelDraft, setChannelDraft] = useState<ChannelDraft>(() => ({
-    displayName: isDemoMode ? DEMO_USER.displayName : "",
-    email: isDemoMode ? DEMO_USER.email : "",
+    displayName: isDemoMode ? DEMO_USER.displayName : authenticatedCreator?.displayName || "",
+    email: isDemoMode ? DEMO_USER.email : authenticatedCreator?.email || "",
     channelUrl: isDemoMode ? "https://www.youtube.com/@pupilanomad" : "",
   }));
   const [stepError, setStepError] = useState<string | null>(null);
@@ -366,6 +385,8 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
   const [channelValidationMetrics, setChannelValidationMetrics] = useState<ChannelValidationMetrics | null>(null);
   const [activationState, setActivationState] = useState<ActivationState>("idle");
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [accountPassword, setAccountPassword] = useState("");
+  const [accountPasswordConfirmation, setAccountPasswordConfirmation] = useState("");
   const didHydrateQueryState = useRef(false);
   const contentScrollRef = useRef<HTMLElement>(null);
 
@@ -387,7 +408,6 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
     const canonicalPlan = resolveCanonicalPlanSlug(planParam);
     if (canonicalPlan) {
       setSelectedPlan(canonicalPlan);
-      setStep(6);
     }
 
     const errorCode = String(searchParams.get("error") || "").trim().toLowerCase();
@@ -466,8 +486,29 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
     setStepError(null);
 
     try {
+      if (authenticatedCreator) {
+        const response = await fetch("/api/onboarding/prepare-checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            displayName: channelDraft.displayName.trim(),
+            selectedPlan,
+            channelUrl: channelDraft.channelUrl.trim() || null,
+            youtubeChannelId: channelValidationMetrics?.youtubeChannelId || null,
+            acceptTerms,
+          }),
+        });
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        if (!response.ok) {
+          throw new Error(payload?.error || copy.registerFallbackError);
+        }
+
+        setActivationState("checkout");
+        window.location.assign(`/api/billing/polar/checkout?plan=${encodeURIComponent(checkoutSlug)}&lang=${encodeURIComponent(locale)}`);
+        return;
+      }
+
       const usernameCandidates = generateUsernameCandidates();
-      const generatedPassword = `tm_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
       let lastErrorMessage = copy.registerFallbackError;
 
       for (const username of usernameCandidates) {
@@ -478,7 +519,7 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
             displayName: channelDraft.displayName.trim(),
             email: channelDraft.email.trim(),
             username,
-            password: generatedPassword,
+            password: accountPassword,
             selectedPlan,
             channelUrl: channelDraft.channelUrl.trim() || null,
             youtubeChannelId: channelValidationMetrics?.youtubeChannelId || null,
@@ -532,7 +573,6 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
 
     try {
       const usernameCandidates = generateUsernameCandidates();
-      const generatedPassword = `tm_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
       let lastErrorMessage = copy.registerFallbackError;
 
       for (const username of usernameCandidates) {
@@ -543,7 +583,7 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
             displayName: channelDraft.displayName.trim(),
             email: channelDraft.email.trim(),
             username,
-            password: generatedPassword,
+            password: accountPassword,
             selectedPlan,
             channelUrl: channelDraft.channelUrl.trim() || null,
             youtubeChannelId: channelValidationMetrics?.youtubeChannelId || null,
@@ -661,6 +701,14 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
       const channelUrl = channelDraft.channelUrl.trim();
       if (!displayName || !email || !channelUrl) {
         setStepError(copy.channelStepRequiredError);
+        return;
+      }
+      if (!authenticatedCreator && !isDemoMode && accountPassword.length < 8) {
+        setStepError(copy.passwordRequiredError);
+        return;
+      }
+      if (!authenticatedCreator && !isDemoMode && accountPassword !== accountPasswordConfirmation) {
+        setStepError(copy.passwordMismatchError);
         return;
       }
 
@@ -823,6 +871,11 @@ export function OnboardingFlow({ isDemoMode, locale }: { isDemoMode: boolean; lo
                   channelValidationMetrics,
                   channelValidationState,
                   channelValidationMessage,
+                  requirePassword: !authenticatedCreator && !isDemoMode,
+                  accountPassword,
+                  accountPasswordConfirmation,
+                  setAccountPassword,
+                  setAccountPasswordConfirmation,
                   stepError,
                   activationState,
                   acceptTerms,
@@ -915,6 +968,11 @@ function renderStepBody(
     channelValidationMetrics: ChannelValidationMetrics | null;
     channelValidationState: ChannelValidationState;
     channelValidationMessage: string | null;
+    requirePassword: boolean;
+    accountPassword: string;
+    accountPasswordConfirmation: string;
+    setAccountPassword: (value: string) => void;
+    setAccountPasswordConfirmation: (value: string) => void;
     stepError: string | null;
     activationState: ActivationState;
     acceptTerms: boolean;
@@ -962,6 +1020,11 @@ function renderStepBody(
           onValidateChannel={() => {
             void ctx.validateChannelDraft();
           }}
+          requirePassword={ctx.requirePassword}
+          password={ctx.accountPassword}
+          passwordConfirmation={ctx.accountPasswordConfirmation}
+          onPasswordChange={ctx.setAccountPassword}
+          onPasswordConfirmationChange={ctx.setAccountPasswordConfirmation}
         />
         {ctx.stepError ? <p className="text-[12px] text-[#ff8b8b]">{ctx.stepError}</p> : null}
       </div>

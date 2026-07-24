@@ -111,11 +111,12 @@ Revisa `.env.example` para los valores obligatorios.
 Minimo para pipeline real:
 
 - `YOUTUBE_API_KEY`
-- `GOOGLE_GENAI_API_KEY` (o `GEMINI_API_KEY` / `GOOGLE_API_KEY`)
 - `NOMINATIM_USER_AGENT`
 - `NOMINATIM_EMAIL`
 - `DATABASE_URL`
 - `AUTH_SESSION_SECRET`
+
+Gemini es un fallback opcional y permanece desactivado aunque existan claves antiguas. Solo se utiliza con `GEMINI_ENABLED=1` y una de `GOOGLE_GENAI_API_KEY`, `GEMINI_API_KEY` o `GOOGLE_API_KEY`, después de aprobar expresamente su uso y política de costes.
 
 Opcionales de facturacion Polar:
 
@@ -197,6 +198,8 @@ npm run security:rotate-auth
 
 Procedimiento de remediacion y rotacion: `docs/SECURITY_SECRETS.md`.
 
+Triage, alertas y recuperación de errores productivos: `docs/SENTRY_RUNBOOK.md`.
+
 ## Roles (RBAC)
 
 - Roles persistidos en `public.users.role`: `viewer`, `creator`, `superadmin`.
@@ -210,7 +213,15 @@ Procedimiento de remediacion y rotacion: `docs/SECURITY_SECRETS.md`.
 - Para cambiar rol desde CLI:
 
 ```bash
-npm run user:set-role -- --identifier=<email|username|uuid> --role=<viewer|creator|superadmin>
+npm run user:set-role -- --identifier=<email|username|uuid> --role=<viewer|creator|superadmin> --changed-by=<superadmin-email|username|uuid>
+```
+
+El actor es obligatorio para auditar la operación. También puede definirse como `ROLE_CHANGE_ACTOR`.
+
+Antes de publicar un canal real, un superadmin debe verificar evidencia de titularidad. La operación es auditable y el canal permanece privado hasta completarla:
+
+```bash
+npm run channel:verify-ownership -- --channel=<uuid|youtube-id|handle> --changed-by=<superadmin> --action=verify --method=<manual_evidence|youtube_oauth|description_challenge> --note="referencia de evidencia"
 ```
 
 ## Vercel (produccion)
@@ -220,10 +231,11 @@ En Vercel, `Project Settings > Environment Variables`, configura las mismas clav
 - `DATABASE_URL`
 - `AUTH_SESSION_SECRET` (o `SESSION_SECRET`)
 - `YOUTUBE_API_KEY`
-- `GOOGLE_GENAI_API_KEY` (o `GEMINI_API_KEY` / `GOOGLE_API_KEY`)
 - `NOMINATIM_USER_AGENT`
 - `NOMINATIM_EMAIL`
 - `NEXT_PUBLIC_APP_URL` (`https://travelyourmap.bypupila.com` en producción)
+
+Gemini no es obligatorio. Mantén `GEMINI_ENABLED=0` salvo aprobación expresa; las claves configuradas no se consumen mientras ese flag esté desactivado.
 
 Si quieres proteger el cron de cierre de votaciones:
 
@@ -232,9 +244,8 @@ Si quieres proteger el cron de cierre de votaciones:
 - Define `CRON_SECRET` (requerido en producción para los cron `GET` de Vercel).
 - Opcionalmente define `MAP_POLLS_CRON_TOKEN` para invocaciones manuales/externas.
 - No se confía en `user-agent` para autorizar cron.
-- Para ejecuciones manuales/externas, usa:
-  `/api/map/polls/close-expired?token=<MAP_POLLS_CRON_TOKEN>`
-  o header `x-cron-token` / `Authorization: Bearer`.
+- Para ejecuciones manuales/externas, usa el header `x-cron-token` o
+  `Authorization: Bearer <MAP_POLLS_CRON_TOKEN>`. Los tokens en la URL no están admitidos.
 
 ## Estructura
 

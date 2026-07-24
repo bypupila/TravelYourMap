@@ -10,7 +10,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
     if (!report) {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });
     }
-    return NextResponse.json({ report });
+    return NextResponse.json(
+      { report },
+      { headers: { "Cache-Control": "private, no-store, max-age=0" } }
+    );
   } catch (error) {
     console.error("[api/sponsors/reports/public/:token]", error);
     return NextResponse.json({ error: "Could not load sponsor report" }, { status: 500 });

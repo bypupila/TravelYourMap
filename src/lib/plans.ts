@@ -11,20 +11,24 @@ export interface PlanDefinition {
   tone: "free" | "creator" | "pro" | "agency";
   description: string;
   features: string[];
+  capabilities: {
+    sponsors: boolean;
+  };
 }
 
 export const PLAN_DEFINITIONS: PlanDefinition[] = [
   {
     slug: "free",
     checkoutSlug: null,
-    name: "Free",
+    name: "Viewer",
     price: "$0",
     monthlyPrice: 0,
     trialDays: 0,
     available: true,
     tone: "free",
-    description: "Gancho de conversión para ver el mapa y validar el canal.",
-    features: ["1 canal", "Hasta 50 videos", "Mapa público", "Importación básica"],
+    description: "Cuenta gratuita para explorar mapas e interactuar con creadores.",
+    features: ["Explorar mapas", "Votar destinos", "Guardar favoritos", "Perfil de audiencia"],
+    capabilities: { sponsors: false },
   },
   {
     slug: "creator",
@@ -35,8 +39,9 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     trialDays: 7,
     available: true,
     tone: "creator",
-    description: "Plan core para creadores individuales.",
-    features: ["Videos ilimitados", "1 sponsor", "Analytics básicos", "Mapa con branding limpio"],
+    description: "Plan core para publicar y operar un mapa sin herramientas de Sponsors.",
+    features: ["Videos ilimitados", "Mapa público", "Analytics básicos", "Mapa sin branding"],
+    capabilities: { sponsors: false },
   },
   {
     slug: "creator_pro",
@@ -51,6 +56,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     tone: "pro",
     description: "Sponsor hub y analytics más vendible.",
     features: ["Videos ilimitados", "Competitor analytics", "Sponsor hub", "Sync prioritaria"],
+    capabilities: { sponsors: true },
   },
   {
     slug: "agency",
@@ -63,6 +69,7 @@ export const PLAN_DEFINITIONS: PlanDefinition[] = [
     tone: "agency",
     description: "Para agencias y marcas que operan portafolios.",
     features: ["Portafolio de canales", "API", "Portal de marcas", "Soporte dedicado"],
+    capabilities: { sponsors: true },
   },
 ];
 
@@ -77,17 +84,17 @@ type LocalizedPlanCopy = Pick<PlanDefinition, "name" | "description" | "features
 const LOCALIZED_PLAN_COPY: Record<PlanLocale, Record<CanonicalPlanSlug, LocalizedPlanCopy>> = {
   es: {
     free: {
-      name: "Free",
-      description: "Para validar el canal y publicar un mapa inicial.",
-      features: ["1 canal", "Hasta 50 videos", "Mapa público", "Importación básica"],
+      name: "Viewer",
+      description: "Cuenta gratuita para explorar mapas e interactuar con creadores.",
+      features: ["Explorar mapas", "Votar destinos", "Guardar favoritos", "Perfil de audiencia"],
       priceSuffix: "",
       trialLabel: null,
       ctaLabel: "Empezar gratis",
     },
     creator: {
       name: "Creator",
-      description: "Para creadores individuales que quieren publicar y monetizar su mapa.",
-      features: ["Videos ilimitados", "1 sponsor", "Analytics básicos", "Mapa sin branding"],
+      description: "Para creadores que quieren publicar su mapa sin herramientas de Sponsors.",
+      features: ["Videos ilimitados", "Mapa público", "Analytics básicos", "Mapa sin branding"],
       priceSuffix: "/mes",
       trialLabel: "7 días gratis",
       ctaLabel: "Empezar prueba",
@@ -111,17 +118,17 @@ const LOCALIZED_PLAN_COPY: Record<PlanLocale, Record<CanonicalPlanSlug, Localize
   },
   en: {
     free: {
-      name: "Free",
-      description: "For validating a channel and publishing an initial map.",
-      features: ["1 channel", "Up to 50 videos", "Public map", "Basic import"],
+      name: "Viewer",
+      description: "A free account for exploring maps and interacting with creators.",
+      features: ["Explore maps", "Vote on destinations", "Save favorites", "Audience profile"],
       priceSuffix: "",
       trialLabel: null,
       ctaLabel: "Start free",
     },
     creator: {
       name: "Creator",
-      description: "For individual creators ready to publish and monetize their map.",
-      features: ["Unlimited videos", "1 sponsor", "Basic analytics", "Branding-free map"],
+      description: "For creators who want to publish their map without Sponsors tools.",
+      features: ["Unlimited videos", "Public map", "Basic analytics", "Branding-free map"],
       priceSuffix: "/mo",
       trialLabel: "7-day free trial",
       ctaLabel: "Start trial",
@@ -194,4 +201,13 @@ export function resolveCheckoutPlanSlug(slug: string) {
   const canonicalSlug = resolveCanonicalPlanSlug(slug);
   if (!canonicalSlug) return null;
   return PLAN_DEFINITIONS.find((plan) => plan.slug === canonicalSlug)?.checkoutSlug || null;
+}
+
+export function planIncludesSponsors(slugOrName: string | null | undefined) {
+  const normalized = String(slugOrName || "").trim().toLowerCase();
+  if (!normalized) return false;
+  const canonicalSlug = resolveCanonicalPlanSlug(normalized)
+    || PLAN_DEFINITIONS.find((plan) => plan.name.toLowerCase() === normalized)?.slug
+    || null;
+  return Boolean(PLAN_DEFINITIONS.find((plan) => plan.slug === canonicalSlug)?.capabilities.sponsors);
 }

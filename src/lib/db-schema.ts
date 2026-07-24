@@ -19,7 +19,6 @@ export async function tableExists(schema: string, table: string) {
       sql
         .query<Array<{ exists: boolean }>>("select to_regclass($1) is not null as exists", [key])
         .then((rows) => Boolean(rows[0]?.exists))
-        .catch(() => false)
     );
   }
   return tableCache.get(key)!;
@@ -42,7 +41,6 @@ export async function columnExists(schema: string, table: string, column: string
           [schema, table, column]
         )
         .then((rows) => Boolean(rows[0]?.exists))
-        .catch(() => false)
     );
   }
   return columnCache.get(key)!;

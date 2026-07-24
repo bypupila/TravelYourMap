@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { recordCreatorActivity, requireCreatorChannelAccess } from "@/lib/creator-admin-actions";
 import { getValidSessionUserFromRequest } from "@/lib/current-user";
+import { getTrustedAppOrigin } from "@/lib/map-urls";
+import { enforceActorRateLimit } from "@/lib/request-rate-limit";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 import {
   SPONSOR_REPORT_CADENCES,
   listSponsorReportSchedules,
@@ -36,11 +39,6 @@ const actionSchema = z.discriminatedUnion("action", [
   }),
 ]);
 
-function requestOrigin(request: Request) {
-  const url = new URL(request.url);
-  return `${url.protocol}//${url.host}`;
-}
-
 export async function PATCH(request: Request, context: { params: Promise<{ scheduleId: string }> }) {
   try {
     const sessionUser = await getValidSessionUserFromRequest(request);
@@ -53,7 +51,9 @@ export async function PATCH(request: Request, context: { params: Promise<{ sched
 
     const payload = actionSchema.parse(await request.json());
     const access = await requireCreatorChannelAccess(payload.channelId, sessionUser.id);
-    if (!access) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
     if (!(await sponsorReportScheduleBelongsToChannel(payload.channelId, scheduleId))) {
       return NextResponse.json({ error: "Sponsor report schedule not found" }, { status: 404 });
     }
@@ -81,10 +81,20 @@ export async function PATCH(request: Request, context: { params: Promise<{ sched
     }
 
     if (payload.action === "run_now") {
+      const quota = await enforceActorRateLimit({
+        scope: "creator:sponsor-report-run-now",
+        actorKey: `${sessionUser.id}:${payload.channelId}`,
+        windowMinutes: 60,
+        maxAttempts: 5,
+        failClosed: process.env.NODE_ENV === "production",
+      });
+      if (!quota.allowed) {
+        return NextResponse.json({ error: "Demasiados envíos manuales. Reintenta más tarde." }, { status: 429 });
+      }
       result = await runSponsorReportSchedule({
         channelId: payload.channelId,
         scheduleId,
-        origin: requestOrigin(request),
+        origin: getTrustedAppOrigin(),
       });
       if (!result) return NextResponse.json({ error: "Sponsor report schedule not found" }, { status: 404 });
     }
@@ -99,7 +109,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ sched
       metadata: { action: payload.action },
     });
 
-    const schedules = await listSponsorReportSchedules(payload.channelId, requestOrigin(request));
+    const schedules = await listSponsorReportSchedules(payload.channelId);
     return NextResponse.json({ ok: true, result, schedules });
   } catch (error) {
     console.error("[api/sponsors/reports/schedules/[scheduleId] PATCH]", error);

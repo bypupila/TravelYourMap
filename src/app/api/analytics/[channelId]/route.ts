@@ -3,6 +3,7 @@ import { z } from "zod";
 import { getValidSessionUserFromRequest, userIsSuperAdmin } from "@/lib/current-user";
 import { DEMO_ANALYTICS, isDemoChannelId } from "@/lib/demo-data";
 import { sql } from "@/lib/neon";
+import { getSponsorEntitlementForUser } from "@/lib/subscription-entitlements";
 
 export async function GET(
   request: Request,
@@ -42,6 +43,7 @@ export async function GET(
     if (!canViewChannelAnalytics) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
+    const sponsorEntitlement = await getSponsorEntitlementForUser(channelOwnerId);
 
     const [topCountries, videosByMonth, unlocatedVideos, totalStats] = await Promise.all([
       sql<Array<{ country_name: string; video_count: number }>>`
@@ -140,12 +142,13 @@ export async function GET(
               case
                 when event_type = 'video_watch_time_logged'
                   and coalesce(metadata->>'watch_seconds', '') ~ '^[0-9]+(\\.[0-9]+)?$'
-                then (metadata->>'watch_seconds')::numeric
+                  and length(coalesce(metadata->>'watch_seconds', '')) <= 10
+                then least((metadata->>'watch_seconds')::numeric, 21600)
                 else 0
               end
             ),
             0
-          )::int as watch_seconds
+          )::double precision as watch_seconds
         from public.map_events
         where channel_id = ${parsed.data}
           and created_at >= now() - make_interval(days => ${windowDays})
@@ -194,7 +197,7 @@ export async function GET(
       internal_metrics: {
         map_views: internalSummary.map_views || 0,
         video_panel_opens: internalSummary.video_panel_opens || 0,
-        sponsor_clicks: internalSummary.sponsor_clicks || 0,
+        sponsor_clicks: sponsorEntitlement.allowed ? internalSummary.sponsor_clicks || 0 : 0,
         poll_votes: internalSummary.poll_votes || 0,
         saved_added: internalSummary.saved_added || 0,
         favorites_added: internalSummary.favorites_added || 0,

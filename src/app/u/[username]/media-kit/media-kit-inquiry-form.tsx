@@ -16,7 +16,8 @@ export function MediaKitInquiryForm({
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const budget = Number(form.get("proposedBudgetUsd") || 0);
     setStatus("sending");
     setMessage(null);
@@ -39,7 +40,7 @@ export function MediaKitInquiryForm({
       });
       const body = (await response.json().catch(() => null)) as { error?: string } | null;
       if (!response.ok) throw new Error(body?.error || "No se pudo enviar la solicitud.");
-      event.currentTarget.reset();
+      formElement.reset();
       setStatus("success");
       setMessage("Solicitud enviada. El creador ya puede revisarla desde su panel.");
     } catch (error) {

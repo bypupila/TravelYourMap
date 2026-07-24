@@ -5,6 +5,8 @@ import type { TravelChannel } from "@/lib/types";
 import { buildPublicMapUrl } from "@/lib/map-urls";
 import { normalizeSponsorCardStyle } from "@/lib/sponsor-card-style";
 import { normalizeOptionalHexColor } from "@/lib/sponsor-banner-colors";
+import { getSponsorEntitlementForUser } from "@/lib/subscription-entitlements";
+import { resolveCanonicalPlanSlug } from "@/lib/plans";
 
 export type CreatorAdminTab = "resumen" | "videos" | "paises" | "votaciones" | "sponsors" | "media-kit" | "negocio" | "audiencia" | "actividad";
 export type CreatorAdminUiStatus = "auto" | "manual" | "pending" | "unlocated";
@@ -191,6 +193,10 @@ export interface CreatorAdminPayload {
   quickAction: CreatorAdminQuickAction;
   summary: CreatorAdminSummary;
   businessReadiness: CreatorBusinessReadiness;
+  entitlements: {
+    sponsors: boolean;
+    currentPlan: string | null;
+  };
 }
 
 interface LoadCreatorAdminPayloadInput {
@@ -558,20 +564,21 @@ export async function loadCreatorAdminPayload({ channelId, baseUrl }: LoadCreato
   const channelRow = channelRows[0] || null;
   if (!channelRow) return null;
 
-  const [features, businessReadiness] = await Promise.all([
+  const [features, businessReadiness, sponsorEntitlement] = await Promise.all([
     detectCreatorAdminSchemaFeatures(),
     buildCreatorBusinessReadiness(),
+    getSponsorEntitlementForUser(channelRow.user_id),
   ]);
 
   const [videoRows, sponsorRows, pollRows, activityRows, syncRows, audienceRows, topVideoRows, sponsorClickRows] = await Promise.all([
     loadAdminVideos(channelId, features),
-    loadAdminSponsors(channelRow.user_id, features),
+    sponsorEntitlement.allowed ? loadAdminSponsors(channelRow.user_id, features) : Promise.resolve([]),
     loadAdminPollRows(channelId, features),
     loadAdminActivity(channelId, features),
     loadAdminSyncRows(channelId),
     loadAudienceCountryRows(channelId),
     loadAudienceVideoRows(channelId),
-    loadSponsorClickRows(channelId),
+    sponsorEntitlement.allowed ? loadSponsorClickRows(channelId) : Promise.resolve([]),
   ]);
 
   const sponsors = sponsorRows.map(normalizeSponsorRow);
@@ -580,7 +587,17 @@ export async function loadCreatorAdminPayload({ channelId, baseUrl }: LoadCreato
   const globalSponsors = sponsors.filter((sponsor) => sponsor.scope === "global" && sponsor.active);
   const videos = videoRows
     .map((row) => normalizeVideoRow(row, sponsorByVideo.get(row.id) || []))
-    .map((video) => attachScopedSponsorsToVideo(video, sponsorByCountry, globalSponsors));
+    .map((video) => attachScopedSponsorsToVideo(video, sponsorByCountry, globalSponsors))
+    .map((video) => sponsorEntitlement.allowed ? video : {
+      ...video,
+      sponsor_ids: [],
+      sponsor_names: [],
+      sponsor_detection_status: "no_disponible" as const,
+      sponsor_detectado_texto: null,
+      sponsor_detectado_confianza: null,
+      sponsor_detectado_fuente: null,
+      sponsor_card_style: null,
+    });
   const countries = buildCountryRollups(videos, sponsors, sponsorByCountry, globalSponsors);
   const polls = await hydrateAdminPolls(pollRows, videos);
   const summary = buildSummary(videos, countries, polls);
@@ -629,6 +646,12 @@ export async function loadCreatorAdminPayload({ channelId, baseUrl }: LoadCreato
     quickAction,
     summary,
     businessReadiness,
+    entitlements: {
+      sponsors: sponsorEntitlement.allowed,
+      currentPlan: resolveCanonicalPlanSlug(sponsorEntitlement.subscription?.plan_slug || "")
+        || sponsorEntitlement.subscription?.plan_name
+        || null,
+    },
   };
 }
 

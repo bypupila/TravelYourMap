@@ -83,3 +83,27 @@ _Avoid_: perfil publico viewer, reporte financiero interno
 **Plan canónico**:
 The single commercial definition of a subscription tier, including its price, availability, trial period, benefits, and checkout identity across landing, pricing, onboarding, and billing.
 _Avoid_: plan de landing, plan de onboarding, precio de pantalla
+
+**Viewer gratis**:
+The free viewer account used to vote, save favorites, and interact with creator maps; it is not a creator subscription and does not create or import a channel.
+_Avoid_: plan creator gratuito, Free creator, mapa gratuito
+
+**Creator**:
+The USD 29 monthly creator subscription for publishing and operating a travel map without creator-owned Sponsors capabilities.
+_Avoid_: Starter público, Creator con un sponsor, plan Free
+
+**Creator Pro**:
+The USD 79 monthly creator subscription that includes creator-owned Sponsors management and its commercial surfaces in addition to the Creator map capabilities.
+_Avoid_: Pro genérico, Creator con sponsors ilimitados sin definición
+
+**Error operativo**:
+An unexpected application, provider, database, or worker failure that must be captured in Sentry and returned as a server error.
+_Avoid_: validación de formulario, conflicto esperado, intento inválido
+
+**Error esperado**:
+A rejected input, authorization decision, rate limit, or business-state conflict represented by a controlled 4xx response and excluded from incident noise.
+_Avoid_: excepción de producción, incidente, fallo de infraestructura
+
+**Entorno de observabilidad**:
+The explicit Sentry environment attached to every event; production uses only `production`, while local and QA activity must use distinct non-production values or remain disabled.
+_Avoid_: inferir entorno desde NODE_ENV, vercel-production, mezclar QA con producción

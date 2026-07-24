@@ -3,6 +3,7 @@ import { z } from "zod";
 import { isDemoChannelId } from "@/lib/demo-data";
 import {
   getRequestHashesFromHeaders,
+  isActiveSponsorForPublicChannel,
   isPublicMapPath,
   isUuid,
   recordMapEvent,
@@ -15,7 +16,7 @@ import { enforceRequestRateLimit } from "@/lib/request-rate-limit";
 
 const payloadSchema = z.object({
   sponsorId: z.string().uuid(),
-  channelId: z.string().optional().nullable(),
+  channelId: z.string().uuid(),
   countryCode: z.string().trim().length(2).optional().nullable(),
   path: z.string().trim().max(240).optional().nullable(),
   referrer: z.string().trim().max(500).optional().nullable(),
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
       scope: "api:sponsors-click",
       windowMinutes: 1,
       maxAttempts: 60,
+      failClosed: true,
     });
     if (!rateLimit.allowed) {
       return NextResponse.json({ ok: true, skipped: "rate_limited" });
@@ -41,12 +43,20 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, demo: true });
     }
 
-    if (channelId && (await requestUserOwnsChannel(request, channelId))) {
+    if (!channelId) {
+      return NextResponse.json({ ok: true, skipped: "invalid_channel" });
+    }
+
+    if (await requestUserOwnsChannel(request, channelId)) {
       return NextResponse.json({ ok: true, skipped: "owner_self_view" });
     }
 
-    if (channelId && !isPublicMapPath(path)) {
+    if (!isPublicMapPath(path)) {
       return NextResponse.json({ ok: true, skipped: "not_public_map" });
+    }
+
+    if (!(await isActiveSponsorForPublicChannel(payload.sponsorId, channelId))) {
+      return NextResponse.json({ ok: true, skipped: "invalid_sponsor" });
     }
 
     const hashes = getRequestHashesFromHeaders(request.headers);
@@ -62,22 +72,20 @@ export async function POST(request: Request) {
       )
     `;
 
-    if (channelId) {
-      try {
-        await recordMapEvent({
-          channelId,
-          eventType: "sponsor_click",
-          viewerMode: "viewer",
-          path,
-          referrer: resolveReferrerFromRequest(request, payload.referrer),
-          countryCode: payload.countryCode,
-          sponsorId: payload.sponsorId,
-          ipHash: hashes.ipHash,
-          userAgentHash: hashes.userAgentHash,
-        });
-      } catch (eventError) {
-        console.warn("[api/sponsors/click] map event skipped", eventError);
-      }
+    try {
+      await recordMapEvent({
+        channelId,
+        eventType: "sponsor_click",
+        viewerMode: "viewer",
+        path,
+        referrer: resolveReferrerFromRequest(request, payload.referrer),
+        countryCode: payload.countryCode,
+        sponsorId: payload.sponsorId,
+        ipHash: hashes.ipHash,
+        userAgentHash: hashes.userAgentHash,
+      });
+    } catch (eventError) {
+      console.warn("[api/sponsors/click] map event skipped", eventError);
     }
 
     return NextResponse.json({ ok: true });

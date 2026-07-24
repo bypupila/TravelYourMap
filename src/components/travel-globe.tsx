@@ -319,6 +319,7 @@ export function TravelGlobe({
     : selectedCountrySummary || (minimalOverlay ? worldSummary : null));
   const panelCountryCode = summaryCountry?.countryCode || activePoint?.country_code || "";
   const panelCountryName = summaryCountry?.countryName || activePoint?.country_name || "";
+  const minimalPanelHeading = `Tu progreso · ${panelCountryName}`;
   const panelActiveVideos = summaryCountry?.activeVideos ?? activePointCountryProgress?.active ?? 0;
   const panelTotalVideos = summaryCountry?.totalVideos ?? activePointCountryProgress?.total ?? activePoint?.video_count ?? 0;
   const panelRatio = summaryCountry?.ratio ?? activePointCountryProgress?.ratio ?? 0;
@@ -855,7 +856,7 @@ export function TravelGlobe({
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="shrink-0 leading-none">{panelFlag}</span>
                     <h2 className="min-w-0 break-words text-[12px] font-semibold leading-tight tracking-[0.02em] text-[#d5dde6]">
-                      {panelCountryName}
+                      {minimalPanelHeading}
                     </h2>
                   </div>
                   <div className="flex items-center gap-2">
@@ -877,7 +878,7 @@ export function TravelGlobe({
                 <>
                   <div className="flex min-w-0 items-center gap-2">
                     <span className="shrink-0 leading-none">{panelFlag}</span>
-                    <h2 className="truncate text-xs font-semibold tracking-[0.02em] text-[#d5dde6]">{panelCountryName}</h2>
+                    <h2 className="truncate text-xs font-semibold tracking-[0.02em] text-[#d5dde6]">{minimalPanelHeading}</h2>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <span className={panelProgressTone === "green" ? "text-[10px] font-mono text-emerald-300" : panelProgressTone === "yellow" ? "text-[10px] font-mono text-yellow-300" : "text-[10px] font-mono text-slate-400"}>

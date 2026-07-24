@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireCreatorChannelAccess } from "@/lib/creator-admin-actions";
 import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { getSponsorBulkAssignJob, undoSponsorBulkAssignJob } from "@/lib/sponsor-bulk-assign-jobs";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
     if (!access?.ownerUserId) {
       return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
     }
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
 
     const reverted = await undoSponsorBulkAssignJob({
       jobId,

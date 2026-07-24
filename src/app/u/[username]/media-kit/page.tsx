@@ -25,7 +25,9 @@ export async function generateMetadata({ params }: MediaKitPageProps): Promise<M
 
   const canonicalUrl = `${siteUrl}/u/${encodeURIComponent(mediaKit.channel.canonicalHandle)}/media-kit`;
   const title = `${mediaKit.channel.channel_name} | Media Kit para marcas`;
-  const description = `${mediaKit.summary.videos} videos en ${mediaKit.summary.countries} países, sponsors activos y señales first-party de TravelYourMap.`;
+  const description = mediaKit.sponsorFeaturesEnabled
+    ? `${mediaKit.summary.videos} videos en ${mediaKit.summary.countries} países, sponsors activos y señales first-party de TravelYourMap.`
+    : `${mediaKit.summary.videos} videos en ${mediaKit.summary.countries} países y señales first-party de TravelYourMap.`;
   return {
     title,
     description,
@@ -85,9 +87,11 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
               {mediaKit.settings.bio}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#sponsor-inquiry" className="inline-flex h-11 items-center rounded-lg bg-[#111827] px-4 text-sm font-black text-white">
-                {mediaKit.settings.preferred_cta_label || "Solicitar partnership"}
-              </a>
+              {mediaKit.sponsorFeaturesEnabled ? (
+                <a href="#sponsor-inquiry" className="inline-flex h-11 items-center rounded-lg bg-[#111827] px-4 text-sm font-black text-white">
+                  {mediaKit.settings.preferred_cta_label || "Solicitar partnership"}
+                </a>
+              ) : null}
               <Link href={mediaKit.urls.mapUrl} className="inline-flex h-11 items-center rounded-lg border border-[#cbd5e1] bg-white px-4 text-sm font-black text-[#111827]">
                 Ver mapa público
               </Link>
@@ -125,11 +129,13 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
               </div>
             </div>
             <p className="mt-4 text-sm leading-6 text-[#475569]">{mediaKit.settings.audience_note}</p>
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <MiniStat label="Sponsors" value={mediaKit.summary.active_sponsors} />
-              <MiniStat label="Clicks 30d" value={mediaKit.summary.sponsor_clicks_30d} />
-              <MiniStat label="Leads 30d" value={mediaKit.summary.inquiries_30d} />
-            </div>
+            {mediaKit.sponsorFeaturesEnabled ? (
+              <div className="mt-4 grid grid-cols-3 gap-2">
+                <MiniStat label="Sponsors" value={mediaKit.summary.active_sponsors} />
+                <MiniStat label="Clicks 30d" value={mediaKit.summary.sponsor_clicks_30d} />
+                <MiniStat label="Leads 30d" value={mediaKit.summary.inquiries_30d} />
+              </div>
+            ) : null}
           </section>
           <section className="rounded-lg border border-[#d7dce4] bg-[#111827] p-4 text-white">
             <p className="text-xs font-black uppercase tracking-[0.16em] text-[#ffb19f]">Fuente de datos</p>
@@ -157,7 +163,7 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
             </div>
           </Panel>
 
-          <Panel title="Marcas y categorias activas" eyebrow="Prueba comercial">
+          {mediaKit.sponsorFeaturesEnabled ? <Panel title="Marcas y categorias activas" eyebrow="Prueba comercial">
             <div className="grid gap-3 sm:grid-cols-2">
               {mediaKit.activeSponsors.map((sponsor) => (
                 <article key={sponsor.id} className="flex min-w-0 items-center gap-3 rounded-lg border border-[#e2e8f0] bg-[#f8fafc] p-3">
@@ -172,11 +178,11 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
               ))}
               {mediaKit.activeSponsors.length === 0 ? <p className="text-sm text-[#64748b]">Disponible para primeras marcas por destino, video o sponsor global.</p> : null}
             </div>
-          </Panel>
+          </Panel> : null}
         </div>
       </section>
 
-      <section className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-8">
+      {mediaKit.sponsorFeaturesEnabled ? <section className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-8">
         <div className="min-w-0 space-y-4">
           <Panel title="Formatos recomendados" eyebrow="Partnerships">
             <div className="grid gap-3">
@@ -190,7 +196,7 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
           </div>
         </div>
         <MediaKitInquiryForm channelId={mediaKit.channel.id} creatorName={mediaKit.channel.channel_name} mapUrl={absoluteMapUrl} />
-      </section>
+      </section> : null}
     </main>
   );
 }

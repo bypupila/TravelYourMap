@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
-import { getValidSessionUserIdFromRequest } from "@/lib/current-user";
+import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { sql } from "@/lib/neon";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request, { params }: { params: Promise<{ runId: string }> }) {
   try {
-    const userId = await getValidSessionUserIdFromRequest(request);
-    if (!userId) {
+    const sessionUser = await getValidSessionUserFromRequest(request);
+    if (!sessionUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (sessionUser.role !== "creator" && sessionUser.role !== "superadmin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const { runId: rawRunId } = await params;
@@ -36,7 +39,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ runI
       limit 1
     `;
     const channel = channels[0] || null;
-    if (!channel || channel.user_id !== userId) {
+    if (!channel || (channel.user_id !== sessionUser.id && sessionUser.role !== "superadmin")) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

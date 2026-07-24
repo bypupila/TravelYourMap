@@ -65,9 +65,11 @@ function FeatureRows({ rows, muted = false }: { rows: string[]; muted?: boolean 
 export function PricingSection({ locale }: PricingSectionProps) {
   const billingCycleLabelId = useId();
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
+  const creator = getLocalizedPlan(PLAN_DEFINITIONS.find((plan) => plan.slug === "creator")!, locale);
   const creatorPro = getLocalizedPlan(PLAN_DEFINITIONS.find((plan) => plan.slug === "creator_pro")!, locale);
   const agency = getLocalizedPlan(PLAN_DEFINITIONS.find((plan) => plan.slug === "agency")!, locale);
-  const creatorPrice = getBillingAmount(creatorPro.monthlyPrice, billingCycle, DEFAULT_ANNUAL_DISCOUNT, locale);
+  const creatorPrice = getBillingAmount(creator.monthlyPrice, billingCycle, DEFAULT_ANNUAL_DISCOUNT, locale);
+  const creatorProPrice = getBillingAmount(creatorPro.monthlyPrice, billingCycle, DEFAULT_ANNUAL_DISCOUNT, locale);
   const agencyPrice = getBillingAmount(agency.monthlyPrice, billingCycle, DEFAULT_ANNUAL_DISCOUNT, locale);
 
   const copy = locale === "en"
@@ -76,7 +78,7 @@ export function PricingSection({ locale }: PricingSectionProps) {
         viewerLane: "To explore",
         creatorLane: "To create",
         viewerDescription: "For viewing creator maps",
-        viewerCta: "Explore maps",
+        viewerCta: "Create Viewer account",
         audienceLine: "Audience access.",
         audienceValueLead: "Brands buy ",
         audienceValueAccent: "destinations",
@@ -90,7 +92,7 @@ export function PricingSection({ locale }: PricingSectionProps) {
         viewerLane: "Para mirar",
         creatorLane: "Para crear",
         viewerDescription: "Para ver mapas de creadores",
-        viewerCta: "Explorar mapas",
+        viewerCta: "Crear cuenta Viewer",
         audienceLine: "Acceso para audiencias.",
         audienceValueLead: "Las marcas compran ",
         audienceValueAccent: "destinos",
@@ -132,7 +134,7 @@ export function PricingSection({ locale }: PricingSectionProps) {
                 <p className="mt-5 max-w-[28ch] text-[15px] font-medium leading-7 text-[#f3eee7]/78 sm:text-[17px] lg:mt-4 lg:text-[15px] lg:leading-6">{copy.viewerDescription}</p>
               </div>
 
-              <Link href={buildLocalizedHref("/explore", locale)} className="mt-auto inline-flex min-h-16 w-full items-center justify-center rounded-[8px] border border-white/42 px-6 text-[16px] font-extrabold text-[#f3eee7] transition duration-300 ease-out hover:border-[#ff5a3d]/65 hover:bg-white/[0.035] active:scale-[0.98] lg:min-h-14 lg:text-[15px]">
+              <Link href={buildLocalizedHref("/auth/viewer-register", locale)} className="mt-auto inline-flex min-h-16 w-full items-center justify-center rounded-[8px] border border-white/42 px-6 text-[16px] font-extrabold text-[#f3eee7] transition duration-300 ease-out hover:border-[#ff5a3d]/65 hover:bg-white/[0.035] active:scale-[0.98] lg:min-h-14 lg:text-[15px]">
                 {copy.viewerCta}
               </Link>
             </div>
@@ -156,20 +158,43 @@ export function PricingSection({ locale }: PricingSectionProps) {
             </p>
           </div>
 
-          <div className="relative mt-8 grid min-h-[654px] min-w-0 gap-8 overflow-hidden rounded-[18px] border border-white/[0.19] bg-[#0b1013]/84 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] sm:p-8 lg:mt-5 lg:min-h-[500px] lg:grid-cols-[1.25fr_0.95fr] lg:gap-7 lg:p-6">
+          <div className="relative mt-8 grid min-h-[654px] min-w-0 gap-6 overflow-hidden rounded-[18px] border border-white/[0.19] bg-[#0b1013]/84 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.035)] sm:p-8 lg:mt-5 lg:min-h-[500px] lg:grid-cols-3 lg:gap-5 lg:p-5">
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[url('/images/landing/contact-topography.png')] bg-cover bg-[center_36%] opacity-[0.08] mix-blend-screen" />
 
-            <article className="relative flex min-w-0 flex-col">
+            <article className="relative flex min-w-0 flex-col rounded-[14px] border border-white/[0.12] bg-[#0b1013]/66 px-6 py-7 lg:px-5 lg:py-6">
+              <div className="flex items-center gap-4">
+                <PencilSimple size={34} weight="regular" className="text-[#f3eee7]/72" aria-hidden="true" />
+                <h3 className="text-[24px] font-extrabold text-[#f3eee7]">{creator.name}</h3>
+              </div>
+
+              <div className="mt-6 flex flex-wrap items-end gap-x-3 gap-y-3">
+                <p aria-label={creatorPrice.accessibleLabel} className="text-[60px] font-extrabold leading-none tracking-[-0.06em] text-[#f3eee7]">
+                  {formatMoney(creatorPrice.price)}
+                </p>
+                <span className="pb-1.5 text-[17px] font-medium text-[#f3eee7]/80">{creatorPrice.suffix}</span>
+              </div>
+              <p className="mt-4 text-[14px] leading-6 text-[#f3eee7]/62">{creator.description}</p>
+
+              <div className="mt-5">
+                <FeatureRows rows={creator.features} muted />
+              </div>
+
+              <Link href={buildLocalizedHref(`/onboarding?plan=${creator.slug}`, locale)} className="mt-auto inline-flex min-h-14 w-full items-center justify-center rounded-[8px] border border-white/30 px-5 text-[15px] font-extrabold text-[#f3eee7] transition duration-300 ease-out hover:border-[#ff5a3d]/65 hover:bg-white/[0.035] active:scale-[0.98]">
+                {creator.ctaLabel}
+              </Link>
+            </article>
+
+            <article className="relative flex min-w-0 flex-col rounded-[14px] border border-[#ff5a3d]/45 bg-[#1b1110]/72 px-6 py-7 lg:px-5 lg:py-6">
               <div className="flex items-center gap-4">
                 <SealCheck size={37} weight="regular" className="size-[37px] text-[#ff5a3d] lg:size-8" aria-hidden="true" />
                 <h3 className="text-[25px] font-extrabold text-[#f3eee7] sm:text-[28px] lg:text-[24px]">{creatorPro.name}</h3>
               </div>
 
               <div className="mt-8 flex flex-wrap items-end gap-x-4 gap-y-5 lg:mt-5">
-                <p aria-label={creatorPrice.accessibleLabel} className="text-[72px] font-extrabold leading-none tracking-[-0.065em] text-[#f3eee7] sm:text-[84px] lg:text-[72px]">
-                  {formatMoney(creatorPrice.price)}
+                <p aria-label={creatorProPrice.accessibleLabel} className="text-[72px] font-extrabold leading-none tracking-[-0.065em] text-[#f3eee7] sm:text-[84px] lg:text-[60px]">
+                  {formatMoney(creatorProPrice.price)}
                 </p>
-                <span className="pb-2 text-[20px] font-medium text-[#f3eee7]/84 sm:text-[22px] lg:text-[18px]">{creatorPrice.suffix}</span>
+                <span className="pb-2 text-[20px] font-medium text-[#f3eee7]/84 sm:text-[22px] lg:text-[17px]">{creatorProPrice.suffix}</span>
               </div>
 
               <div className="mt-7 flex flex-wrap items-center gap-5 lg:mt-5 lg:gap-4">

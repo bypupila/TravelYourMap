@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import { getValidSessionUserFromRequest, userIsSuperAdmin } from "@/lib/current-user";
 import { getDemoSponsorByCountry, isDemoChannelId } from "@/lib/demo-data";
 import { sql } from "@/lib/neon";
+import { getSponsorEntitlementForUser } from "@/lib/subscription-entitlements";
 
 interface GeoRule {
   country_code: string | null;
@@ -29,8 +31,8 @@ export async function GET(
       return NextResponse.json({ sponsor: getDemoSponsorByCountry(countryCode) });
     }
 
-    const channels = await sql<Array<{ id: string; user_id: string }>>`
-      select id, user_id
+    const channels = await sql<Array<{ id: string; user_id: string; is_public: boolean; ownership_status: string }>>`
+      select id, user_id, is_public, ownership_status
       from public.channels
       where id = ${channelId}
       limit 1
@@ -38,6 +40,19 @@ export async function GET(
     const channel = channels[0] || null;
     if (!channel) {
       return NextResponse.json({ sponsor: null });
+    }
+    const sponsorEntitlement = await getSponsorEntitlementForUser(channel.user_id);
+    if (!sponsorEntitlement.allowed) {
+      return NextResponse.json({ sponsor: null });
+    }
+    if (!channel.is_public || channel.ownership_status !== "verified") {
+      const sessionUser = await getValidSessionUserFromRequest(request);
+      const canInspectPrivateChannel = Boolean(
+        sessionUser &&
+          (userIsSuperAdmin(sessionUser.role) ||
+            (sessionUser.role === "creator" && sessionUser.id === channel.user_id))
+      );
+      if (!canInspectPrivateChannel) return NextResponse.json({ sponsor: null }, { status: 404 });
     }
 
     const data = await sql<SponsorRow[]>`
@@ -61,6 +76,8 @@ export async function GET(
       left join public.sponsor_geo_rules sgr on sgr.sponsor_id = s.id
       where s.user_id = ${channel.user_id}
         and s.active = true
+        and (s.start_date is null or s.start_date <= now())
+        and (s.end_date is null or s.end_date > now())
       group by s.id
       limit 50
     `;

@@ -1,4 +1,10 @@
 import { sanitizeEnvValue } from "@/lib/env";
+import { tableExists } from "@/lib/db-schema";
+import { sql } from "@/lib/neon";
+
+const NOMINATIM_MIN_INTERVAL_MS = 1_100;
+const NOMINATIM_TIMEOUT_MS = 8_000;
+const MAX_NOMINATIM_RESPONSE_BYTES = 1_000_000;
 
 export interface GeocodeMatch {
   lat: number;
@@ -11,6 +17,58 @@ export interface GeocodeMatch {
   raw: unknown;
 }
 
+function delay(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function reserveNominatimRequest() {
+  if (!(await tableExists("public", "external_service_rate_leases"))) {
+    return process.env.NODE_ENV !== "production";
+  }
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    const rows = await sql<Array<{ scope: string }>>`
+      insert into public.external_service_rate_leases (scope, next_allowed_at, updated_at)
+      values ('nominatim', now() + ${`${NOMINATIM_MIN_INTERVAL_MS} milliseconds`}::interval, now())
+      on conflict (scope)
+      do update set
+        next_allowed_at = now() + ${`${NOMINATIM_MIN_INTERVAL_MS} milliseconds`}::interval,
+        updated_at = now()
+      where external_service_rate_leases.next_allowed_at <= now()
+      returning scope
+    `;
+    if (rows[0]?.scope) return true;
+    await delay(250);
+  }
+  return false;
+}
+
+async function requestNominatimJson<T>(url: URL): Promise<T | null> {
+  if (!(await reserveNominatimRequest())) return null;
+  const contactEmail = sanitizeEnvValue(process.env.NOMINATIM_EMAIL);
+  const fallbackContact = sanitizeEnvValue(process.env.NEXT_PUBLIC_APP_URL || "travelyourmap.local");
+  const userAgentName = sanitizeEnvValue(process.env.NOMINATIM_USER_AGENT || "TravelYourMap");
+  const contactForHeaders = contactEmail || fallbackContact;
+  if (contactEmail) url.searchParams.set("email", contactEmail);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+        "User-Agent": `${userAgentName}/1.0 (${contactForHeaders})`,
+        "Accept-Language": "en",
+      },
+      cache: "no-store",
+      signal: AbortSignal.timeout(NOMINATIM_TIMEOUT_MS),
+    });
+    if (!response.ok) return null;
+    const contentLength = Number(response.headers.get("content-length") || 0);
+    if (contentLength > MAX_NOMINATIM_RESPONSE_BYTES) return null;
+    return await response.json() as T;
+  } catch {
+    return null;
+  }
+}
+
 export async function geocodeLocation(query: string): Promise<GeocodeMatch | null> {
   const normalizedQuery = sanitizeEnvValue(query);
   if (!normalizedQuery) return null;
@@ -21,28 +79,7 @@ export async function geocodeLocation(query: string): Promise<GeocodeMatch | nul
   url.searchParams.set("addressdetails", "1");
   url.searchParams.set("limit", "1");
 
-  const contactEmail = sanitizeEnvValue(process.env.NOMINATIM_EMAIL);
-  const fallbackContact = sanitizeEnvValue(process.env.NEXT_PUBLIC_APP_URL || "travelyourmap.local");
-  const userAgentName = sanitizeEnvValue(process.env.NOMINATIM_USER_AGENT || "TravelYourMap");
-  const contactForHeaders = contactEmail || fallbackContact;
-  if (contactEmail) {
-    url.searchParams.set("email", contactEmail);
-  }
-
-  const response = await fetch(url, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": `${userAgentName}/1.0 (${contactForHeaders})`,
-      "Accept-Language": "en",
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    return null;
-  }
-
-  const results = (await response.json()) as Array<{
+  const results = await requestNominatimJson<Array<{
     lat: string;
     lon: string;
     display_name: string;
@@ -56,9 +93,9 @@ export async function geocodeLocation(query: string): Promise<GeocodeMatch | nul
       state?: string;
       region?: string;
     };
-  }>;
+  }>>(url);
 
-  const first = results[0];
+  const first = results?.[0];
   if (!first) return null;
 
   const address = first.address || {};
@@ -86,28 +123,7 @@ export async function geocodeCoordinates(lat: number, lng: number): Promise<Geoc
   url.searchParams.set("format", "jsonv2");
   url.searchParams.set("addressdetails", "1");
 
-  const contactEmail = sanitizeEnvValue(process.env.NOMINATIM_EMAIL);
-  const fallbackContact = sanitizeEnvValue(process.env.NEXT_PUBLIC_APP_URL || "travelyourmap.local");
-  const userAgentName = sanitizeEnvValue(process.env.NOMINATIM_USER_AGENT || "TravelYourMap");
-  const contactForHeaders = contactEmail || fallbackContact;
-  if (contactEmail) {
-    url.searchParams.set("email", contactEmail);
-  }
-
-  const response = await fetch(url, {
-    headers: {
-      Accept: "application/json",
-      "User-Agent": `${userAgentName}/1.0 (${contactForHeaders})`,
-      "Accept-Language": "en",
-    },
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    return null;
-  }
-
-  const payload = (await response.json()) as {
+  const payload = await requestNominatimJson<{
     lat?: string;
     lon?: string;
     display_name?: string;
@@ -121,7 +137,8 @@ export async function geocodeCoordinates(lat: number, lng: number): Promise<Geoc
       state?: string;
       region?: string;
     };
-  };
+  }>(url);
+  if (!payload) return null;
 
   const address = payload.address || {};
   const city = address.city || address.town || address.village || address.municipality || null;

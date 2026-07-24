@@ -4,6 +4,7 @@ import { requireCreatorChannelAccess } from "@/lib/creator-admin-actions";
 import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { isDemoChannelId } from "@/lib/demo-data";
 import { processNextQueuedSponsorBulkAssignJob, processSponsorBulkAssignJob } from "@/lib/sponsor-bulk-assign-jobs";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -27,14 +28,14 @@ export async function POST(request: Request) {
     if (!access?.ownerUserId) {
       return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
     }
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
 
-    const job = payload.jobId ? await processSponsorBulkAssignJob(payload.jobId) : await processNextQueuedSponsorBulkAssignJob();
+    const job = payload.jobId
+      ? await processSponsorBulkAssignJob(payload.jobId, payload.channelId)
+      : await processNextQueuedSponsorBulkAssignJob(payload.channelId);
     if (!job) {
       return NextResponse.json({ ok: true, processed: false, message: "No hay jobs pendientes." });
-    }
-
-    if (job.channelId !== payload.channelId) {
-      return NextResponse.json({ error: "El job no pertenece al canal indicado." }, { status: 400 });
     }
 
     return NextResponse.json({ ok: true, processed: true, job });

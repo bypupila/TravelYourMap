@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getValidSessionUserIdFromRequest } from "@/lib/current-user";
+import { getValidSessionUserFromRequest } from "@/lib/current-user";
+import { hasInternalRequestAccess } from "@/lib/internal-request-auth";
 import { invalidateExpiredYouTubeStatistics } from "@/lib/youtube-data-governance";
 import { processNextQueuedYoutubeImportRun, processYoutubeImportRunById } from "@/lib/youtube-import";
 
@@ -10,32 +11,23 @@ const payloadSchema = z.object({
   runId: z.string().uuid().optional(),
 });
 
-function readRequestToken(request: Request) {
-  const headerToken = String(request.headers.get("x-import-worker-token") || "").trim();
-  if (headerToken) return headerToken;
-  const bearerToken = String(request.headers.get("authorization") || "")
-    .replace(/^Bearer\s+/i, "")
-    .trim();
-  if (bearerToken) return bearerToken;
-  const queryToken = String(new URL(request.url).searchParams.get("token") || "").trim();
-  return queryToken;
-}
-
 function hasInternalWorkerAccess(request: Request) {
-  const configuredToken = String(process.env.YOUTUBE_IMPORT_WORKER_TOKEN || "").trim();
-  const cronSecret = String(process.env.CRON_SECRET || "").trim();
-  const requestToken = readRequestToken(request);
-  if (configuredToken && requestToken === configuredToken) return true;
-  if (cronSecret && requestToken === cronSecret) return true;
-  return process.env.NODE_ENV !== "production" && !configuredToken && !cronSecret;
+  return hasInternalRequestAccess({
+    request,
+    configuredTokens: [process.env.YOUTUBE_IMPORT_WORKER_TOKEN, process.env.CRON_SECRET],
+    tokenHeaderNames: ["x-import-worker-token"],
+  });
 }
 
 async function handle(request: Request) {
   try {
-    const userId = await getValidSessionUserIdFromRequest(request);
+    const sessionUser = await getValidSessionUserFromRequest(request);
     const internalAccess = hasInternalWorkerAccess(request);
-    if (!userId && !internalAccess) {
+    if (!sessionUser && !internalAccess) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (sessionUser && sessionUser.role !== "creator" && sessionUser.role !== "superadmin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const body = await request.json().catch(() => ({}));
@@ -44,10 +36,10 @@ async function handle(request: Request) {
     const result = payload.runId
       ? await processYoutubeImportRunById({
           runId: payload.runId,
-          requestedByUserId: userId || null,
+          requestedByUserId: sessionUser?.id || null,
         })
       : await processNextQueuedYoutubeImportRun({
-          requestedByUserId: userId || null,
+          requestedByUserId: sessionUser?.id || null,
         });
 
     const governanceSweep = await invalidateExpiredYouTubeStatistics();
@@ -59,9 +51,7 @@ async function handle(request: Request) {
   } catch (error) {
     console.error("[api/youtube/import/worker]", error);
     return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : "Could not process queued import run",
-      },
+      { error: "Could not process queued import run" },
       { status: 400 }
     );
   }
@@ -71,6 +61,6 @@ export async function POST(request: Request) {
   return handle(request);
 }
 
-export async function GET(request: Request) {
-  return handle(request);
+export function GET() {
+  return NextResponse.json({ error: "Method not allowed" }, { status: 405, headers: { Allow: "POST" } });
 }

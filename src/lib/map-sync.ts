@@ -201,17 +201,45 @@ async function loadChannelSyncContext(channelId: string) {
   };
 }
 
-export async function syncChannelIncremental(input: { channelId: string }): Promise<MapSyncSummary> {
-  const now = new Date().toISOString();
+async function beginMapSyncRun(channelId: string, source: "manual_refresh" | "manual_second_check") {
   const runId = randomUUID();
-
-  await sql`
+  const rows = await sql<Array<{ id: string }>>`
+    with expired as (
+      update public.map_sync_runs
+      set status = 'failed',
+          error_message = coalesce(error_message, 'La sincronización expiró antes de completarse.'),
+          finished_at = coalesce(finished_at, now()),
+          updated_at = now()
+      where channel_id = ${channelId}
+        and status = 'running'
+        and updated_at < now() - interval '45 minutes'
+      returning id
+    )
     insert into public.map_sync_runs (id, channel_id, status, source, started_at, input, output)
-    values (${runId}, ${input.channelId}, 'running', 'manual_refresh', ${now}, '{}'::jsonb, '{}'::jsonb)
+    values (${runId}, ${channelId}, 'running', ${source}, now(), '{}'::jsonb, '{}'::jsonb)
+    on conflict (channel_id) where status = 'running' do nothing
+    returning id
   `;
+  if (!rows[0]?.id) {
+    throw new Error("Ya existe una sincronización activa para este canal.");
+  }
+  return runId;
+}
+
+async function heartbeatMapSyncRun(runId: string) {
+  await sql`
+    update public.map_sync_runs
+    set updated_at = now()
+    where id = ${runId} and status = 'running'
+  `;
+}
+
+export async function syncChannelIncremental(input: { channelId: string }): Promise<MapSyncSummary> {
+  const runId = await beginMapSyncRun(input.channelId, "manual_refresh");
 
   try {
     const context = await loadChannelSyncContext(input.channelId);
+    await heartbeatMapSyncRun(runId);
     const nonShortVideoIds = context.youtubeIds.filter((youtubeVideoId) => !context.detailsMap.get(youtubeVideoId)?.is_short);
     const excludedShorts = context.youtubeIds.length - nonShortVideoIds.length;
 
@@ -232,6 +260,7 @@ export async function syncChannelIncremental(input: { channelId: string }): Prom
     let excludedNonTravel = 0;
 
     await processVideosInBatches(newVideoIds, 3, async (youtubeVideoId) => {
+      await heartbeatMapSyncRun(runId);
       const details = context.detailsMap.get(youtubeVideoId);
       if (!details) return;
 
@@ -354,16 +383,11 @@ export async function syncChannelIncremental(input: { channelId: string }): Prom
 }
 
 export async function secondCheckManualQueue(input: { channelId: string }): Promise<MapSyncSummary> {
-  const now = new Date().toISOString();
-  const runId = randomUUID();
-
-  await sql`
-    insert into public.map_sync_runs (id, channel_id, status, source, started_at, input, output)
-    values (${runId}, ${input.channelId}, 'running', 'manual_second_check', ${now}, '{}'::jsonb, '{}'::jsonb)
-  `;
+  const runId = await beginMapSyncRun(input.channelId, "manual_second_check");
 
   try {
     const context = await loadChannelSyncContext(input.channelId);
+    await heartbeatMapSyncRun(runId);
     const manualRows = await sql<
       Array<{
         id: string;
@@ -385,6 +409,7 @@ export async function secondCheckManualQueue(input: { channelId: string }): Prom
     let excludedNonTravel = 0;
 
     await processVideosInBatches(manualRows, 3, async (row) => {
+      await heartbeatMapSyncRun(runId);
       const details = context.detailsMap.get(row.youtube_video_id);
       if (!details) return;
 

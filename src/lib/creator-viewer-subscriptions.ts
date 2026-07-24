@@ -43,6 +43,7 @@ export async function upsertCreatorViewerSubscription({
     from public.channels
     where id = ${normalizedChannelId}
       and is_public = true
+      and ownership_status = 'verified'
     limit 1
   `;
   const creatorUserId = channelRows[0]?.user_id || null;

@@ -4,11 +4,10 @@ import { getValidSessionUserIdFromRequest } from "@/lib/current-user";
 import { DEMO_CHANNEL_ID } from "@/lib/demo-data";
 import { isPublicMapPath, recordMapEventFromRequest, resolvePathFromRequest } from "@/lib/map-events";
 import {
-  getOrCreateVoterFingerprint,
+  getAuthenticatedVoterFingerprint,
   getRequestHashes,
   MapPollVoteError,
   recordMapPollVote,
-  setMapVoterCookies,
 } from "@/lib/map-polls";
 import { sql } from "@/lib/neon";
 
@@ -40,14 +39,17 @@ export async function POST(request: Request, { params }: { params: Promise<{ pol
     if (demoPollRows[0]?.channel_id === DEMO_CHANNEL_ID) {
       return NextResponse.json({ error: "Modo demo: esta operación no persiste cambios." }, { status: 400 });
     }
-    const fingerprint = await getOrCreateVoterFingerprint();
+    const voterFingerprint = getAuthenticatedVoterFingerprint(sessionUserId);
+    if (!voterFingerprint) {
+      return NextResponse.json({ error: "No se pudo validar la identidad del voto." }, { status: 401 });
+    }
     const requestHashes = await getRequestHashes();
 
     const poll = await recordMapPollVote({
       pollId,
       countryCode: payload.countryCode,
       city: payload.city || null,
-      voterFingerprint: fingerprint.hashed,
+      voterFingerprint,
       ipHash: requestHashes.ipHash,
       userAgentHash: requestHashes.userAgentHash,
     });
@@ -71,12 +73,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ pol
       }
     }
 
-    const response = NextResponse.json({ poll });
-    if (fingerprint.shouldSetCookie) {
-      setMapVoterCookies(response, fingerprint.raw);
-    }
-
-    return response;
+    return NextResponse.json({ poll });
   } catch (error) {
     console.error("[api/map/polls/[pollId]/vote]", error);
 

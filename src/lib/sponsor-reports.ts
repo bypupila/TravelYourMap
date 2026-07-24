@@ -2,6 +2,8 @@ import { createHash, randomBytes, randomUUID } from "crypto";
 import { tableExists } from "@/lib/db-schema";
 import { buildSponsorReportEmail, sendAppEmail } from "@/lib/email";
 import { sql } from "@/lib/neon";
+import { enforceActorRateLimit } from "@/lib/request-rate-limit";
+import { getSponsorEntitlementForUser } from "@/lib/subscription-entitlements";
 
 export interface SponsorReportLinkSummary {
   id: string;
@@ -234,10 +236,7 @@ function normalizeReportLink(row: ReportLinkRow, publicUrl?: string): SponsorRep
   };
 }
 
-function normalizeReportSchedule(row: ReportScheduleRow, origin?: string): SponsorReportScheduleSummary {
-  const lastReportPublicUrl = row.last_report_link_id && origin
-    ? `${origin.replace(/\/$/, "")}/sponsor-report/${row.last_report_link_id}`
-    : undefined;
+function normalizeReportSchedule(row: ReportScheduleRow): SponsorReportScheduleSummary {
   return {
     id: row.id,
     channel_id: row.channel_id,
@@ -250,7 +249,7 @@ function normalizeReportSchedule(row: ReportScheduleRow, origin?: string): Spons
     next_run_at: row.next_run_at,
     last_run_at: row.last_run_at,
     last_report_link_id: row.last_report_link_id,
-    last_report_public_url: lastReportPublicUrl,
+    last_report_public_url: undefined,
     last_email_sent_at: row.last_email_sent_at,
     last_error: row.last_error,
     paused_at: row.paused_at,
@@ -258,7 +257,7 @@ function normalizeReportSchedule(row: ReportScheduleRow, origin?: string): Spons
   };
 }
 
-export async function listSponsorReportLinks(channelId: string, origin?: string): Promise<SponsorReportLinkSummary[]> {
+export async function listSponsorReportLinks(channelId: string): Promise<SponsorReportLinkSummary[]> {
   if (!(await sponsorReportLinksTableExists())) return [];
 
   const rows = await sql<ReportLinkRow[]>`
@@ -281,10 +280,10 @@ export async function listSponsorReportLinks(channelId: string, origin?: string)
     limit 200
   `;
 
-  return rows.map((row) => normalizeReportLink(row, origin ? `${origin.replace(/\/$/, "")}/sponsor-report/${row.id}` : undefined));
+  return rows.map((row) => normalizeReportLink(row));
 }
 
-export async function listSponsorReportSchedules(channelId: string, origin?: string): Promise<SponsorReportScheduleSummary[]> {
+export async function listSponsorReportSchedules(channelId: string): Promise<SponsorReportScheduleSummary[]> {
   if (!(await sponsorReportSchedulesTableExists())) return [];
 
   const rows = await sql<ReportScheduleRow[]>`
@@ -312,7 +311,7 @@ export async function listSponsorReportSchedules(channelId: string, origin?: str
     limit 200
   `;
 
-  return rows.map((row) => normalizeReportSchedule(row, origin));
+  return rows.map((row) => normalizeReportSchedule(row));
 }
 
 export async function createSponsorReportLink({
@@ -330,28 +329,43 @@ export async function createSponsorReportLink({
     throw new Error("La tabla sponsor_report_links no existe. Ejecuta las migraciones antes de crear reportes.");
   }
 
-  const token = randomUUID();
+  const id = randomUUID();
+  const token = generateSponsorReportToken();
   const tokenHash = hashSponsorReportToken(token);
   const days = Math.min(365, Math.max(7, Math.round(periodDays)));
 
   const rows = await sql<Array<{ id: string; created_at: string }>>`
-    insert into public.sponsor_report_links (
-      id,
-      channel_id,
-      sponsor_id,
-      created_by_user_id,
-      token_hash,
-      period_days
+    with revoked as (
+      update public.sponsor_report_links
+      set active = false,
+          revoked_at = coalesce(revoked_at, now()),
+          updated_at = now()
+      where channel_id = ${channelId}
+        and sponsor_id = ${sponsorId}
+        and active = true
+      returning id
+    ), inserted as (
+      insert into public.sponsor_report_links (
+        id,
+        channel_id,
+        sponsor_id,
+        created_by_user_id,
+        token_hash,
+        period_days,
+        expires_at
+      )
+      values (
+        ${id},
+        ${channelId},
+        ${sponsorId},
+        ${createdByUserId},
+        ${tokenHash},
+        ${days},
+        now() + interval '90 days'
+      )
+      returning id, created_at
     )
-    values (
-      ${token},
-      ${channelId},
-      ${sponsorId},
-      ${createdByUserId},
-      ${tokenHash},
-      ${days}
-    )
-    returning id, created_at
+    select id, created_at from inserted
   `;
 
   return {
@@ -421,6 +435,15 @@ export async function createSponsorReportSchedule(input: {
       ${email},
       ${nextRunAt}
     )
+    on conflict (channel_id, sponsor_id) where active = true
+    do update set
+      cadence = excluded.cadence,
+      period_days = excluded.period_days,
+      recipient_email = excluded.recipient_email,
+      next_run_at = excluded.next_run_at,
+      created_by_user_id = excluded.created_by_user_id,
+      last_error = null,
+      updated_at = now()
     returning id::text as id
   `;
 
@@ -466,6 +489,7 @@ export async function updateSponsorReportSchedule(input: {
          updated_at = now()
      where id = $${values.length - 1}
        and channel_id = $${values.length}
+       and lease_id is null
      returning id::text as id`,
     values
   );
@@ -482,14 +506,44 @@ export async function setSponsorReportScheduleActive({
   active: boolean;
 }) {
   if (!(await sponsorReportSchedulesTableExists())) return false;
+  if (active) {
+    const rows = await sql<Array<{ id: string }>>`
+      with target as (
+        select id, channel_id, sponsor_id
+        from public.sponsor_report_schedules
+        where id = ${scheduleId}
+          and channel_id = ${channelId}
+          and lease_id is null
+        limit 1
+      ), paused_others as (
+        update public.sponsor_report_schedules schedules
+        set active = false, paused_at = coalesce(paused_at, now()), updated_at = now()
+        from target
+        where schedules.channel_id = target.channel_id
+          and schedules.sponsor_id = target.sponsor_id
+          and schedules.id <> target.id
+          and schedules.active = true
+        returning schedules.id
+      )
+      update public.sponsor_report_schedules schedules
+      set active = true,
+          paused_at = null,
+          next_run_at = case when next_run_at < now() then now() else next_run_at end,
+          updated_at = now()
+      from target
+      where schedules.id = target.id
+      returning schedules.id::text as id
+    `;
+    return Boolean(rows[0]?.id);
+  }
   const rows = await sql<Array<{ id: string }>>`
     update public.sponsor_report_schedules
     set active = ${active},
-        paused_at = case when ${active} = false then now() else null end,
-        next_run_at = case when ${active} = true and next_run_at < now() then now() else next_run_at end,
+        paused_at = now(),
         updated_at = now()
     where id = ${scheduleId}
       and channel_id = ${channelId}
+      and lease_id is null
     returning id::text as id
   `;
   return Boolean(rows[0]?.id);
@@ -523,12 +577,29 @@ export async function runSponsorReportSchedule({
   scheduleId,
   channelId,
   origin,
+  claimedLeaseId,
 }: {
   scheduleId: string;
   channelId?: string;
   origin: string;
+  claimedLeaseId?: string;
 }): Promise<SponsorReportScheduleRunResult | null> {
   if (!(await sponsorReportSchedulesTableExists())) return null;
+
+  const leaseId = claimedLeaseId || randomUUID();
+  if (!claimedLeaseId) {
+    const claims = await sql<Array<{ id: string }>>`
+      update public.sponsor_report_schedules
+      set lease_id = ${leaseId},
+          lease_expires_at = now() + interval '10 minutes',
+          updated_at = now()
+      where id = ${scheduleId}
+        and (${channelId || null}::uuid is null or channel_id = ${channelId || null}::uuid)
+        and (lease_id is null or lease_expires_at < now())
+      returning id::text as id
+    `;
+    if (!claims[0]?.id) return null;
+  }
 
   const rows = await sql<ReportScheduleRow[]>`
     select
@@ -551,11 +622,32 @@ export async function runSponsorReportSchedule({
     from public.sponsor_report_schedules srs
     inner join public.sponsors s on s.id = srs.sponsor_id
     where srs.id = ${scheduleId}
+      and srs.lease_id = ${leaseId}
     limit 1
   `;
   const schedule = rows[0] || null;
   if (!schedule) return null;
   if (channelId && schedule.channel_id !== channelId) return null;
+
+  const ownerRows = await sql<Array<{ user_id: string }>>`
+    select user_id::text as user_id
+    from public.channels
+    where id = ${schedule.channel_id}
+    limit 1
+  `;
+  const ownerUserId = ownerRows[0]?.user_id || "";
+  if (!ownerUserId || !(await getSponsorEntitlementForUser(ownerUserId)).allowed) {
+    await sql`
+      update public.sponsor_report_schedules
+      set lease_id = null,
+          lease_expires_at = null,
+          last_error = 'Creator Pro required',
+          updated_at = now()
+      where id = ${schedule.id}
+        and lease_id = ${leaseId}
+    `;
+    return null;
+  }
 
   let reportId: string | null = null;
   let publicUrl: string | null = null;
@@ -563,6 +655,11 @@ export async function runSponsorReportSchedule({
   let error: string | null = null;
 
   try {
+    const quotaError = await reserveSponsorReportEmailQuota({
+      channelId: schedule.channel_id,
+      recipientEmail: schedule.recipient_email,
+    });
+    if (quotaError) throw new Error(quotaError);
     const created = await createSponsorReportLink({
       channelId: schedule.channel_id,
       sponsorId: schedule.sponsor_id,
@@ -589,8 +686,11 @@ export async function runSponsorReportSchedule({
         last_email_sent_at = case when ${emailSent} = true then now() else last_email_sent_at end,
         last_error = ${error},
         next_run_at = ${nextRunForCadence(normalizeCadence(schedule.cadence), new Date()).toISOString()},
+        lease_id = null,
+        lease_expires_at = null,
         updated_at = now()
     where id = ${schedule.id}
+      and lease_id = ${leaseId}
   `;
 
   return {
@@ -620,6 +720,7 @@ export async function runDueSponsorReportSchedules({
     from public.sponsor_report_schedules
     where active = true
       and next_run_at <= now()
+      and (lease_id is null or lease_expires_at < now())
     order by next_run_at asc
     limit ${Math.min(50, Math.max(1, limit))}
   `;
@@ -633,8 +734,17 @@ export async function runDueSponsorReportSchedules({
 
 export async function loadSponsorReportByToken(token: string): Promise<SponsorReportData | null> {
   if (!(await sponsorReportLinksTableExists())) return null;
+  if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return null;
 
   const tokenHash = hashSponsorReportToken(token);
+  const accessQuota = await enforceActorRateLimit({
+    scope: "private-link:sponsor-report",
+    actorKey: tokenHash,
+    windowMinutes: 60,
+    maxAttempts: 120,
+    failClosed: process.env.NODE_ENV === "production",
+  });
+  if (!accessQuota.allowed) return null;
   const rows = await sql<ReportLinkRow[]>`
     select
       srl.id,
@@ -659,14 +769,30 @@ export async function loadSponsorReportByToken(token: string): Promise<SponsorRe
   const link = rows[0] || null;
   if (!link) return null;
 
-  await sql`
+  const ownerRows = await sql<Array<{ user_id: string }>>`
+    select user_id::text as user_id
+    from public.channels
+    where id = ${link.channel_id}
+    limit 1
+  `;
+  const ownerUserId = ownerRows[0]?.user_id || "";
+  if (!ownerUserId || !(await getSponsorEntitlementForUser(ownerUserId)).allowed) return null;
+
+  const viewRows = await sql<Array<{ view_count: number | string; last_viewed_at: string }>>`
     update public.sponsor_report_links
     set view_count = view_count + 1,
         last_viewed_at = now()
     where id = ${link.id}
+      and (last_viewed_at is null or last_viewed_at <= now() - interval '30 minutes')
+    returning view_count, last_viewed_at
   `;
 
-  return buildSponsorReportData(normalizeReportLink({ ...link, view_count: Number(link.view_count || 0) + 1 }));
+  const countedView = viewRows[0];
+  return buildSponsorReportData(normalizeReportLink({
+    ...link,
+    view_count: countedView?.view_count ?? link.view_count,
+    last_viewed_at: countedView?.last_viewed_at ?? link.last_viewed_at,
+  }));
 }
 
 async function buildSponsorReportData(link: SponsorReportLinkSummary): Promise<SponsorReportData | null> {
@@ -960,17 +1086,23 @@ async function loadSponsorCountryMetrics(channelId: string, sponsorId: string, s
         and sponsor_id = ${sponsorId}
         and clicked_at >= ${since.toISOString()}
       group by country_code
+    ),
+    country_keys as (
+      select country_code from sponsor_event_countries
+      union
+      select country_code from sponsor_click_countries
     )
     select
-      coalesce(sec.country_code, scc.country_code) as country_code,
+      keys.country_code,
       max(vl.country_name) as country_name,
       coalesce(max(sec.impressions), 0)::int as impressions,
       coalesce(max(scc.clicks), max(sec.event_clicks), 0)::int as clicks
-    from sponsor_event_countries sec
-    full outer join sponsor_click_countries scc on scc.country_code is not distinct from sec.country_code
-    left join public.video_locations vl on upper(vl.country_code) = upper(coalesce(sec.country_code, scc.country_code))
+    from country_keys keys
+    left join sponsor_event_countries sec on sec.country_code is not distinct from keys.country_code
+    left join sponsor_click_countries scc on scc.country_code is not distinct from keys.country_code
+    left join public.video_locations vl on upper(vl.country_code) = upper(keys.country_code)
       and vl.channel_id = ${channelId}
-    group by coalesce(sec.country_code, scc.country_code)
+    group by keys.country_code
     order by (coalesce(max(sec.impressions), 0) + coalesce(max(scc.clicks), max(sec.event_clicks), 0)) desc
     limit 10
   `;
@@ -1005,10 +1137,11 @@ async function loadScopedEngagement(channelId: string, youtubeVideoIds: string[]
         case
           when event_type = 'video_watch_time_logged'
             and coalesce(metadata->>'watch_seconds', '') ~ '^[0-9]+(\\.[0-9]+)?$'
-          then (metadata->>'watch_seconds')::numeric
+            and length(coalesce(metadata->>'watch_seconds', '')) <= 10
+          then least((metadata->>'watch_seconds')::numeric, 21600)
           else 0
         end
-      ), 0)::int as watch_time_seconds
+      ), 0)::double precision as watch_time_seconds
     from public.map_events
     where channel_id = ${channelId}
       and youtube_video_id = any(${youtubeVideoIds})
@@ -1120,4 +1253,32 @@ async function sendSponsorReportEmail({
     sent: result.sent,
     error: result.error,
   };
+}
+
+async function reserveSponsorReportEmailQuota({
+  channelId,
+  recipientEmail,
+}: {
+  channelId: string;
+  recipientEmail: string;
+}) {
+  const [channelQuota, recipientQuota] = await Promise.all([
+    enforceActorRateLimit({
+      scope: "email:sponsor-report:channel",
+      actorKey: channelId,
+      windowMinutes: 24 * 60,
+      maxAttempts: 25,
+      failClosed: process.env.NODE_ENV === "production",
+    }),
+    enforceActorRateLimit({
+      scope: "email:sponsor-report:recipient",
+      actorKey: normalizeEmail(recipientEmail),
+      windowMinutes: 24 * 60,
+      maxAttempts: 5,
+      failClosed: process.env.NODE_ENV === "production",
+    }),
+  ]);
+  if (!channelQuota.allowed) return "Se alcanzó el límite diario de reportes de este canal.";
+  if (!recipientQuota.allowed) return "Se alcanzó el límite diario de reportes para este destinatario.";
+  return null;
 }

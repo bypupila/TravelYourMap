@@ -20,8 +20,12 @@ function readGeminiApiKeyOptional() {
   return "";
 }
 
+export function isGeminiEnabled() {
+  return sanitizeEnvValue(process.env.GEMINI_ENABLED) === "1";
+}
+
 export function hasGeminiApiKey() {
-  return Boolean(readGeminiApiKeyOptional());
+  return isGeminiEnabled() && Boolean(readGeminiApiKeyOptional());
 }
 
 export function getGeminiModel() {
@@ -29,6 +33,10 @@ export function getGeminiModel() {
 }
 
 export function getGeminiClient() {
+  if (!isGeminiEnabled()) {
+    throw new Error("Gemini is disabled. Set GEMINI_ENABLED=1 only after approving its usage and cost policy.");
+  }
+
   if (!geminiClient) {
     geminiClient = new GoogleGenAI({
       apiKey: readRequiredEnv(readGeminiApiKeyOptional(), geminiKeyEnvPriority.join(" or ")),

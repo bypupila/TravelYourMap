@@ -2,13 +2,13 @@ import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { importYoutubeChannel } from "@/lib/youtube-import";
-import { hashPassword } from "@/lib/auth-password";
 import { setSessionCookie } from "@/lib/auth-session";
 import { isValidUsername, normalizeEmail, normalizeUsername, toPublicMapPath } from "@/lib/auth-identifiers";
 import { buildWelcomeEmail, sendAppEmail } from "@/lib/email";
 import { sql } from "@/lib/neon";
 import { getPostHogClient } from "@/lib/posthog-server";
 import { enforceRequestRateLimit } from "@/lib/request-rate-limit";
+import { hashPassword } from "@/lib/auth-password";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -17,7 +17,7 @@ const payloadSchema = z.object({
   displayName: z.string().trim().min(1, "Escribe tu nombre."),
   email: z.string().trim().email("Escribe un email válido."),
   username: z.string().trim().min(3, "El usuario debe tener al menos 3 caracteres."),
-  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres.").max(128),
+  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres.").max(128).optional().nullable(),
   selectedPlan: z.string().trim().min(2, "Selecciona un plan."),
   channelUrl: z.string().min(3).optional().nullable(),
   youtubeChannelId: z.string().min(8).optional().nullable(),
@@ -35,7 +35,6 @@ function buildValidationMessage(error: z.ZodError) {
   if (field === "displayName") return "Escribe tu nombre para continuar.";
   if (field === "email") return "Escribe un email válido para continuar.";
   if (field === "username") return "Elige un usuario válido (mínimo 3 caracteres).";
-  if (field === "password") return "La contraseña debe tener al menos 8 caracteres.";
   if (field === "selectedPlan") return "Selecciona un plan para continuar.";
   if (field === "channelUrl" || field === "youtubeChannelId") return "Revisa el canal de YouTube e inténtalo de nuevo.";
   if (field === "acceptTerms") return "Debes aceptar términos y privacidad para continuar.";
@@ -54,8 +53,8 @@ function buildChannelInput(payload: z.infer<typeof payloadSchema>) {
 }
 
 function allowTestActivationWithoutPayment() {
-  if (process.env.ENABLE_TEST_NO_PAYMENT === "1") return true;
-  return process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_ENABLE_TEST_NO_PAYMENT === "1";
+  if (process.env.NODE_ENV === "production") return false;
+  return process.env.ENABLE_TEST_NO_PAYMENT === "1" && process.env.NEXT_PUBLIC_ENABLE_TEST_NO_PAYMENT === "1";
 }
 
 async function upsertTrialSubscription(args: { userId: string; selectedPlan: string }) {
@@ -117,6 +116,7 @@ export async function POST(request: Request) {
       scope: "api:auth-register-creator",
       windowMinutes: 15,
       maxAttempts: 6,
+      failClosed: true,
     });
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -140,6 +140,13 @@ export async function POST(request: Request) {
     const email = normalizeEmail(payload.email);
     const displayName = payload.displayName.trim();
     const selectedPlan = payload.selectedPlan.trim();
+    const password = String(payload.password || "");
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: "Crea una contraseña de al menos 8 caracteres para continuar." },
+        { status: 400 }
+      );
+    }
     if (!payload.acceptTerms) {
       return NextResponse.json(
         {
@@ -167,90 +174,61 @@ export async function POST(request: Request) {
       );
     }
 
-    const existingByUsernameRows = await sql<Array<{ id: string; email: string; username: string }>>`
-      select id, email, username
+    const existingRows = await sql<Array<{ id: string }>>`
+      select id
       from public.users
       where username = ${username}
-      limit 1
-    `;
-    const existingByEmailRows = await sql<Array<{ id: string; email: string; username: string }>>`
-      select id, email, username
-      from public.users
-      where email = ${email}
+         or email = ${email}
       limit 1
     `;
 
-    const existingByUsername = existingByUsernameRows[0] || null;
-    const existingByEmail = existingByEmailRows[0] || null;
-
-    if (existingByUsername) {
-      return NextResponse.json({ error: "Ese nombre de usuario ya está en uso." }, { status: 409 });
-    }
-    if (existingByEmail) {
-      return NextResponse.json({ error: "Ya existe una cuenta con ese email. Inicia sesión." }, { status: 409 });
+    if (existingRows[0]?.id) {
+      return NextResponse.json(
+        { error: "No se pudo crear la cuenta con esos datos. Inicia sesión o usa otros datos." },
+        { status: 409 }
+      );
     }
 
     const userId = randomUUID();
     const nowIso = new Date().toISOString();
-    const passwordHash = hashPassword(payload.password);
+    const passwordHash = hashPassword(password);
 
-    await sql`
-      insert into public.users (id, email, username, display_name, role, updated_at)
-      values (${userId}, ${email}, ${username}, ${displayName}, 'creator', ${nowIso})
-      on conflict (id)
-      do update set
-        email = excluded.email,
-        username = excluded.username,
-        display_name = excluded.display_name,
-        updated_at = excluded.updated_at
-    `;
-
-    await sql`
-      insert into public.user_credentials (user_id, password_hash, updated_at)
-      values (${userId}, ${passwordHash}, ${nowIso})
-      on conflict (user_id)
-      do update set
-        password_hash = excluded.password_hash,
-        updated_at = excluded.updated_at
-    `;
-
-    await sql`
-      insert into public.onboarding_state (
-        user_id,
-        current_step,
-        completed_steps,
-        selected_plan,
-        youtube_channel_id,
-        accepted_terms_at,
-        is_complete,
-        demo_mode,
-        last_seen_at,
-        updated_at
-      )
-      values (
-        ${userId},
-        'plan',
-        array['welcome', 'youtube']::text[],
-        ${selectedPlan},
-        ${channelInput},
-        ${nowIso},
-        false,
-        false,
-        ${nowIso},
-        ${nowIso}
-      )
-      on conflict (user_id)
-      do update set
-        current_step = excluded.current_step,
-        completed_steps = excluded.completed_steps,
-        selected_plan = excluded.selected_plan,
-        youtube_channel_id = excluded.youtube_channel_id,
-        accepted_terms_at = excluded.accepted_terms_at,
-        is_complete = excluded.is_complete,
-        demo_mode = excluded.demo_mode,
-        last_seen_at = excluded.last_seen_at,
-        updated_at = excluded.updated_at
-    `;
+    await sql.transaction((txn) => [
+      txn`
+        insert into public.users (id, email, username, display_name, role, updated_at)
+        values (${userId}, ${email}, ${username}, ${displayName}, 'creator', ${nowIso})
+      `,
+      txn`
+        insert into public.onboarding_state (
+          user_id,
+          current_step,
+          completed_steps,
+          selected_plan,
+          youtube_channel_id,
+          accepted_terms_at,
+          is_complete,
+          demo_mode,
+          last_seen_at,
+          updated_at
+        )
+        values (
+          ${userId},
+          'plan',
+          array['welcome', 'youtube']::text[],
+          ${selectedPlan},
+          ${channelInput},
+          ${nowIso},
+          false,
+          false,
+          ${nowIso},
+          ${nowIso}
+        )
+      `,
+      txn`
+        insert into public.user_credentials (user_id, password_hash, updated_at)
+        values (${userId}, ${passwordHash}, ${nowIso})
+      `,
+    ]);
 
     let channelId: string | null = null;
     let importSummary: {

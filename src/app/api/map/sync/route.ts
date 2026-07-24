@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getChannelAccessForUser, getValidSessionUserFromRequest } from "@/lib/current-user";
 import { syncChannelIncremental } from "@/lib/map-sync";
+import { enforceActorRateLimit } from "@/lib/request-rate-limit";
+import { getActiveSubscriptionForUser } from "@/lib/subscription-entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +22,19 @@ export async function POST(request: Request) {
     const access = await getChannelAccessForUser(payload.channelId, sessionUser.id);
     if (!access.canManage) {
       return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    }
+    if (sessionUser.role !== "superadmin" && !(await getActiveSubscriptionForUser(access.ownerUserId || sessionUser.id))) {
+      return NextResponse.json({ error: "Se requiere una suscripción activa para sincronizar el canal." }, { status: 402 });
+    }
+    const quota = await enforceActorRateLimit({
+      scope: "creator:map-sync",
+      actorKey: `${sessionUser.id}:${payload.channelId}`,
+      windowMinutes: 60,
+      maxAttempts: 3,
+      failClosed: process.env.NODE_ENV === "production",
+    });
+    if (!quota.allowed) {
+      return NextResponse.json({ error: "Demasiadas sincronizaciones. Reintenta más tarde." }, { status: 429 });
     }
 
     const result = await syncChannelIncremental({

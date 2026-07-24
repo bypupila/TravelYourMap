@@ -4,6 +4,7 @@ import { recordCreatorActivity, requireCreatorChannelAccess } from "@/lib/creato
 import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { isDemoChannelId } from "@/lib/demo-data";
 import { buildAbsoluteMediaKitUrl, loadCreatorMediaKit, saveMediaKitSettings } from "@/lib/media-kit";
+import { reportOperationalError } from "@/lib/observability";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error) {
-    console.error("[api/creator/media-kit GET]", error);
+    reportOperationalError(error, { area: "sponsors", operation: "load_media_kit" });
     return NextResponse.json({ error: "Could not load media kit" }, { status: 500 });
   }
 }
@@ -61,7 +62,18 @@ export async function PATCH(request: Request) {
     const sessionUser = await getValidSessionUserFromRequest(request);
     if (!sessionUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const payload = mediaKitSchema.parse(await request.json());
+    const requestBody = await request.json().catch(() => null);
+    const parsedPayload = mediaKitSchema.safeParse(requestBody);
+    if (!parsedPayload.success) {
+      return NextResponse.json(
+        {
+          error: mediaKitValidationMessage(parsedPayload.error),
+          details: parsedPayload.error.issues,
+        },
+        { status: 400 },
+      );
+    }
+    const payload = parsedPayload.data;
     if (isDemoChannelId(payload.channelId)) {
       return NextResponse.json({ error: "Modo demo: esta operación no persiste cambios." }, { status: 400 });
     }
@@ -98,15 +110,20 @@ export async function PATCH(request: Request) {
         : null,
     });
   } catch (error) {
-    console.error("[api/creator/media-kit PATCH]", error);
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Invalid media kit payload", details: error.issues }, { status: 400 });
-    }
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not save media kit" },
-      { status: 400 }
-    );
+    reportOperationalError(error, { area: "sponsors", operation: "save_media_kit" });
+    return NextResponse.json({ error: "Could not save media kit" }, { status: 500 });
   }
+}
+
+function mediaKitValidationMessage(error: z.ZodError) {
+  const firstIssue = error.issues[0];
+  const field = firstIssue?.path[0];
+  if (field === "bio") return "La presentación no puede superar los 900 caracteres.";
+  if (field === "headline") return "El título no puede superar los 140 caracteres.";
+  if (field === "audience_note") return "La nota de audiencia no puede superar los 500 caracteres.";
+  if (field === "partnership_email") return "Ingresa un email de contacto válido.";
+  if (field === "featured_country_codes") return "Selecciona como máximo 12 países válidos.";
+  return "Revisa los datos del media kit e inténtalo nuevamente.";
 }
 
 function isValidUrl(value: string) {

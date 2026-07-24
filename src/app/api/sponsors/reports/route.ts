@@ -3,6 +3,9 @@ import { z } from "zod";
 import { recordCreatorActivity, requireCreatorChannelAccess } from "@/lib/creator-admin-actions";
 import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { isDemoChannelId } from "@/lib/demo-data";
+import { getTrustedAppOrigin } from "@/lib/map-urls";
+import { enforceActorRateLimit } from "@/lib/request-rate-limit";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 import {
   buildSponsorReportPublicUrl,
   createSponsorReportLink,
@@ -18,11 +21,6 @@ const createReportSchema = z.object({
   periodDays: z.number().int().min(7).max(365).default(30),
 });
 
-function requestOrigin(request: Request) {
-  const url = new URL(request.url);
-  return `${url.protocol}//${url.host}`;
-}
-
 export async function GET(request: Request) {
   try {
     const sessionUser = await getValidSessionUserFromRequest(request);
@@ -35,9 +33,11 @@ export async function GET(request: Request) {
     }
 
     const access = await requireCreatorChannelAccess(channelId, sessionUser.id);
-    if (!access) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
 
-    const reports = await listSponsorReportLinks(channelId, requestOrigin(request));
+    const reports = await listSponsorReportLinks(channelId);
     return NextResponse.json({ reports });
   } catch (error) {
     console.error("[api/sponsors/reports GET]", error);
@@ -56,9 +56,21 @@ export async function POST(request: Request) {
     }
 
     const access = await requireCreatorChannelAccess(payload.channelId, sessionUser.id);
-    if (!access) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
     if (!(await sponsorBelongsToChannel(payload.channelId, payload.sponsorId))) {
       return NextResponse.json({ error: "Sponsor not found for this channel" }, { status: 404 });
+    }
+    const quota = await enforceActorRateLimit({
+      scope: "creator:sponsor-report-create",
+      actorKey: `${sessionUser.id}:${payload.channelId}`,
+      windowMinutes: 60,
+      maxAttempts: 20,
+      failClosed: process.env.NODE_ENV === "production",
+    });
+    if (!quota.allowed) {
+      return NextResponse.json({ error: "Demasiados reportes creados. Reintenta más tarde." }, { status: 429 });
     }
 
     const created = await createSponsorReportLink({
@@ -67,9 +79,10 @@ export async function POST(request: Request) {
       createdByUserId: sessionUser.id,
       periodDays: payload.periodDays,
     });
-    const origin = requestOrigin(request);
-    const reports = await listSponsorReportLinks(payload.channelId, origin);
+    const origin = getTrustedAppOrigin();
+    const reports = await listSponsorReportLinks(payload.channelId);
     const report = reports.find((entry) => entry.id === created.id) || null;
+    const publicUrl = buildSponsorReportPublicUrl(origin, created.token);
 
     await recordCreatorActivity({
       channelId: payload.channelId,
@@ -83,8 +96,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       ok: true,
-      report,
-      public_url: buildSponsorReportPublicUrl(origin, created.token),
+      report: report ? { ...report, public_url: publicUrl } : null,
+      public_url: publicUrl,
     });
   } catch (error) {
     console.error("[api/sponsors/reports POST]", error);

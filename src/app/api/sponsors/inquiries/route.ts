@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getValidSessionUserIdFromRequest } from "@/lib/current-user";
+import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { DEMO_CHANNEL_ID } from "@/lib/demo-data";
 import { sql } from "@/lib/neon";
 import { normalizeSponsorInquiryStatus, SPONSOR_INQUIRY_STATUSES } from "@/lib/sponsor-inquiries";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 
 export const dynamic = "force-dynamic";
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -61,10 +62,15 @@ export async function GET(request: Request) {
       return NextResponse.json({ inquiries: demoInquiries });
     }
 
-    const userId = await getValidSessionUserIdFromRequest(request);
-    if (!userId) {
+    const sessionUser = await getValidSessionUserFromRequest(request);
+    if (!sessionUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (sessionUser.role !== "creator" && sessionUser.role !== "superadmin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    const entitlementDenial = await requireSponsorEntitlement(sessionUser.id);
+    if (entitlementDenial) return entitlementDenial;
 
     const rows = await sql<Array<{
       id: string;
@@ -101,7 +107,7 @@ export async function GET(request: Request) {
         si.updated_at
       from public.sponsor_inquiries si
       inner join public.channels c on c.id = si.channel_id
-      where si.creator_user_id = ${userId}
+      where si.creator_user_id = ${sessionUser.id}
         and (${channelId}::uuid is null or si.channel_id = ${channelId}::uuid)
       order by si.created_at desc
       limit 200
@@ -121,17 +127,22 @@ export async function GET(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const userId = await getValidSessionUserIdFromRequest(request);
-    if (!userId) {
+    const sessionUser = await getValidSessionUserFromRequest(request);
+    if (!sessionUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (sessionUser.role !== "creator" && sessionUser.role !== "superadmin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    const entitlementDenial = await requireSponsorEntitlement(sessionUser.id);
+    if (entitlementDenial) return entitlementDenial;
 
     const payload = updatePayloadSchema.parse(await request.json());
     const rows = await sql<Array<{ id: string; status: string }>>`
       update public.sponsor_inquiries si
       set status = ${payload.status}, updated_at = now()
       where si.id = ${payload.inquiryId}
-        and si.creator_user_id = ${userId}
+        and si.creator_user_id = ${sessionUser.id}
       returning si.id, si.status
     `;
 

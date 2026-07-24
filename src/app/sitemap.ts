@@ -31,6 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       from public.channels c
       inner join public.users u on u.id = c.user_id
       where c.is_public = true
+        and c.ownership_status = 'verified'
       order by c.updated_at desc nulls last
       limit 5000
     `;

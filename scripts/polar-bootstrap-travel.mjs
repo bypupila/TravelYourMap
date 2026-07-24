@@ -3,7 +3,7 @@
 /**
  * Bootstrap Polar for TravelYourMap:
  * - exports organizations/products snapshot
- * - creates NEW recurring products for starter/pro/creator_plus
+ * - creates NEW recurring products for the launch checkout plans (starter/pro)
  * - updates Neon subscription_plans with created product/price IDs
  *
  * Safety rule: never updates existing Polar products, only creates new ones.
@@ -16,6 +16,18 @@ import { neon } from "@neondatabase/serverless";
 const cwd = process.cwd();
 const now = new Date();
 const dateStamp = now.toISOString().slice(0, 10);
+
+function resolvePolarServer(value) {
+  const server = String(value || "production").trim().toLowerCase();
+  if (server !== "production" && server !== "sandbox") {
+    throw new Error("POLAR_SERVER must be either production or sandbox");
+  }
+  return server;
+}
+
+function polarApiBaseUrl(server) {
+  return server === "sandbox" ? "https://sandbox-api.polar.sh" : "https://api.polar.sh";
+}
 
 function parseEnv(content) {
   const out = new Map();
@@ -46,8 +58,8 @@ function requireEnv(map, key) {
   return value;
 }
 
-async function polarRequest({ token, method, apiPath, body }) {
-  const res = await fetch(`https://api.polar.sh${apiPath}`, {
+async function polarRequest({ token, server, method, apiPath, body }) {
+  const res = await fetch(`${polarApiBaseUrl(server)}${apiPath}`, {
     method,
     headers: {
       Authorization: `Bearer ${token}`,
@@ -72,12 +84,12 @@ async function polarRequest({ token, method, apiPath, body }) {
   return json;
 }
 
-async function listAllPolarPages({ token, apiPath, limit = 100 }) {
+async function listAllPolarPages({ token, server, apiPath, limit = 100 }) {
   const items = [];
   let page = 1;
 
   while (true) {
-    const data = await polarRequest({ token, method: "GET", apiPath: `${apiPath}${apiPath.includes("?") ? "&" : "?"}page=${page}&limit=${limit}` });
+    const data = await polarRequest({ token, server, method: "GET", apiPath: `${apiPath}${apiPath.includes("?") ? "&" : "?"}page=${page}&limit=${limit}` });
     const pageItems = Array.isArray(data?.items) ? data.items : [];
     items.push(...pageItems);
 
@@ -114,16 +126,25 @@ async function main() {
   const env = readLocalEnv();
   const polarToken = requireEnv(env, "POLAR_ACCESS_TOKEN");
   const databaseUrl = requireEnv(env, "DATABASE_URL");
+  const polarServer = resolvePolarServer(env.get("POLAR_SERVER"));
+  const configuredOrganizationId = String(env.get("POLAR_ORGANIZATION_ID") || "").trim();
   const sql = neon(databaseUrl);
 
-  const organizations = await listAllPolarPages({ token: polarToken, apiPath: "/v1/organizations/" });
+  const organizations = await listAllPolarPages({ token: polarToken, server: polarServer, apiPath: "/v1/organizations/" });
   if (organizations.length === 0) throw new Error("No organizations found in Polar account");
 
-  const organization = organizations[0];
+  const organization = configuredOrganizationId
+    ? organizations.find((candidate) => candidate.id === configuredOrganizationId)
+    : organizations.length === 1
+      ? organizations[0]
+      : null;
+  if (!organization) {
+    throw new Error("Set POLAR_ORGANIZATION_ID to an organization available to this Polar token");
+  }
   const organizationId = organization.id;
 
-  const beforeProducts = await listAllPolarPages({ token: polarToken, apiPath: "/v1/products/" });
-  const webhookEndpoints = await listAllPolarPages({ token: polarToken, apiPath: "/v1/webhooks/endpoints" });
+  const beforeProducts = await listAllPolarPages({ token: polarToken, server: polarServer, apiPath: `/v1/products/?organization_id=${encodeURIComponent(organizationId)}` });
+  const webhookEndpoints = await listAllPolarPages({ token: polarToken, server: polarServer, apiPath: `/v1/webhooks/endpoints?organization_id=${encodeURIComponent(organizationId)}` });
 
   const planConfigs = [
     {
@@ -140,13 +161,6 @@ async function main() {
       description: "Pro plan with sponsor hub and advanced analytics.",
       amountUsdCents: 7900,
     },
-    {
-      slug: "creator_plus",
-      projectKey: "travel_creator_plus_monthly",
-      name: `TravelYourMap Creator Plus Monthly (${dateStamp})`,
-      description: "Portfolio plan for agencies and multi-channel teams.",
-      amountUsdCents: 19900,
-    },
   ];
 
   const created = [];
@@ -161,6 +175,7 @@ async function main() {
 
     const product = await polarRequest({
       token: polarToken,
+      server: polarServer,
       method: "POST",
       apiPath: "/v1/products/",
       body: payload,
@@ -195,10 +210,11 @@ async function main() {
     `;
   }
 
-  const afterProducts = await listAllPolarPages({ token: polarToken, apiPath: "/v1/products/" });
+  const afterProducts = await listAllPolarPages({ token: polarToken, server: polarServer, apiPath: `/v1/products/?organization_id=${encodeURIComponent(organizationId)}` });
 
   const report = {
     generated_at: now.toISOString(),
+    polar_server: polarServer,
     organization: {
       id: organization.id,
       slug: organization.slug,
@@ -278,6 +294,7 @@ async function main() {
   );
 
   console.log("Polar bootstrap completed.");
+  console.log(`Server: ${polarServer}`);
   console.log(`Organization: ${organization.slug} (${organization.id})`);
   for (const row of created) {
     console.log(`- ${row.slug}: product=${row.productId}, price=${row.priceId}`);

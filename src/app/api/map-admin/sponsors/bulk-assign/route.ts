@@ -6,6 +6,7 @@ import { isDemoChannelId } from "@/lib/demo-data";
 import { tableExists } from "@/lib/db-schema";
 import { sql } from "@/lib/neon";
 import { createSponsorBulkAssignJob, processSponsorBulkAssignJob } from "@/lib/sponsor-bulk-assign-jobs";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -33,6 +34,8 @@ export async function POST(request: Request) {
     if (!access?.ownerUserId) {
       return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
     }
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
 
     const hasSponsorVideoRules = await tableExists("public", "sponsor_video_rules");
     if (!hasSponsorVideoRules) {
@@ -134,7 +137,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const processedJob = await processSponsorBulkAssignJob(job.id);
+    const processedJob = await processSponsorBulkAssignJob(job.id, payload.channelId);
     await recordCreatorActivity({
       channelId: payload.channelId,
       actorUserId: sessionUser.id,

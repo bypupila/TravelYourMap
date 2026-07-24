@@ -39,10 +39,12 @@ function priceFor(monthlyPrice: number, billingCycle: BillingCycle, locale: Loca
 export function PricingPlanExplorer({ locale }: { locale: Locale }) {
   const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
   const billingId = useId();
+  const creator = getLocalizedPlan(PLAN_DEFINITIONS.find((plan) => plan.slug === "creator")!, locale);
   const creatorPro = getLocalizedPlan(PLAN_DEFINITIONS.find((plan) => plan.slug === "creator_pro")!, locale);
   const free = getLocalizedPlan(PLAN_DEFINITIONS.find((plan) => plan.slug === "free")!, locale);
   const agency = getLocalizedPlan(PLAN_DEFINITIONS.find((plan) => plan.slug === "agency")!, locale);
-  const creatorPrice = priceFor(creatorPro.monthlyPrice, billingCycle, locale);
+  const creatorPrice = priceFor(creator.monthlyPrice, billingCycle, locale);
+  const creatorProPrice = priceFor(creatorPro.monthlyPrice, billingCycle, locale);
   const copy =
     locale === "en"
       ? {
@@ -117,7 +119,7 @@ export function PricingPlanExplorer({ locale }: { locale: Locale }) {
         </div>
       </div>
 
-      <div className="mt-8 grid gap-5 md:grid-cols-2">
+      <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         <article className="relative overflow-hidden rounded-[22px] border border-[#ff5a3d]/65 bg-[#171316] p-6 shadow-[0_24px_60px_-36px_rgba(255,90,61,0.45)] sm:p-8">
           <div className="absolute right-0 top-0 h-24 w-24 border-b border-l border-[#ff5a3d]/20" aria-hidden="true" />
           <div className="flex items-start justify-between gap-4">
@@ -126,10 +128,10 @@ export function PricingPlanExplorer({ locale }: { locale: Locale }) {
               <h2 className="mt-3 text-2xl font-black tracking-tight text-white">{creatorPro.name}</h2>
             </div>
             <p className="text-right text-3xl font-black tracking-[-0.05em] text-white sm:text-4xl">
-              {creatorPrice.amount}<span className="ml-1 text-sm font-bold tracking-normal text-white/60">{creatorPrice.suffix}</span>
+              {creatorProPrice.amount}<span className="ml-1 text-sm font-bold tracking-normal text-white/60">{creatorProPrice.suffix}</span>
             </p>
           </div>
-          <p className="mt-2 text-sm text-white/52">{creatorPrice.detail}</p>
+          <p className="mt-2 text-sm text-white/52">{creatorProPrice.detail}</p>
 
           <div className="mt-7 border-y border-white/10 py-1">
             {primaryFeatures.map((feature) => (
@@ -163,6 +165,33 @@ export function PricingPlanExplorer({ locale }: { locale: Locale }) {
           </details>
         </article>
 
+        <article className="flex flex-col rounded-[22px] border border-white/16 bg-white/[0.035] p-6 sm:p-8">
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/48">{locale === "en" ? "Build your map" : "Crea tu mapa"}</p>
+          <div className="mt-3 flex items-end justify-between gap-4">
+            <h2 className="text-2xl font-black tracking-tight text-white">{creator.name}</h2>
+            <p className="text-right text-3xl font-black tracking-[-0.05em] text-white">
+              {creatorPrice.amount}<span className="ml-1 text-sm font-bold tracking-normal text-white/60">{creatorPrice.suffix}</span>
+            </p>
+          </div>
+          <p className="mt-2 text-sm text-white/52">{creatorPrice.detail}</p>
+          <p className="mt-3 text-sm leading-6 text-white/62">{creator.description}</p>
+
+          <div className="mt-7 flex-1 border-y border-white/10 py-1">
+            {creator.features.map((feature) => (
+              <div key={feature} className="flex items-center gap-3 border-b border-white/10 py-3.5 last:border-b-0">
+                <CheckCircle size={19} className="shrink-0 text-white/58" aria-hidden="true" />
+                <span className="text-sm font-semibold text-white/76">{feature}</span>
+              </div>
+            ))}
+          </div>
+          <Link
+            href={buildLocalizedHref(`/onboarding?plan=${creator.slug}`, locale)}
+            className="mt-7 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-white/22 px-4 text-sm font-black text-white transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:border-[#ff725b]/55 hover:bg-white/[0.06] active:translate-y-px"
+          >
+            {creator.ctaLabel}
+          </Link>
+        </article>
+
         <article className="flex flex-col border border-white/12 bg-white/[0.025] p-6 sm:p-8">
           <p className="text-[10px] font-black uppercase tracking-[0.16em] text-white/45">{copy.freeEyebrow}</p>
           <div className="mt-3 flex items-end justify-between gap-4">
@@ -180,14 +209,14 @@ export function PricingPlanExplorer({ locale }: { locale: Locale }) {
             ))}
           </div>
           <Link
-            href={buildLocalizedHref(`/onboarding?plan=${free.slug}`, locale)}
+            href={buildLocalizedHref("/auth/viewer-register", locale)}
             className="mt-7 inline-flex min-h-12 w-full items-center justify-center rounded-xl border border-white/18 px-4 text-sm font-black text-white transition duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-white/[0.06] active:translate-y-px"
           >
             {free.ctaLabel}
           </Link>
         </article>
 
-        <article className="md:col-span-2">
+        <article className="md:col-span-2 lg:col-span-3">
           <div className="grid gap-5 border border-white/12 bg-white/[0.025] p-5 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center sm:p-6">
             <Buildings size={30} className="text-white/52" aria-hidden="true" />
             <div>

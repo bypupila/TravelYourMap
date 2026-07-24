@@ -141,12 +141,13 @@ export async function loadAdminOverviewMetrics(input?: { windowDays?: number }):
               case
                 when event_type = 'video_watch_time_logged'
                   and coalesce(metadata->>'watch_seconds', '') ~ '^[0-9]+(\\.[0-9]+)?$'
-                then (metadata->>'watch_seconds')::numeric
+                  and length(coalesce(metadata->>'watch_seconds', '')) <= 10
+                then least((metadata->>'watch_seconds')::numeric, 21600)
                 else 0
               end
             ),
             0
-          )::int as watch_seconds
+          )::double precision as watch_seconds
         from public.map_events
         where created_at >= now() - make_interval(days => ${windowDays})
       `

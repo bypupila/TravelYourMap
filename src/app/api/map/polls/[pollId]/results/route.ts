@@ -1,7 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { getSessionUserById, getValidSessionUserIdFromRequest, userIsSuperAdmin } from "@/lib/current-user";
-import { getMapVoterFingerprintFromCookieStore, loadMapPollById, type MapPollRecord } from "@/lib/map-polls";
+import {
+  getAuthenticatedVoterFingerprint,
+  getMapVoterFingerprintFromCookieStore,
+  loadMapPollById,
+  type MapPollRecord,
+} from "@/lib/map-polls";
 import { sql } from "@/lib/neon";
 
 export const dynamic = "force-dynamic";
@@ -40,7 +45,9 @@ export async function GET(request: Request, { params }: { params: Promise<{ poll
     const { pollId } = await params;
 
     const cookieStore = await cookies();
-    const voterFingerprint = getMapVoterFingerprintFromCookieStore(cookieStore);
+    const voterFingerprint = userId
+      ? getAuthenticatedVoterFingerprint(userId)
+      : getMapVoterFingerprintFromCookieStore(cookieStore);
 
     const poll = await loadMapPollById(pollId, voterFingerprint);
 

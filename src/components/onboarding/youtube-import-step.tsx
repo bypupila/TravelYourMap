@@ -19,6 +19,11 @@ interface YoutubeImportStepProps {
   channelValidationState?: "idle" | "checking" | "valid" | "invalid";
   channelValidationMessage?: string | null;
   onValidateChannel?: () => void;
+  requirePassword?: boolean;
+  password?: string;
+  passwordConfirmation?: string;
+  onPasswordChange?: (value: string) => void;
+  onPasswordConfirmationChange?: (value: string) => void;
 }
 
 const copyByLocale: Record<
@@ -34,6 +39,9 @@ const copyByLocale: Record<
     validatingChannel: string;
     channelValid: string;
     channelInvalid: string;
+    passwordLabel: string;
+    passwordConfirmationLabel: string;
+    passwordPlaceholder: string;
   }
 > = {
   es: {
@@ -47,6 +55,9 @@ const copyByLocale: Record<
     validatingChannel: "Validando...",
     channelValid: "Canal válido",
     channelInvalid: "Canal inválido",
+    passwordLabel: "Contraseña",
+    passwordConfirmationLabel: "Repetir contraseña",
+    passwordPlaceholder: "Mínimo 8 caracteres",
   },
   en: {
     displayNameLabel: "Name",
@@ -59,6 +70,9 @@ const copyByLocale: Record<
     validatingChannel: "Validating...",
     channelValid: "Valid channel",
     channelInvalid: "Invalid channel",
+    passwordLabel: "Password",
+    passwordConfirmationLabel: "Repeat password",
+    passwordPlaceholder: "At least 8 characters",
   },
 };
 
@@ -70,6 +84,11 @@ export function YoutubeImportStep({
   channelValidationState = "idle",
   channelValidationMessage = null,
   onValidateChannel,
+  requirePassword = false,
+  password = "",
+  passwordConfirmation = "",
+  onPasswordChange,
+  onPasswordConfirmationChange,
 }: YoutubeImportStepProps) {
   const copy = copyByLocale[locale];
   const draft: ChannelDraft = {
@@ -106,6 +125,37 @@ export function YoutubeImportStep({
           />
         </label>
       </div>
+
+      {requirePassword ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block">
+            <span className="mb-1 block text-[11px] uppercase tracking-[0.18em] text-[#8f8f8f]">{copy.passwordLabel}</span>
+            <input
+              type="password"
+              autoComplete="new-password"
+              minLength={8}
+              maxLength={128}
+              value={password}
+              onChange={(event) => onPasswordChange?.(event.target.value)}
+              placeholder={copy.passwordPlaceholder}
+              className="h-11 w-full rounded-2xl border border-white/10 bg-[#121212] px-4 text-[14px] text-[#f1f1f1] outline-none placeholder:text-[#717171] focus:border-[rgba(255,90,61,0.6)]"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-[11px] uppercase tracking-[0.18em] text-[#8f8f8f]">{copy.passwordConfirmationLabel}</span>
+            <input
+              type="password"
+              autoComplete="new-password"
+              minLength={8}
+              maxLength={128}
+              value={passwordConfirmation}
+              onChange={(event) => onPasswordConfirmationChange?.(event.target.value)}
+              placeholder={copy.passwordPlaceholder}
+              className="h-11 w-full rounded-2xl border border-white/10 bg-[#121212] px-4 text-[14px] text-[#f1f1f1] outline-none placeholder:text-[#717171] focus:border-[rgba(255,90,61,0.6)]"
+            />
+          </label>
+        </div>
+      ) : null}
 
       <label className="block">
         <span className="mb-1 block text-[11px] uppercase tracking-[0.18em] text-[#8f8f8f]">{copy.channelUrlLabel}</span>

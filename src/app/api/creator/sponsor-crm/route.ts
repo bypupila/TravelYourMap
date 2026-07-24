@@ -3,6 +3,7 @@ import { z } from "zod";
 import { recordCreatorActivity, requireCreatorChannelAccess } from "@/lib/creator-admin-actions";
 import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { isDemoChannelId } from "@/lib/demo-data";
+import { getTrustedAppOrigin } from "@/lib/map-urls";
 import {
   SPONSOR_CAMPAIGN_STATUSES,
   SPONSOR_AGREEMENT_TYPES,
@@ -36,17 +37,15 @@ import {
 } from "@/lib/sponsor-crm";
 import { buildBrandPortalAccessEmail, sendAppEmail } from "@/lib/email";
 import { SPONSOR_INQUIRY_STATUSES } from "@/lib/sponsor-inquiries";
+import { enforceActorRateLimit } from "@/lib/request-rate-limit";
+import { reportOperationalError } from "@/lib/observability";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 
 export const dynamic = "force-dynamic";
 
 const channelQuerySchema = z.object({
   channelId: z.string().uuid(),
 });
-
-function requestOrigin(request: Request) {
-  const url = new URL(request.url);
-  return `${url.protocol}//${url.host}`;
-}
 
 const optionalDate = z.string().date().optional().nullable();
 const optionalText = (max = 1200) => z.string().trim().max(max).optional().nullable();
@@ -229,6 +228,7 @@ const actionSchema = z.discriminatedUnion("action", [
     action: z.literal("create_brand_portal"),
     channelId: z.string().uuid(),
     campaignId: z.string().uuid(),
+    accessEmail: z.string().trim().email().max(180),
   }),
   z.object({
     action: z.literal("revoke_brand_portal"),
@@ -248,12 +248,14 @@ export async function GET(request: Request) {
     if (!parsed.success) return NextResponse.json({ error: "channelId is required" }, { status: 400 });
 
     const access = await requireCreatorChannelAccess(parsed.data.channelId, sessionUser.id);
-    if (!access) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
 
     const crm = await loadSponsorCrm(parsed.data.channelId);
     return NextResponse.json({ crm });
   } catch (error) {
-    console.error("[api/creator/sponsor-crm GET]", error);
+    reportOperationalError(error, { area: "sponsors", operation: "load_crm" });
     return NextResponse.json({ error: "Could not load sponsor CRM" }, { status: 500 });
   }
 }
@@ -269,6 +271,43 @@ export async function POST(request: Request) {
     }
     const access = await requireCreatorChannelAccess(payload.channelId, sessionUser.id);
     if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
+
+    if (payload.action === "create_brand_portal") {
+      const [actorQuota, recipientQuota] = await Promise.all([
+        enforceActorRateLimit({
+          scope: "email:brand-portal:creator",
+          actorKey: `${sessionUser.id}:${payload.channelId}`,
+          windowMinutes: 24 * 60,
+          maxAttempts: 20,
+          failClosed: process.env.NODE_ENV === "production",
+        }),
+        enforceActorRateLimit({
+          scope: "email:brand-portal:recipient",
+          actorKey: payload.accessEmail.toLowerCase(),
+          windowMinutes: 24 * 60,
+          maxAttempts: 5,
+          failClosed: process.env.NODE_ENV === "production",
+        }),
+      ]);
+      if (!actorQuota.allowed || !recipientQuota.allowed) {
+        return NextResponse.json({ error: "Se alcanzó el límite diario de portales o emails para este destinatario." }, { status: 429 });
+      }
+    }
+
+    if (payload.action === "create_campaign_renewal_email") {
+      const quota = await enforceActorRateLimit({
+        scope: "email:campaign-renewal:creator",
+        actorKey: `${sessionUser.id}:${payload.channelId}`,
+        windowMinutes: 24 * 60,
+        maxAttempts: 20,
+        failClosed: process.env.NODE_ENV === "production",
+      });
+      if (!quota.allowed) {
+        return NextResponse.json({ error: "Se alcanzó el límite diario de emails de renovación." }, { status: 429 });
+      }
+    }
 
     let entityId: string | null = null;
     let activity: string = payload.action;
@@ -433,7 +472,7 @@ export async function POST(request: Request) {
         channelId: payload.channelId,
         creatorUserId: access.ownerUserId,
         campaignId: payload.campaignId,
-        origin: requestOrigin(request),
+        origin: getTrustedAppOrigin(),
       });
       if (!result) return NextResponse.json({ error: "Campaign not found or not ready for renewal" }, { status: 404 });
       entityId = result.renewal_campaign_id;
@@ -534,6 +573,7 @@ export async function POST(request: Request) {
         channelId: payload.channelId,
         campaignId: payload.campaignId,
         createdByUserId: sessionUser.id,
+        accessEmail: payload.accessEmail,
       });
       if (!result) return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
       entityId = result.id;
@@ -584,13 +624,10 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ ok: true, crm, result: actionResult });
   } catch (error) {
-    console.error("[api/creator/sponsor-crm POST]", error);
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid sponsor CRM payload", details: error.issues }, { status: 400 });
     }
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not update sponsor CRM" },
-      { status: 400 }
-    );
+    reportOperationalError(error, { area: "sponsors", operation: "update_crm" });
+    return NextResponse.json({ error: "Could not update sponsor CRM" }, { status: 500 });
   }
 }

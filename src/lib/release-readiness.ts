@@ -83,7 +83,7 @@ export async function loadReleaseReadiness(): Promise<ReleaseReadinessPayload> {
     select count(*)::int as checkout_ready
     from public.subscription_plans
     where is_active = true
-      and slug in ('starter', 'pro', 'creator_plus')
+      and slug in ('starter', 'pro')
       and polar_price_id is not null
   `.catch(() => [{ checkout_ready: 0 }]);
   const checkoutReadyCount = Number(checkoutPlanRows[0]?.checkout_ready || 0);
@@ -191,11 +191,11 @@ export async function loadReleaseReadiness(): Promise<ReleaseReadinessPayload> {
     id: "billing_polar_checkout",
     group: "Billing",
     label: "Planes Polar activos para checkout",
-    status: checkoutReadyCount >= 3 ? "pass" : "fail",
+    status: checkoutReadyCount >= 2 ? "pass" : "fail",
     detail:
-      checkoutReadyCount >= 3
-        ? "starter, pro y creator_plus tienen price activo en subscription_plans."
-        : `Solo ${checkoutReadyCount}/3 planes checkout tienen polar_price_id. Ejecutar bootstrap/sync de Polar antes de lanzar.`,
+      checkoutReadyCount >= 2
+        ? "Creator (starter) y Creator Pro (pro) tienen price activo en subscription_plans."
+        : `Solo ${checkoutReadyCount}/2 planes de lanzamiento tienen polar_price_id. Ejecutar bootstrap/sync de Polar antes de lanzar.`,
   });
 
   checks.push({

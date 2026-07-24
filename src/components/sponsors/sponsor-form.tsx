@@ -9,7 +9,8 @@ export function SponsorForm({ demo = false }: { demo?: boolean }) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const formData = new FormData(formElement);
     const logo_url = normalizeSponsorLogoUrl(String(formData.get("logo_url") || "").trim());
     const website_url = normalizeExternalSponsorUrl(String(formData.get("website_url") || "").trim());
     const affiliate_url = normalizeExternalSponsorUrl(String(formData.get("affiliate_url") || "").trim());
@@ -56,7 +57,7 @@ export function SponsorForm({ demo = false }: { demo?: boolean }) {
       return;
     }
 
-    event.currentTarget.reset();
+    formElement.reset();
     setMessage(demo ? "Sponsor simulado correctamente (modo demo)" : "Sponsor creado correctamente");
   }
 

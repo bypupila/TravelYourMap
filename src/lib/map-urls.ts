@@ -1,12 +1,19 @@
 const FALLBACK_APP_HOST = "https://travelyourmap.bypupila.com";
 
-function getAppHost() {
-  return String(process.env.NEXT_PUBLIC_APP_URL || FALLBACK_APP_HOST).trim().replace(/\/+$/, "");
+export function getTrustedAppOrigin() {
+  const raw = String(process.env.NEXT_PUBLIC_APP_URL || FALLBACK_APP_HOST).trim();
+  try {
+    const url = new URL(raw);
+    if (url.protocol !== "http:" && url.protocol !== "https:") throw new Error("Unsupported app URL protocol");
+    return url.origin;
+  } catch {
+    return FALLBACK_APP_HOST;
+  }
 }
 
 function buildAbsoluteAppUrl(path: string) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return `${getAppHost()}${normalizedPath}`;
+  return `${getTrustedAppOrigin()}${normalizedPath}`;
 }
 
 export function buildPublicMapUrl(channelId: string) {

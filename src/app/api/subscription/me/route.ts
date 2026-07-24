@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getValidSessionUserIdFromRequest } from "@/lib/current-user";
 import { DEMO_CHANNEL_SLUG } from "@/lib/demo-data";
-import { sql } from "@/lib/neon";
+import { getActiveSubscriptionForUser } from "@/lib/subscription-entitlements";
 
 export const dynamic = "force-dynamic";
 
@@ -23,25 +23,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ active: false, plan: null, current_period_end: null }, { status: 401 });
     }
 
-    const rows = await sql<
-      Array<{
-        status: string;
-        current_period_end: string | null;
-        plan_name: string | null;
-      }>
-    >`
-      select
-        s.status,
-        s.current_period_end,
-        p.name as plan_name
-      from public.subscriptions s
-      left join public.subscription_plans p on p.id = s.plan_id
-      where s.user_id = ${userId}
-        and s.status in ('active', 'trialing', 'past_due')
-      order by s.updated_at desc
-      limit 1
-    `;
-    const data = rows[0] || null;
+    const data = await getActiveSubscriptionForUser(userId);
 
     return NextResponse.json({
       active: Boolean(data && (data.status === "active" || data.status === "trialing")),

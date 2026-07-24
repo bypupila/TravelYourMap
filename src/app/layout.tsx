@@ -9,7 +9,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { DesinInspectorRuntime } from "@/components/site/desin-inspector-runtime";
 import { LocaleDocumentSync } from "@/components/site/locale-document-sync";
 import { ComingSoonProvider } from "@/components/site/coming-soon-provider";
-import { Analytics } from "@vercel/analytics/next";
+import { SafeAnalytics } from "@/components/site/safe-analytics";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -77,7 +77,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <ComingSoonProvider>{children}</ComingSoonProvider>
           <DesinInspectorRuntime enabled={process.env.NODE_ENV === "development"} />
         </TooltipProvider>
-        <Analytics />
+        <SafeAnalytics />
       </body>
     </html>
   );

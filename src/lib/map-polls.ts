@@ -286,6 +286,11 @@ export function hashValue(value: string) {
   return createHash("sha256").update(value).digest("hex");
 }
 
+export function getAuthenticatedVoterFingerprint(userId: string) {
+  const normalizedUserId = String(userId || "").trim().toLowerCase();
+  return normalizedUserId ? hashValue(`authenticated-user:${normalizedUserId}`) : null;
+}
+
 export function getMapVoterCookieInfo(cookieStore: CookieStore) {
   for (const cookieName of MAP_VOTER_COOKIE_NAMES) {
     const value = String(cookieStore.get(cookieName)?.value || "").trim();
@@ -427,13 +432,15 @@ export async function loadMapPoll(
   channelId: string,
   {
     includeDraft = false,
+    includeLinkOnly = false,
     voterFingerprint,
-  }: { includeDraft?: boolean; voterFingerprint?: string | null } = {}
+  }: { includeDraft?: boolean; includeLinkOnly?: boolean; voterFingerprint?: string | null } = {}
 ): Promise<MapPollRecord | null> {
   const pollRows = await sql<PollRow[]>`
     select id, channel_id, title, prompt, status::text as status, poll_mode, show_popup, published_at, closes_at, created_by_user_id
     from public.map_polls
     where channel_id = ${channelId}
+      and (${includeLinkOnly} = true or visibility = 'public')
       and (
         status = 'live'
         or (${includeDraft} = true and status = 'draft')
@@ -914,7 +921,7 @@ export async function recordMapPollVote({
     throw new MapPollVoteError("Demasiados intentos de voto. Reintenta en un minuto.", 429);
   }
 
-  await sql`
+  const insertedRows = await sql<Array<{ id: string }>>`
     insert into public.map_poll_votes (
       poll_id,
       country_code,
@@ -933,7 +940,13 @@ export async function recordMapPollVote({
       ${userAgentHash},
       ${now}
     )
+    on conflict (poll_id, voter_fingerprint) do nothing
+    returning id
   `;
+
+  if (!insertedRows[0]?.id) {
+    throw new MapPollVoteError("Tu cuenta ya voto en esta encuesta.", 409);
+  }
 
   return loadMapPollById(pollId, voterFingerprint);
 }

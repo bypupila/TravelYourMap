@@ -8,6 +8,8 @@ import { geocodeLocation } from "@/lib/geocode";
 import { normalizeCountryCode } from "@/lib/map-polls";
 import { normalizeSponsorCardStyle } from "@/lib/sponsor-card-style";
 import { sql } from "@/lib/neon";
+import { enforceActorRateLimit } from "@/lib/request-rate-limit";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -41,7 +43,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ vi
       return NextResponse.json({ error: "Modo demo: esta operación no persiste cambios." }, { status: 400 });
     }
     const access = await requireCreatorChannelAccess(payload.channelId, sessionUser.id);
-    if (!access) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    if (typeof payload.sponsor_card_style !== "undefined") {
+      const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+      if (entitlementDenial) return entitlementDenial;
+    }
     const [hasVisibleOnMap, hasFeatured, hasVideoInternalNotes, hasSponsorCardStyle, hasLocationInternalNotes] = await Promise.all([
       columnExists("public", "videos", "visible_on_map"),
       columnExists("public", "videos", "featured"),
@@ -106,6 +112,16 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ vi
       let evidence: Record<string, unknown> = { source: "manual_admin" };
 
       if (lat === null || lng === null) {
+        const quota = await enforceActorRateLimit({
+          scope: "creator:manual-geocode",
+          actorKey: `${sessionUser.id}:${payload.channelId}`,
+          windowMinutes: 60,
+          maxAttempts: 30,
+          failClosed: process.env.NODE_ENV === "production",
+        });
+        if (!quota.allowed) {
+          return NextResponse.json({ error: "Demasiadas geocodificaciones. Ingresa coordenadas o reintenta más tarde." }, { status: 429 });
+        }
         const query = [countryName || countryCode].filter(Boolean).join(", ");
         const match = await geocodeLocation(query);
         if (!match?.lat || !match?.lng) {

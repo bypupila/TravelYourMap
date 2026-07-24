@@ -3,7 +3,7 @@ import { tableExists } from "@/lib/db-schema";
 
 export async function revokeUserSessions(userId: string, reason: string) {
   if (!(await tableExists("public", "user_session_revocations"))) {
-    return new Date().toISOString();
+    throw new Error("Required table public.user_session_revocations is unavailable.");
   }
   const revokedAfter = new Date().toISOString();
 
@@ -23,7 +23,7 @@ export async function revokeUserSessions(userId: string, reason: string) {
 export async function isSessionRevoked(userId: string, issuedAtSeconds: number) {
   if (!userId || !issuedAtSeconds) return true;
   if (!(await tableExists("public", "user_session_revocations"))) {
-    return false;
+    return process.env.NODE_ENV === "production";
   }
 
   const rows = await sql<Array<{ revoked_after: string }>>`

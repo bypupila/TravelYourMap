@@ -3,6 +3,8 @@ import { z } from "zod";
 import { recordCreatorActivity, requireCreatorChannelAccess } from "@/lib/creator-admin-actions";
 import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { isDemoChannelId } from "@/lib/demo-data";
+import { enforceActorRateLimit } from "@/lib/request-rate-limit";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 import {
   SPONSOR_REPORT_CADENCES,
   createSponsorReportSchedule,
@@ -21,11 +23,6 @@ const createScheduleSchema = z.object({
   nextRunAt: z.string().datetime().optional().or(z.string().date()).nullable(),
 });
 
-function requestOrigin(request: Request) {
-  const url = new URL(request.url);
-  return `${url.protocol}//${url.host}`;
-}
-
 export async function GET(request: Request) {
   try {
     const sessionUser = await getValidSessionUserFromRequest(request);
@@ -37,9 +34,11 @@ export async function GET(request: Request) {
     }
 
     const access = await requireCreatorChannelAccess(channelId, sessionUser.id);
-    if (!access) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
 
-    const schedules = await listSponsorReportSchedules(channelId, requestOrigin(request));
+    const schedules = await listSponsorReportSchedules(channelId);
     return NextResponse.json({ schedules });
   } catch (error) {
     console.error("[api/sponsors/reports/schedules GET]", error);
@@ -58,9 +57,21 @@ export async function POST(request: Request) {
     }
 
     const access = await requireCreatorChannelAccess(payload.channelId, sessionUser.id);
-    if (!access) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
     if (!(await sponsorBelongsToChannel(payload.channelId, payload.sponsorId))) {
       return NextResponse.json({ error: "Sponsor not found for this channel" }, { status: 404 });
+    }
+    const quota = await enforceActorRateLimit({
+      scope: "creator:sponsor-report-schedule-create",
+      actorKey: `${sessionUser.id}:${payload.channelId}`,
+      windowMinutes: 24 * 60,
+      maxAttempts: 20,
+      failClosed: process.env.NODE_ENV === "production",
+    });
+    if (!quota.allowed) {
+      return NextResponse.json({ error: "Demasiadas programaciones creadas. Reintenta más tarde." }, { status: 429 });
     }
 
     const scheduleId = await createSponsorReportSchedule({
@@ -84,7 +95,7 @@ export async function POST(request: Request) {
       metadata: { schedule_id: scheduleId, cadence: payload.cadence, period_days: payload.periodDays },
     });
 
-    const schedules = await listSponsorReportSchedules(payload.channelId, requestOrigin(request));
+    const schedules = await listSponsorReportSchedules(payload.channelId);
     return NextResponse.json({ ok: true, schedules });
   } catch (error) {
     console.error("[api/sponsors/reports/schedules POST]", error);

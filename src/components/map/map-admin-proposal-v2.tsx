@@ -16,6 +16,7 @@ import {
   GlobeHemisphereWest,
   House,
   List,
+  LockKey,
   MagnifyingGlass,
   MapPin,
   PencilSimple,
@@ -256,6 +257,7 @@ type SponsorCrmPayload = {
       view_count: number;
       last_viewed_at: string | null;
       revoked_at: string | null;
+      expires_at: string | null;
       created_at: string;
       public_url?: string;
     }>;
@@ -443,15 +445,17 @@ export function MapAdminProposalV2({
                 <VotesTab payload={payload} mutate={mutate} onOpenNewVote={() => updateQuery({ tab: "votaciones", modal: "new-vote" })} />
               ) : null}
               {tab === "sponsors" ? (
-                <SponsorsTab
-                  payload={payload}
-                  mutate={mutate}
-                  onNew={(countryCode) => updateQuery({ tab: "sponsors", modal: "new-sponsor", country: countryCode || null })}
-                  onEdit={(sponsorId) => updateQuery({ tab: "sponsors", modal: "edit-sponsor", id: sponsorId })}
-                />
+                payload.entitlements.sponsors ? (
+                  <SponsorsTab
+                    payload={payload}
+                    mutate={mutate}
+                    onNew={(countryCode) => updateQuery({ tab: "sponsors", modal: "new-sponsor", country: countryCode || null })}
+                    onEdit={(sponsorId) => updateQuery({ tab: "sponsors", modal: "edit-sponsor", id: sponsorId })}
+                  />
+                ) : <SponsorUpgradePanel surface="Sponsors" />
               ) : null}
               {tab === "media-kit" ? <MediaKitTab payload={payload} /> : null}
-              {tab === "negocio" ? <BusinessTab payload={payload} /> : null}
+              {tab === "negocio" ? (payload.entitlements.sponsors ? <BusinessTab payload={payload} /> : <SponsorUpgradePanel surface="Negocio" />) : null}
               {tab === "audiencia" ? <AudienceTab payload={payload} onNavigate={updateQuery} /> : null}
               {tab === "actividad" ? <ActivityTab payload={payload} onNavigate={updateQuery} /> : null}
             </div>
@@ -475,7 +479,7 @@ export function MapAdminProposalV2({
       {modal === "edit-video" && selectedVideo ? (
         <EditVideoModal video={selectedVideo} countries={payload.countries} onClose={closeModal} onSubmit={patchVideo} />
       ) : null}
-      {(modal === "new-sponsor" || modal === "edit-sponsor") ? (
+      {payload.entitlements.sponsors && (modal === "new-sponsor" || modal === "edit-sponsor") ? (
         <SponsorModal
           payload={payload}
           sponsor={selectedSponsor}
@@ -526,6 +530,7 @@ function AdminSidebar({
             item={item}
             active={tab === item.id}
             badge={item.id === "videos" ? pendingVideos : item.id === "votaciones" ? activeVotes : 0}
+            locked={!payload.entitlements.sponsors && (item.id === "sponsors" || item.id === "negocio")}
             onClick={() => onTab(item.id)}
           />
         ))}
@@ -579,11 +584,13 @@ function SidebarButton({
   item,
   active,
   badge = 0,
+  locked = false,
   onClick,
 }: {
   item: (typeof TABS)[number];
   active: boolean;
   badge?: number;
+  locked?: boolean;
   onClick: () => void;
 }) {
   const Icon = item.icon;
@@ -604,7 +611,34 @@ function SidebarButton({
           {badge}
         </span>
       ) : null}
+      {locked ? (
+        <span className="inline-flex items-center gap-1 rounded-full border border-[#ff5a3d]/25 bg-[#ff5a3d]/10 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.08em] text-[#ff9c88]">
+          <LockKey size={9} weight="bold" aria-hidden="true" /> Pro
+        </span>
+      ) : null}
     </button>
+  );
+}
+
+function SponsorUpgradePanel({ surface }: { surface: "Sponsors" | "Negocio" }) {
+  return (
+    <section className="relative overflow-hidden rounded-[24px] border border-[#ff5a3d]/30 bg-[linear-gradient(145deg,rgba(255,90,61,0.14),rgba(255,255,255,0.025)_55%)] px-5 py-8 sm:px-8 sm:py-10">
+      <div aria-hidden="true" className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#ff5a3d]/10 blur-3xl" />
+      <div className="relative max-w-2xl">
+        <span className="inline-flex items-center gap-2 rounded-full border border-[#ff5a3d]/30 bg-[#ff5a3d]/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.14em] text-[#ff9d8a]">
+          <LockKey size={13} weight="bold" aria-hidden="true" /> Creator Pro
+        </span>
+        <h1 className="mt-5 text-[clamp(2rem,5vw,3.8rem)] font-semibold leading-[0.98] tracking-[-0.05em] text-white">
+          {surface} está incluido en Creator Pro.
+        </h1>
+        <p className="mt-5 max-w-xl text-[15px] leading-7 text-[#b4bdc8]">
+          Tu plan Creator mantiene el mapa, los videos y la analítica básica. Sube a Creator Pro para gestionar marcas, asignar sponsors, crear reportes y operar el Brand Portal.
+        </p>
+        <Link href="/pricing" className="mt-7 inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-[#ff5a3d] px-5 text-[13px] font-black text-white transition hover:bg-[#ff725b] active:translate-y-px">
+          Comparar planes <ArrowUpRight size={15} weight="bold" aria-hidden="true" />
+        </Link>
+      </div>
+    </section>
   );
 }
 
@@ -1238,7 +1272,9 @@ function SponsorsTab({
     });
     const body = (await response.json().catch(() => null)) as { reports?: SponsorReportLinkSummary[]; error?: string } | null;
     if (!response.ok) throw new Error(body?.error || "No se pudieron actualizar los reportes.");
-    setReportLinks(body?.reports || []);
+    const reports = body?.reports || [];
+    setReportLinks(reports);
+    return reports;
   }
 
   async function copySponsorReportUrl(report: SponsorReportLinkSummary) {
@@ -1296,10 +1332,15 @@ function SponsorsTab({
         | { report?: SponsorReportLinkSummary | null; public_url?: string; error?: string }
         | null;
       if (!response.ok) throw new Error(body?.error || "No se pudo crear el reporte.");
-      await refreshSponsorReports();
+      const reports = await refreshSponsorReports();
       if (body?.public_url) {
+        if (body.report) {
+          setReportLinks(reports.map((report) => report.id === body.report?.id
+            ? { ...report, public_url: body.public_url }
+            : report));
+        }
         await navigator.clipboard.writeText(body.public_url).catch(() => undefined);
-        setReportMessage("Reporte creado. Link copiado al portapapeles.");
+        setReportMessage("Reporte creado. Link copiado; por seguridad solo se mostrará durante esta sesión.");
       } else {
         setReportMessage("Reporte creado.");
       }
@@ -1677,6 +1718,7 @@ function SponsorsTab({
                       {report ? (
                         <p className="mt-2 text-[11px] text-[#8e98a6]">
                           Reporte {report.period_days} dias · {formatNumber(report.view_count)} vistas · creado {formatDateShort(report.created_at)}
+                          {!report.public_url ? " · genera un enlace nuevo para volver a compartirlo" : ""}
                         </p>
                       ) : null}
                     </div>
@@ -1699,6 +1741,9 @@ function SponsorsTab({
                           <ActionButton onClick={() => sendSponsorReportEmail(sponsor, report)} disabled={!report.public_url}>Enviar email</ActionButton>
                           <ActionButton onClick={() => report.public_url ? window.open(report.public_url, "_blank", "noopener,noreferrer") : setReportMessage("El link del reporte no esta disponible.")} disabled={!report.public_url}>Abrir reporte</ActionButton>
                           <ActionButton onClick={() => void copySponsorReportUrl(report)} disabled={!report.public_url}>Copiar link</ActionButton>
+                          <ActionButton onClick={() => void createSponsorReport(sponsor.id)} disabled={reportBusyId === `create:${sponsor.id}`}>
+                            {reportBusyId === `create:${sponsor.id}` ? "Generando..." : "Renovar enlace"}
+                          </ActionButton>
                           <ActionButton onClick={() => void revokeSponsorReport(report.id)} disabled={reportBusyId === `revoke:${report.id}`}>
                             {reportBusyId === `revoke:${report.id}` ? "Revocando..." : "Revocar"}
                           </ActionButton>
@@ -2302,7 +2347,22 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
       });
       const body = (await response.json().catch(() => null)) as { crm?: SponsorCrmPayload; result?: unknown; error?: string } | null;
       if (!response.ok || !body?.crm) throw new Error(body?.error || "No se pudo actualizar el CRM.");
-      setCrm(body.crm);
+      let nextCrm = body.crm;
+      if (action.action === "create_brand_portal" && body.result && typeof body.result === "object") {
+        const portalResult = body.result as { id?: string; public_url?: string };
+        if (portalResult.id && portalResult.public_url) {
+          nextCrm = {
+            ...body.crm,
+            campaigns: body.crm.campaigns.map((campaign) => ({
+              ...campaign,
+              portal_links: campaign.portal_links.map((portal) => portal.id === portalResult.id
+                ? { ...portal, public_url: portalResult.public_url }
+                : portal),
+            })),
+          };
+        }
+      }
+      setCrm(nextCrm);
       setMessage(success);
       return body;
     } catch (error) {
@@ -2354,7 +2414,8 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
 
   function handleCreateCollaboration(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     void (async () => {
       const result = await crmAction(
       {
@@ -2375,9 +2436,9 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
       },
       "Colaboracion creada como oportunidad.",
       "create-collaboration"
-    );
+      );
       if (result) {
-        event.currentTarget.reset();
+        formElement.reset();
         setBusinessView("colaboraciones");
       }
     })();
@@ -3239,7 +3300,9 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
           {campaigns.map((campaign) => (
             <article key={campaign.id} className="rounded-lg border border-white/10 bg-white/[0.025] p-3">
               {(() => {
-                const activePortal = campaign.portal_links.find((link) => link.active && !link.revoked_at) || null;
+                const activePortal = campaign.portal_links.find((link) =>
+                  link.active && !link.revoked_at && (!link.expires_at || new Date(link.expires_at).getTime() > Date.now())
+                ) || null;
                 const openRenewal = hasOpenRenewalForCampaign(campaign, campaigns);
                 return (
                   <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-white/[0.03] p-2">
@@ -3266,6 +3329,16 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
                           </ActionButton>
                           <ActionButton disabled={!activePortal.public_url} onClick={() => void copyBrandPortalLink(activePortal.public_url)}>Copiar link</ActionButton>
                           <ActionButton
+                            disabled={!campaign.contact_email || busy === `portal-create:${campaign.id}`}
+                            onClick={() => void crmAction(
+                              { action: "create_brand_portal", campaignId: campaign.id, accessEmail: campaign.contact_email },
+                              "Portal protegido renovado y enviado a la marca.",
+                              `portal-create:${campaign.id}`
+                            )}
+                          >
+                            {busy === `portal-create:${campaign.id}` ? "Renovando..." : "Renovar enlace"}
+                          </ActionButton>
+                          <ActionButton
                             disabled={busy === `portal-revoke:${activePortal.id}`}
                             onClick={() => void crmAction({ action: "revoke_brand_portal", portalId: activePortal.id }, "Portal de marca revocado.", `portal-revoke:${activePortal.id}`)}
                           >
@@ -3274,10 +3347,14 @@ function BusinessTab({ payload }: { payload: CreatorAdminPayload }) {
                         </>
                       ) : (
                         <ActionButton
-                          disabled={busy === `portal-create:${campaign.id}`}
-                          onClick={() => void crmAction({ action: "create_brand_portal", campaignId: campaign.id }, "Portal de marca creado.", `portal-create:${campaign.id}`)}
+                          disabled={!campaign.contact_email || busy === `portal-create:${campaign.id}`}
+                          onClick={() => void crmAction(
+                            { action: "create_brand_portal", campaignId: campaign.id, accessEmail: campaign.contact_email },
+                            "Portal protegido creado y enviado a la marca.",
+                            `portal-create:${campaign.id}`
+                          )}
                         >
-                          Crear portal
+                          {campaign.contact_email ? "Crear portal" : "Falta email"}
                         </ActionButton>
                       )}
                       {isCampaignReadyForRenewal(campaign) ? (

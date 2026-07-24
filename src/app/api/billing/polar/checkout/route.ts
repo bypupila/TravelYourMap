@@ -5,6 +5,8 @@ import { getSessionUserById, getValidSessionUserIdFromRequest } from "@/lib/curr
 import { sql } from "@/lib/neon";
 import { getPlanSlugCandidates } from "@/lib/plans";
 import { getPostHogClient } from "@/lib/posthog-server";
+import { getTrustedAppOrigin } from "@/lib/map-urls";
+import { reportOperationalError } from "@/lib/observability";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +25,7 @@ function buildOnboardingRedirect(origin: string, args: { lang: "es" | "en"; plan
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const appOrigin = getTrustedAppOrigin();
   const lang = url.searchParams.get("lang") === "en" ? "en" : "es";
   const requestedPlan = String(url.searchParams.get("plan") || "").trim();
 
@@ -34,12 +37,12 @@ export async function GET(request: Request) {
 
     const userId = await getValidSessionUserIdFromRequest(request);
     if (!userId) {
-      return NextResponse.redirect(buildOnboardingRedirect(url.origin, { lang, plan }));
+      return NextResponse.redirect(buildOnboardingRedirect(appOrigin, { lang, plan }));
     }
 
     const users = await getSessionUserById(userId);
     if (!users) {
-      return NextResponse.redirect(new URL("/auth", url.origin));
+      return NextResponse.redirect(new URL("/auth", appOrigin));
     }
 
     const planCandidates = getPlanSlugCandidates(plan);
@@ -64,7 +67,7 @@ export async function GET(request: Request) {
 
     if (!planRow?.polar_price_id) {
       return NextResponse.redirect(
-        buildOnboardingRedirect(url.origin, {
+        buildOnboardingRedirect(appOrigin, {
           lang,
           plan: planRow?.slug || plan,
           error: "plan_unavailable",
@@ -74,15 +77,19 @@ export async function GET(request: Request) {
 
     const checkout = await createPolarCheckoutSession({
       productPriceId: planRow.polar_price_id,
-      successUrl: `${url.origin}/onboarding/processing?checkout=success&plan=${encodeURIComponent(planRow.slug)}&lang=${encodeURIComponent(lang)}`,
+      successUrl: `${appOrigin}/onboarding/processing?checkout=success&plan=${encodeURIComponent(planRow.slug)}&lang=${encodeURIComponent(lang)}`,
       customerEmail: users.email || undefined,
       externalCustomerId: userId,
       discountId: process.env.POLAR_TRIAL_DISCOUNT_ID || null,
+      metadata: {
+        user_id: userId,
+        plan_slug: planRow.slug,
+      },
     });
 
     if (!checkout.url) {
       return NextResponse.redirect(
-        buildOnboardingRedirect(url.origin, {
+        buildOnboardingRedirect(appOrigin, {
           lang,
           plan: planRow.slug,
           error: "checkout_failed",
@@ -103,9 +110,11 @@ export async function GET(request: Request) {
 
     return NextResponse.redirect(checkout.url);
   } catch (error) {
-    console.error("[api/billing/polar/checkout]", error);
+    if (!(error instanceof z.ZodError)) {
+      reportOperationalError(error, { area: "billing", operation: "polar_checkout" });
+    }
     return NextResponse.redirect(
-      buildOnboardingRedirect(url.origin, {
+      buildOnboardingRedirect(appOrigin, {
         lang,
         plan: requestedPlan || null,
         error: "checkout_failed",

@@ -196,6 +196,7 @@ async function userHasActiveSubscription(userId: string) {
     from public.subscriptions
     where user_id = ${userId}
       and status in ('active', 'trialing')
+      and (current_period_end is null or current_period_end > now())
     order by updated_at desc
     limit 1
   `;

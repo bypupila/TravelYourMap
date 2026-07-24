@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getValidSessionUserIdFromRequest } from "@/lib/current-user";
+import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { DEMO_ANALYTICS } from "@/lib/demo-data";
 import { sql } from "@/lib/neon";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -40,15 +41,20 @@ export async function GET(request: Request) {
       });
     }
 
-    const userId = await getValidSessionUserIdFromRequest(request);
-    if (!userId) {
+    const sessionUser = await getValidSessionUserFromRequest(request);
+    if (!sessionUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (sessionUser.role !== "creator" && sessionUser.role !== "superadmin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    const entitlementDenial = await requireSponsorEntitlement(sessionUser.id);
+    if (entitlementDenial) return entitlementDenial;
 
     const sponsors = await sql<Array<{ id: string; brand_name: string }>>`
       select id, brand_name
       from public.sponsors
-      where user_id = ${userId}
+      where user_id = ${sessionUser.id}
         and active = true
       limit 100
     `;

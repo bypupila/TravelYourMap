@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { recordCreatorActivity, requireCreatorChannelAccess } from "@/lib/creator-admin-actions";
 import { getValidSessionUserFromRequest } from "@/lib/current-user";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 import { revokeSponsorReportLink } from "@/lib/sponsor-reports";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ re
     const { reportId } = await params;
     const payload = patchSchema.parse(await request.json());
     const access = await requireCreatorChannelAccess(payload.channelId, sessionUser.id);
-    if (!access) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
 
     const revoked = await revokeSponsorReportLink({
       channelId: payload.channelId,

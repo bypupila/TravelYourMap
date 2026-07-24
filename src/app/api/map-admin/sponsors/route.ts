@@ -9,8 +9,28 @@ import { sql } from "@/lib/neon";
 import { normalizeSponsorCardStyle } from "@/lib/sponsor-card-style";
 import { validateSponsorBannerColors } from "@/lib/sponsor-banner-colors";
 import { normalizeExternalSponsorUrl, normalizeSponsorLogoUrl } from "@/lib/sponsor-url";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
+import { reportOperationalError } from "@/lib/observability";
 
 export const dynamic = "force-dynamic";
+
+const SPONSOR_INPUT_MESSAGES = [
+  "Selecciona al menos un pais para el sponsor.",
+  "Selecciona al menos un video para el sponsor.",
+  "Logo URL inválida.",
+  "Website URL inválida.",
+  "Affiliate URL inválida.",
+  "Color de fondo inválido. Usa formato hexadecimal, por ejemplo #dc2626.",
+  "Color de texto inválido. Usa formato hexadecimal, por ejemplo #ffffff.",
+  "El texto del sponsor banner necesita más contraste con el fondo.",
+  "La categoría personalizada no es válida.",
+  "La categoría seleccionada no pertenece a este perfil.",
+  "Uno o más videos no pertenecen al canal seleccionado.",
+];
+
+function isSponsorInputError(error: unknown): error is Error {
+  return error instanceof Error && SPONSOR_INPUT_MESSAGES.includes(error.message);
+}
 
 const sponsorPayloadSchema = z.object({
   channelId: z.string().uuid(),
@@ -185,6 +205,9 @@ export async function POST(request: Request) {
     }
     const access = await requireCreatorChannelAccess(payload.channelId, sessionUser.id);
     if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
+    await assertVideosBelongToChannel(payload.channelId, payload.video_ids);
     const schema = await getSponsorSchemaFeatures();
     const resolvedCategoryId = await resolveSponsorCategoryId(payload, access.ownerUserId, schema);
 
@@ -282,11 +305,14 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, id: sponsorId });
   } catch (error) {
-    console.error("[api/map-admin/sponsors POST]", error);
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid sponsor payload", details: error.issues }, { status: 400 });
     }
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Could not save sponsor" }, { status: 400 });
+    if (isSponsorInputError(error)) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    reportOperationalError(error, { area: "sponsors", operation: "create" });
+    return NextResponse.json({ error: "Could not save sponsor" }, { status: 500 });
   }
 }
 
@@ -301,6 +327,9 @@ export async function PATCH(request: Request) {
     }
     const access = await requireCreatorChannelAccess(payload.channelId, sessionUser.id);
     if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
+    await assertVideosBelongToChannel(payload.channelId, payload.video_ids);
     const schema = await getSponsorSchemaFeatures();
     const resolvedCategoryId = await resolveSponsorCategoryId(payload, access.ownerUserId, schema);
 
@@ -390,11 +419,14 @@ export async function PATCH(request: Request) {
 
     return NextResponse.json({ ok: true, id: sponsorId });
   } catch (error) {
-    console.error("[api/map-admin/sponsors PATCH]", error);
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid sponsor payload", details: error.issues }, { status: 400 });
     }
-    return NextResponse.json({ error: error instanceof Error ? error.message : "Could not update sponsor" }, { status: 400 });
+    if (isSponsorInputError(error)) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    reportOperationalError(error, { area: "sponsors", operation: "update" });
+    return NextResponse.json({ error: "Could not update sponsor" }, { status: 500 });
   }
 }
 
@@ -413,6 +445,8 @@ export async function DELETE(request: Request) {
     }
     const access = await requireCreatorChannelAccess(parsed.channelId, sessionUser.id);
     if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
 
     if (action === "delete") {
       const rows = await sql<Array<{ id: string; brand_name: string }>>`
@@ -447,10 +481,10 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ ok: true, id: sponsor.id, archived: true });
   } catch (error) {
-    console.error("[api/map-admin/sponsors DELETE]", error);
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Invalid sponsor action payload", details: error.issues }, { status: 400 });
     }
+    reportOperationalError(error, { area: "sponsors", operation: "archive_or_delete" });
     return NextResponse.json({ error: "Could not update sponsor state" }, { status: 500 });
   }
 }
@@ -494,6 +528,22 @@ async function replaceSponsorScope(
       insert into public.sponsor_video_rules (sponsor_id, video_id, priority)
       values (${sponsorId}, ${videoId}, 10)
     `;
+  }
+}
+
+async function assertVideosBelongToChannel(channelId: string, videoIds: string[]) {
+  const uniqueVideoIds = Array.from(new Set(videoIds));
+  if (uniqueVideoIds.length === 0) return;
+
+  const rows = await sql.query<Array<{ id: string }>>(
+    `select id::text as id
+     from public.videos
+     where channel_id = $1
+       and id = any($2::uuid[])`,
+    [channelId, uniqueVideoIds]
+  );
+  if (rows.length !== uniqueVideoIds.length) {
+    throw new Error("Uno o más videos no pertenecen al canal seleccionado.");
   }
 }
 

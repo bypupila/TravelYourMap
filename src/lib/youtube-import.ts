@@ -3,11 +3,13 @@ import type { TravelChannel, TravelVideoLocation } from "@/lib/types";
 import { sql } from "@/lib/neon";
 import { analyzeVideoLocation, persistVideoAnalysis } from "@/lib/video-location-engine";
 import { loadChannelPlaylistSignals, loadUploadsPlaylistVideos, loadVideoDetails, resolveYouTubeChannel } from "@/lib/youtube";
+import { getActiveSubscriptionForUser } from "@/lib/subscription-entitlements";
 
 interface ImportYoutubeChannelInput {
   userId: string;
   channelUrl: string;
   importRunId?: string;
+  leaseId?: string | null;
 }
 
 export interface ImportYoutubeChannelResult {
@@ -39,8 +41,15 @@ const DEFAULT_PROVIDER_ERRORS: ProviderErrorCounter = {
 };
 
 const DEFAULT_IMPORT_CONCURRENCY = 3;
-const DEFAULT_MAX_VIDEOS_PER_RUN = 2500;
-const STALE_RUNNING_RUN_MS = 2 * 60 * 1000;
+const DEFAULT_MAX_VIDEOS_PER_RUN = 250;
+const IMPORT_LEASE_MS = 10 * 60 * 1000;
+
+class ImportLeaseLostError extends Error {
+  constructor() {
+    super("Import lease is no longer active.");
+    this.name = "ImportLeaseLostError";
+  }
+}
 
 function parsePositiveInt(value: string | undefined, fallback: number) {
   const parsed = Number(value);
@@ -196,6 +205,7 @@ async function upsertChannelImportRun(input: {
   errorMessage?: string | null;
   startedAt?: string | null;
   finishedAt?: string | null;
+  leaseId?: string | null;
 }) {
   const existingRows = await sql<Array<{ id: string }>>`
     select id
@@ -206,7 +216,7 @@ async function upsertChannelImportRun(input: {
   const existing = existingRows[0] || null;
 
   if (existing?.id) {
-    await sql`
+    const updatedRows = await sql<Array<{ id: string }>>`
       update public.channel_import_runs
       set
         channel_id = ${input.channelId},
@@ -217,9 +227,21 @@ async function upsertChannelImportRun(input: {
         error_message = ${input.errorMessage || null},
         started_at = ${input.startedAt || null},
         finished_at = ${input.finishedAt || null},
+        lease_id = case
+          when ${input.status} = 'running' then lease_id
+          else null
+        end,
+        lease_expires_at = case
+          when ${input.status} <> 'running' then null
+          when ${input.leaseId || null}::uuid is not null then now() + interval '10 minutes'
+          else lease_expires_at
+        end,
         updated_at = ${new Date().toISOString()}
       where id = ${existing.id}
+        and (${input.leaseId || null}::uuid is null or lease_id = ${input.leaseId || null}::uuid)
+      returning id
     `;
+    if (input.leaseId && !updatedRows[0]?.id) throw new ImportLeaseLostError();
     return existing.id;
   }
 
@@ -500,10 +522,17 @@ export async function importYoutubeChannelPreview(channelUrl: string): Promise<I
   const userId = randomUUID();
   const importRunId = randomUUID();
 
-  const playlistVideos = await loadUploadsPlaylistVideos(source.uploads_playlist_id);
+  const previewLimit = Math.min(getMaxVideosPerRun(), 120);
+  const playlistVideos = await loadUploadsPlaylistVideos(source.uploads_playlist_id, previewLimit);
   const videoIds = playlistVideos.map((video) => video.contentDetails?.videoId).filter(Boolean) as string[];
-  const videoDetails = videoIds.length ? await loadVideoDetails(videoIds) : new Map();
-  const playlistSignals = source.youtube_channel_id ? await loadChannelPlaylistSignals(source.youtube_channel_id) : new Map();
+  const videoDetails = videoIds.length ? await loadVideoDetails(videoIds, previewLimit) : new Map();
+  const playlistSignals = source.youtube_channel_id
+    ? await loadChannelPlaylistSignals(source.youtube_channel_id, {
+        eligibleVideoIds: new Set(videoIds),
+        maxPlaylists: 30,
+        maxItems: previewLimit * 4,
+      })
+    : new Map();
   const eligibleVideoIds = filterOutShortVideoIds(videoIds, videoDetails);
   const previewLocations: TravelVideoLocation[] = [];
 
@@ -565,6 +594,7 @@ export async function importYoutubeChannel({
   userId,
   channelUrl,
   importRunId = randomUUID(),
+  leaseId = null,
 }: ImportYoutubeChannelInput): Promise<ImportYoutubeChannelResult> {
   const startedAt = new Date().toISOString();
   const importConcurrency = getImportConcurrency();
@@ -601,6 +631,7 @@ export async function importYoutubeChannel({
         source: sourcePayload,
       },
       startedAt,
+      leaseId,
     });
   }
 
@@ -678,6 +709,7 @@ export async function importYoutubeChannel({
         maxVideosPerRun,
       },
       startedAt,
+      leaseId,
     });
 
     await updateProgress("resolving_channel", uploadChannel.id, {
@@ -687,7 +719,10 @@ export async function importYoutubeChannel({
       uploads_playlist_id: source.uploads_playlist_id,
     });
 
-    const playlistVideos = await withRetry(() => loadUploadsPlaylistVideos(source.uploads_playlist_id), 3);
+    const playlistVideos = await withRetry(
+      () => loadUploadsPlaylistVideos(source.uploads_playlist_id, maxVideosPerRun),
+      3
+    );
     const videoIds = playlistVideos.map((video) => video.contentDetails?.videoId).filter(Boolean) as string[];
     await updateProgress("loading_playlist", uploadChannel.id, {
       youtube_channel_id: source.youtube_channel_id,
@@ -696,7 +731,9 @@ export async function importYoutubeChannel({
       uploads_playlist_id: source.uploads_playlist_id,
     });
 
-    const videoDetails = videoIds.length ? await withRetry(() => loadVideoDetails(videoIds), 3) : new Map();
+    const videoDetails = videoIds.length
+      ? await withRetry(() => loadVideoDetails(videoIds, maxVideosPerRun), 3)
+      : new Map();
     await updateProgress("hydrating_details", uploadChannel.id, {
       youtube_channel_id: source.youtube_channel_id,
       channel_name: source.channel_name,
@@ -704,7 +741,16 @@ export async function importYoutubeChannel({
       uploads_playlist_id: source.uploads_playlist_id,
     });
 
-    const playlistSignals = source.youtube_channel_id ? await withRetry(() => loadChannelPlaylistSignals(source.youtube_channel_id), 3) : new Map();
+    const playlistSignals = source.youtube_channel_id
+      ? await withRetry(
+          () => loadChannelPlaylistSignals(source.youtube_channel_id, {
+            eligibleVideoIds: new Set(videoIds),
+            maxPlaylists: 50,
+            maxItems: maxVideosPerRun * 4,
+          }),
+          3
+        )
+      : new Map();
     const eligibleVideoIds = filterOutShortVideoIds(videoIds, videoDetails).slice(0, maxVideosPerRun);
     totalVideos = eligibleVideoIds.length;
 
@@ -848,7 +894,7 @@ export async function importYoutubeChannel({
       last_synced_at: extractionRecordedAt,
     };
 
-    await sql`
+    const completedRows = await sql<Array<{ id: string }>>`
       update public.channel_import_runs
       set
         status = 'completed',
@@ -868,9 +914,14 @@ export async function importYoutubeChannel({
           maxVideosPerRun,
         })}::jsonb,
         finished_at = ${extractionRecordedAt},
+        lease_id = null,
+        lease_expires_at = null,
         updated_at = ${extractionRecordedAt}
       where id = ${importRunId}
+        and (${leaseId}::uuid is null or lease_id = ${leaseId}::uuid)
+      returning id
     `;
+    if (leaseId && !completedRows[0]?.id) throw new ImportLeaseLostError();
 
     await sql`
       update public.channels
@@ -878,6 +929,7 @@ export async function importYoutubeChannel({
         is_public = true,
         updated_at = ${extractionRecordedAt}
       where id = ${uploadChannel.id}
+        and ownership_status = 'verified'
         and exists (
           select 1
           from public.video_locations vl
@@ -934,6 +986,7 @@ export async function importYoutubeChannel({
       },
     };
   } catch (error) {
+    if (error instanceof ImportLeaseLostError) throw error;
     const provider = classifyProviderError(error);
     providerErrors = mergeProviderErrors(providerErrors, provider);
     const errorMessage = error instanceof Error ? error.message : "Unknown import error";
@@ -960,6 +1013,7 @@ export async function importYoutubeChannel({
         errorMessage,
         startedAt,
         finishedAt: new Date().toISOString(),
+        leaseId,
       });
     } else {
       await sql`
@@ -974,6 +1028,7 @@ export async function importYoutubeChannel({
           finished_at = ${new Date().toISOString()},
           updated_at = ${new Date().toISOString()}
         where id = ${importRunId}
+          and (${leaseId}::uuid is null or lease_id = ${leaseId}::uuid)
       `;
     }
     throw error;
@@ -987,6 +1042,8 @@ interface QueueRunRow {
   user_id: string;
   channel_id: string;
   input: Record<string, unknown> | null;
+  role: string;
+  lease_expires_at: string | null;
 }
 
 async function loadImportRunForProcessing(runId: string): Promise<QueueRunRow | null> {
@@ -995,11 +1052,14 @@ async function loadImportRunForProcessing(runId: string): Promise<QueueRunRow | 
       cir.id,
       cir.status::text as status,
       cir.updated_at,
+      cir.lease_expires_at,
       c.user_id,
       c.id as channel_id,
-      cir.input
+      cir.input,
+      u.role::text as role
     from public.channel_import_runs cir
     inner join public.channels c on c.id = cir.channel_id
+    inner join public.users u on u.id = c.user_id
     where cir.id = ${runId}
     limit 1
   `;
@@ -1019,26 +1079,36 @@ export async function processYoutubeImportRunById(input: {
     return { handled: false, reason: "forbidden" as const };
   }
 
+  if (run.role !== "creator" && run.role !== "superadmin") {
+    return { handled: false, reason: "creator_role_required" as const };
+  }
+  if (run.role !== "superadmin" && !(await getActiveSubscriptionForUser(run.user_id))) {
+    return { handled: false, reason: "active_subscription_required" as const };
+  }
+
   if (run.status === "completed") {
     return { handled: false, reason: "already_completed" as const };
   }
 
-  const staleSeconds = Math.floor(STALE_RUNNING_RUN_MS / 1000);
-  const claims = await sql<Array<{ id: string }>>`
+  const leaseId = randomUUID();
+  const leaseExpiresAt = new Date(Date.now() + IMPORT_LEASE_MS).toISOString();
+  const claims = await sql<Array<{ id: string; lease_id: string }>>`
     update public.channel_import_runs
     set
       status = 'running',
       error_message = null,
+      lease_id = ${leaseId},
+      lease_expires_at = ${leaseExpiresAt},
       updated_at = ${new Date().toISOString()}
     where id = ${run.id}
       and (
         status in ('queued', 'failed')
         or (
           status = 'running'
-          and updated_at < now() - (${String(staleSeconds)} || ' seconds')::interval
+          and coalesce(lease_expires_at, updated_at) < now()
         )
       )
-    returning id
+    returning id, lease_id
   `;
   if (!claims[0]?.id) {
     return { handled: false, reason: "already_processing" as const };
@@ -1052,8 +1122,11 @@ export async function processYoutubeImportRunById(input: {
         status = 'failed',
         error_message = 'Missing channelUrl in import input payload.',
         finished_at = ${new Date().toISOString()},
+        lease_id = null,
+        lease_expires_at = null,
         updated_at = ${new Date().toISOString()}
       where id = ${run.id}
+        and lease_id = ${leaseId}
     `;
     return { handled: false, reason: "missing_channel_url" as const };
   }
@@ -1062,31 +1135,34 @@ export async function processYoutubeImportRunById(input: {
     userId: run.user_id,
     channelUrl,
     importRunId: run.id,
+    leaseId,
   });
 
   return { handled: true, reason: "processed" as const };
 }
 
 export async function processNextQueuedYoutubeImportRun(input?: { requestedByUserId?: string | null }) {
-  const staleSeconds = Math.floor(STALE_RUNNING_RUN_MS / 1000);
   const rows = input?.requestedByUserId
     ? await sql<QueueRunRow[]>`
         select
           cir.id,
           cir.status::text as status,
           cir.updated_at,
+          cir.lease_expires_at,
           c.user_id,
           c.id as channel_id,
-          cir.input
+          cir.input,
+          u.role::text as role
         from public.channel_import_runs cir
         inner join public.channels c on c.id = cir.channel_id
+        inner join public.users u on u.id = c.user_id
         where c.user_id = ${input.requestedByUserId}
           and (
             cir.status = 'queued'
             or cir.status = 'failed'
             or (
               cir.status = 'running'
-              and cir.updated_at < now() - (${String(staleSeconds)} || ' seconds')::interval
+              and coalesce(cir.lease_expires_at, cir.updated_at) < now()
             )
           )
         order by cir.created_at asc
@@ -1097,17 +1173,20 @@ export async function processNextQueuedYoutubeImportRun(input?: { requestedByUse
           cir.id,
           cir.status::text as status,
           cir.updated_at,
+          cir.lease_expires_at,
           c.user_id,
           c.id as channel_id,
-          cir.input
+          cir.input,
+          u.role::text as role
         from public.channel_import_runs cir
         inner join public.channels c on c.id = cir.channel_id
+        inner join public.users u on u.id = c.user_id
         where (
           cir.status = 'queued'
           or cir.status = 'failed'
           or (
             cir.status = 'running'
-            and cir.updated_at < now() - (${String(staleSeconds)} || ' seconds')::interval
+            and coalesce(cir.lease_expires_at, cir.updated_at) < now()
           )
         )
         order by cir.created_at asc

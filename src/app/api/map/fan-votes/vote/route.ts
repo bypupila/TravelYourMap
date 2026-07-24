@@ -8,7 +8,13 @@ import { buildMapFanVoteIdentity, loadMapFanVoteSummary, MapFanVoteError, record
 import { loadMapDataByChannelId } from "@/lib/map-data";
 import { isUuid } from "@/lib/map-events";
 import { sql } from "@/lib/neon";
-import { getOrCreateVoterFingerprint, getRequestHashes, loadMapPoll, setMapVoterCookies } from "@/lib/map-polls";
+import {
+  getAuthenticatedVoterFingerprint,
+  getOrCreateVoterFingerprint,
+  getRequestHashes,
+  loadMapPoll,
+  setMapVoterCookies,
+} from "@/lib/map-polls";
 
 export const dynamic = "force-dynamic";
 
@@ -62,7 +68,7 @@ export async function POST(request: Request) {
 
     const activePoll = await loadMapPoll(effectiveChannelId, {
       includeDraft: false,
-      voterFingerprint: fingerprint.hashed,
+      voterFingerprint: getAuthenticatedVoterFingerprint(sessionUserId),
     });
     if (activePoll?.status === "live") {
       return NextResponse.json(
@@ -127,8 +133,12 @@ async function resolveChannelUuidByIdentifier(identifier: string | null | undefi
     select c.id
     from public.channels c
     inner join public.users u on u.id = c.user_id
-    where u.username = ${normalized}
-       or ltrim(lower(coalesce(c.channel_handle, '')), '@') = ${normalized}
+    where c.is_public = true
+      and c.ownership_status = 'verified'
+      and (
+        u.username = ${normalized}
+        or ltrim(lower(coalesce(c.channel_handle, '')), '@') = ${normalized}
+      )
     limit 1
   `;
 
@@ -143,6 +153,7 @@ async function resolveLocalGlobalMapFallbackChannelId(channelId: string | null |
       select id
       from public.channels
       where is_public = true
+        and ownership_status = 'verified'
       order by last_synced_at desc nulls last, created_at desc
       limit 1
     `;

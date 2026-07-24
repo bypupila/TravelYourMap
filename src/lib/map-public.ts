@@ -4,13 +4,20 @@ import { DEMO_CHANNEL, DEMO_CHANNEL_ID, DEMO_CHANNEL_SLUG, DEMO_USERNAME, isDemo
 import { buildMapFanVoteIdentity, createEmptyFanVoteSummary, loadMapFanVoteSummary, type MapFanVoteSummary } from "@/lib/map-fan-votes";
 import { buildRecommendedFanVoteOptions, type FanVoteOptionInput } from "@/lib/fan-vote-options";
 import { loadMapDataByChannelId, type MapDataPayload } from "@/lib/map-data";
-import { buildPollOptionsFromVideos, loadMapPoll, type MapPollRecord } from "@/lib/map-polls";
+import {
+  buildPollOptionsFromVideos,
+  getAuthenticatedVoterFingerprint,
+  loadMapPoll,
+  type MapPollRecord,
+} from "@/lib/map-polls";
 import { columnExists, tableExists } from "@/lib/db-schema";
 import { sql } from "@/lib/neon";
 import type { TravelChannel } from "@/lib/types";
 import { buildViewerRegisterUrl } from "@/lib/map-urls";
 import { normalizeSponsorCardStyle } from "@/lib/sponsor-card-style";
 import { normalizeOptionalHexColor } from "@/lib/sponsor-banner-colors";
+import { toPublicVideoLocations } from "@/lib/public-map-sanitization";
+import { getSponsorEntitlementForUser } from "@/lib/subscription-entitlements";
 import type { MapRailSponsor, MapViewerContext } from "@/lib/map-types";
 
 export interface PublicMapPayload extends MapDataPayload {
@@ -156,6 +163,7 @@ async function resolvePublicChannel(identifier: string): Promise<PublicChannelRo
     from public.channels c
     inner join public.users u on u.id = c.user_id
     where c.is_public = true
+      and c.ownership_status = 'verified'
       and (
         u.username = ${normalized}
         or ltrim(lower(coalesce(c.channel_handle, '')), '@') = ${normalized}
@@ -178,6 +186,8 @@ async function loadSponsorsForUser(userId: string) {
     hasSponsorBannerBackgroundColor,
     hasSponsorBannerTextColor,
     hasSponsorCategories,
+    hasSponsorStartDate,
+    hasSponsorEndDate,
   ] = await Promise.all([
     tableExists("public", "sponsor_video_rules"),
     columnExists("public", "sponsors", "category_id"),
@@ -189,6 +199,8 @@ async function loadSponsorsForUser(userId: string) {
     columnExists("public", "sponsors", "sponsor_banner_background_color"),
     columnExists("public", "sponsors", "sponsor_banner_text_color"),
     tableExists("public", "sponsor_categories"),
+    columnExists("public", "sponsors", "start_date"),
+    columnExists("public", "sponsors", "end_date"),
   ]);
   const selectVideoIds = hasSponsorVideoRules
     ? "coalesce(array_remove(array_agg(distinct svr.video_id::text), null), '{}'::text[]) as video_ids"
@@ -209,6 +221,9 @@ async function loadSponsorsForUser(userId: string) {
     : "null::text as sponsor_banner_text_color";
   const joinCategories = hasCategoryId && hasSponsorCategories ? "left join public.sponsor_categories sc on sc.id = s.category_id" : "";
   const sponsorOrderBy = hasDisplayOrder ? "order by s.display_order asc, s.created_at desc" : "order by s.created_at desc";
+  const sponsorDateFilter = hasSponsorStartDate && hasSponsorEndDate
+    ? "and (s.start_date is null or s.start_date <= now()) and (s.end_date is null or s.end_date > now())"
+    : "";
   const normalizeSponsorRow = (sponsor: {
     id: string;
     brand_name: string;
@@ -295,6 +310,7 @@ async function loadSponsorsForUser(userId: string) {
         ${joinVideoRules}
         ${joinCategories}
         where s.active = true
+        ${sponsorDateFilter}
         group by s.id
         ${sponsorOrderBy}
         limit 60
@@ -350,6 +366,7 @@ async function loadSponsorsForUser(userId: string) {
       ${joinCategories}
       where s.user_id = $1
         and s.active = true
+      ${sponsorDateFilter}
       group by s.id
       ${sponsorOrderBy}
       limit 60
@@ -397,9 +414,11 @@ export async function loadPublicMapPayloadByChannelId({
   if (LOCAL_GLOBAL_MAP_IDS.has(channelId)) {
     const mapPayload = await loadMapDataByChannelId(channelId);
     if (!mapPayload) return null;
+    const publicVideoLocations = toPublicVideoLocations(mapPayload.videoLocations);
     const canonicalHandle = normalizeChannelHandle(mapPayload.channel.channel_handle || mapPayload.channel.channel_name);
     return {
       ...mapPayload,
+      videoLocations: publicVideoLocations,
       channel: {
         ...mapPayload.channel,
         canonicalHandle,
@@ -415,13 +434,14 @@ export async function loadPublicMapPayloadByChannelId({
       sponsors: [],
       activePoll: null,
       fanVotes: createEmptyFanVoteSummary(),
-      availablePollOptions: buildPollOptionsFromVideos(mapPayload.videoLocations),
-      fanVoteOptions: buildRecommendedFanVoteOptions(mapPayload.videoLocations),
+      availablePollOptions: buildPollOptionsFromVideos(publicVideoLocations),
+      fanVoteOptions: buildRecommendedFanVoteOptions(publicVideoLocations),
     };
   }
 
   const viewerUser = viewerUserId ? await getSessionUserById(viewerUserId) : null;
   const viewerIsSuperAdmin = userIsSuperAdmin(viewerUser?.role);
+  const viewerIsCreator = viewerUser?.role === "creator";
 
   // Backward compatibility: old links may pass handle/username in channelId.
   // Avoid hitting `where c.id = ...` with non-UUID values, which throws 22P02.
@@ -448,8 +468,8 @@ export async function loadPublicMapPayloadByChannelId({
     inner join public.users u on u.id = c.user_id
     where c.id = ${channelId}
       and (
-        c.is_public = true
-        or c.user_id = ${viewerUserId || null}
+        (c.is_public = true and c.ownership_status = 'verified')
+        or (c.user_id = ${viewerUserId || null} and ${viewerIsCreator})
         or ${viewerIsSuperAdmin}
       )
     limit 1
@@ -471,12 +491,18 @@ async function loadPublicMapPayloadByChannelRef(
   const sessionUser = viewerUserId ? await getSessionUserById(viewerUserId) : null;
   const isSuperAdmin = userIsSuperAdmin(sessionUser?.role);
   const canonicalHandle = normalizeChannelHandle(channelRef.channel_handle || channelRef.username);
-  const isOwner = Boolean((viewerUserId && viewerUserId === channelRef.user_id) || isSuperAdmin);
+  const isOwner = Boolean(
+    isSuperAdmin || (sessionUser?.role === "creator" && viewerUserId && viewerUserId === channelRef.user_id)
+  );
+  const effectiveVoterFingerprint = viewerUserId
+    ? getAuthenticatedVoterFingerprint(viewerUserId)
+    : voterFingerprint;
   const availablePollOptions = buildPollOptionsFromVideos(mapPayload.videoLocations);
   const fanVoteOptions = buildRecommendedFanVoteOptions(mapPayload.videoLocations);
   const activePoll = await loadMapPoll(channelRef.id, {
     includeDraft: isOwner,
-    voterFingerprint,
+    includeLinkOnly: isOwner,
+    voterFingerprint: effectiveVoterFingerprint,
   });
   const fanVotes = await loadMapFanVoteSummary({
     channelId: channelRef.id,
@@ -486,7 +512,11 @@ async function loadPublicMapPayloadByChannelRef(
       voterFingerprint,
     }),
   });
-  const sponsors = await loadSponsorsForUser(channelRef.user_id);
+  const sponsorEntitlement = await getSponsorEntitlementForUser(channelRef.user_id);
+  const sponsors = sponsorEntitlement.allowed ? await loadSponsorsForUser(channelRef.user_id) : [];
+  const publicVideoLocations = isOwner
+    ? mapPayload.videoLocations
+    : toPublicVideoLocations(mapPayload.videoLocations);
   const publicSummary = isOwner
     ? mapPayload.summary
     : {
@@ -497,6 +527,7 @@ async function loadPublicMapPayloadByChannelRef(
 
   return {
     ...mapPayload,
+    videoLocations: publicVideoLocations,
     summary: publicSummary,
     manualQueue: isOwner ? mapPayload.manualQueue : [],
     channel: {

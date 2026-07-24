@@ -432,8 +432,9 @@ export async function getChannelImportReadiness(channel: Pick<YouTubeChannelReso
   };
 }
 
-export async function loadUploadsPlaylistVideos(playlistId: string) {
+export async function loadUploadsPlaylistVideos(playlistId: string, maxItems = 500) {
   const videos: YouTubePlaylistItem[] = [];
+  const itemLimit = Math.max(1, Math.min(5_000, Math.floor(maxItems)));
   let pageToken: string | undefined;
 
   do {
@@ -447,18 +448,20 @@ export async function loadUploadsPlaylistVideos(playlistId: string) {
       pageToken,
     });
 
-    videos.push(...(response.items || []));
+    videos.push(...(response.items || []).slice(0, Math.max(0, itemLimit - videos.length)));
+    if (videos.length >= itemLimit) break;
     pageToken = response.nextPageToken;
   } while (pageToken);
 
   return videos;
 }
 
-export async function loadVideoDetails(videoIds: string[]) {
+export async function loadVideoDetails(videoIds: string[], maxItems = 500) {
   const details = new Map<string, YouTubeVideoRecord>();
+  const boundedVideoIds = videoIds.slice(0, Math.max(1, Math.min(5_000, Math.floor(maxItems))));
 
-  for (let index = 0; index < videoIds.length; index += 50) {
-    const batch = videoIds.slice(index, index + 50);
+  for (let index = 0; index < boundedVideoIds.length; index += 50) {
+    const batch = boundedVideoIds.slice(index, index + 50);
     const response = await youtubeFetch<{
       items?: YouTubeVideoItem[];
     }>("videos", {
@@ -519,15 +522,25 @@ export async function loadTravelPlaylistVideoIds(channelId: string) {
   return videoIds;
 }
 
-export async function loadChannelPlaylistSignals(channelId: string) {
+export async function loadChannelPlaylistSignals(
+  channelId: string,
+  options: {
+    eligibleVideoIds?: ReadonlySet<string>;
+    maxPlaylists?: number;
+    maxItems?: number;
+  } = {}
+) {
   const cacheKey = sanitizeEnvValue(channelId);
   const now = Date.now();
-  const cached = playlistSignalCache.get(cacheKey);
+  const canUseCache = !options.eligibleVideoIds && !options.maxPlaylists && !options.maxItems;
+  const cached = canUseCache ? playlistSignalCache.get(cacheKey) : null;
   if (cached && cached.expiresAt > now) {
     return cached.signals;
   }
 
   const relevantPlaylists: YouTubePlaylistGeoSignal[] = [];
+  const maxPlaylists = Math.max(1, Math.min(100, Math.floor(options.maxPlaylists || 50)));
+  const maxItems = Math.max(1, Math.min(20_000, Math.floor(options.maxItems || 5_000)));
   let playlistToken: string | undefined;
 
   do {
@@ -548,6 +561,7 @@ export async function loadChannelPlaylistSignals(channelId: string) {
     });
 
     for (const playlist of response.items || []) {
+      if (relevantPlaylists.length >= maxPlaylists) break;
       if (!playlist.id) continue;
       const matchedPlaces = detectCatalogPlaces(`${playlist.snippet?.title || ""}\n${playlist.snippet?.description || ""}`);
       const classification: PlaylistSignalClassification = matchedPlaces.length > 0
@@ -576,9 +590,11 @@ export async function loadChannelPlaylistSignals(channelId: string) {
     }
 
     playlistToken = response.nextPageToken;
+    if (relevantPlaylists.length >= maxPlaylists) break;
   } while (playlistToken);
 
   const signalMap = new Map<string, YouTubePlaylistGeoSignal[]>();
+  let itemsRead = 0;
   for (const playlist of relevantPlaylists) {
     let itemToken: string | undefined;
     do {
@@ -597,21 +613,28 @@ export async function loadChannelPlaylistSignals(channelId: string) {
       });
 
       for (const item of response.items || []) {
+        itemsRead += 1;
+        if (itemsRead > maxItems) break;
         const videoId = item.contentDetails?.videoId;
         if (!videoId) continue;
+        if (options.eligibleVideoIds && !options.eligibleVideoIds.has(videoId)) continue;
         const current = signalMap.get(videoId) || [];
         current.push(playlist);
         signalMap.set(videoId, current);
       }
 
+      if (itemsRead >= maxItems) break;
       itemToken = response.nextPageToken;
     } while (itemToken);
+    if (itemsRead >= maxItems) break;
   }
 
-  playlistSignalCache.set(cacheKey, {
-    expiresAt: now + PLAYLIST_SIGNAL_CACHE_TTL_MS,
-    signals: signalMap,
-  });
+  if (canUseCache) {
+    playlistSignalCache.set(cacheKey, {
+      expiresAt: now + PLAYLIST_SIGNAL_CACHE_TTL_MS,
+      signals: signalMap,
+    });
+  }
 
   return signalMap;
 }

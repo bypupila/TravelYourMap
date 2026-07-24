@@ -24,7 +24,8 @@
     "visual:capture": "node scripts/capture-visual-library.mjs",
     "validate:env": "node scripts/validate-env.mjs",
     "polar:bootstrap": "node scripts/polar-bootstrap-travel.mjs",
-    "user:set-role": "node scripts/set-user-role.mjs"
+    "user:set-role": "node scripts/set-user-role.mjs",
+    "channel:verify-ownership": "node scripts/verify-channel-ownership.mjs"
   },
   "dependencies": {
     "@design-bypupila/inspector": "0.1.0",

@@ -151,6 +151,54 @@ function stableTextCompare(a: string, b: string) {
   return 0;
 }
 
+function buildSidebarCountryInventory(videoLocations: TravelVideoLocation[]): SidebarCountryItem[] {
+  const bucket = new Map<string, SidebarCountryItem>();
+  for (const video of videoLocations) {
+    const code = String(video.country_code || "").toUpperCase().trim();
+    const name = getCountryNameInSpanish(video.country_code, video.country_name);
+    if (!code || !name) continue;
+    const current = bucket.get(code);
+    if (current) {
+      current.count += 1;
+      continue;
+    }
+    bucket.set(code, {
+      code,
+      name,
+      count: 1,
+      watchedCount: 0,
+      activeCount: 0,
+      progress: 0,
+      newCount: 0,
+      hasNewVideos: false,
+    });
+  }
+  return Array.from(bucket.values());
+}
+
+function sortSidebarCountriesByNewest(
+  countries: SidebarCountryItem[],
+  videoLocations: TravelVideoLocation[],
+) {
+  const newestByCountry = new Map<string, number>();
+  for (const video of videoLocations) {
+    const code = String(video.country_code || "").toUpperCase().trim();
+    if (!code) continue;
+    const published = getVideoPublishedAtMs(video);
+    const current = newestByCountry.get(code) || 0;
+    newestByCountry.set(code, Math.max(current, published));
+  }
+
+  return [...countries].sort((a, b) => {
+    const aNewest = newestByCountry.get(a.code) || 0;
+    const bNewest = newestByCountry.get(b.code) || 0;
+    if (aNewest !== bNewest) return bNewest - aNewest;
+    const nameDiff = stableTextCompare(a.name, b.name);
+    if (nameDiff !== 0) return nameDiff;
+    return stableTextCompare(a.code, b.code);
+  });
+}
+
 function getSponsorScope(sponsor: MapRailSponsor): "global" | "country" | "video" {
   if (sponsor.scope) return sponsor.scope;
   if ((sponsor.video_ids || []).length > 0) return "video";
@@ -303,28 +351,12 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
       !viewer?.isOwner &&
       !viewer?.isAuthenticated
   );
+  const initialSidebarCountries = useMemo(
+    () => sortSidebarCountriesByNewest(buildSidebarCountryInventory(videoLocations), videoLocations),
+    [videoLocations],
+  );
   const sidebarCountries = useMemo<SidebarCountryItem[]>(() => {
-    const bucket = new Map<string, SidebarCountryItem>();
-    for (const video of videoLocations) {
-      const code = String(video.country_code || "").toUpperCase().trim();
-      const name = getCountryNameInSpanish(video.country_code, video.country_name);
-      if (!code || !name) continue;
-      const current = bucket.get(code);
-      if (current) {
-        current.count += 1;
-      } else {
-        bucket.set(code, {
-          code,
-          name,
-          count: 1,
-          watchedCount: 0,
-          activeCount: 0,
-          progress: 0,
-          newCount: 0,
-          hasNewVideos: false,
-        });
-      }
-    }
+    const bucket = new Map(initialSidebarCountries.map((country) => [country.code, { ...country }]));
     for (const video of videoLocations) {
       const code = String(video.country_code || "").toUpperCase().trim();
       const id = String(video.youtube_video_id || "").trim();
@@ -353,7 +385,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
       item.progress = item.count > 0 ? Math.min(1, item.activeCount / item.count) : 0;
     }
     return Array.from(bucket.values());
-  }, [renderNowMs, videoActivity, videoLocations]);
+  }, [initialSidebarCountries, renderNowMs, videoActivity, videoLocations]);
   const pollEditorOptions = useMemo(() => buildPollEditorCountriesFromVideos(videoLocations), [videoLocations]);
   const [pollForm, setPollForm] = useState<PollEditorFormState>(() => buildPollEditorFormState(null, []));
   useEffect(() => {
@@ -361,28 +393,12 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
     setPollForm(buildPollEditorFormState(null, pollEditorOptions));
   }, [pollEditorOptions, showPollModal]);
   const sortedSidebarCountries = useMemo<SidebarCountryItem[]>(() => {
-    const newestByCountry = new Map<string, number>();
-    for (const video of videoLocations) {
-      const code = String(video.country_code || "").toUpperCase().trim();
-      if (!code) continue;
-      const published = getVideoPublishedAtMs(video);
-      const current = newestByCountry.get(code) || 0;
-      newestByCountry.set(code, Math.max(current, published));
-    }
-
     if (countrySortMode === "alphabetical") {
       return [...sidebarCountries].sort((a, b) => stableTextCompare(a.name, b.name));
     }
 
     if (countrySortMode === "new") {
-      return [...sidebarCountries].sort((a, b) => {
-        const aNewest = newestByCountry.get(a.code) || 0;
-        const bNewest = newestByCountry.get(b.code) || 0;
-        if (aNewest !== bNewest) return bNewest - aNewest;
-        const nameDiff = stableTextCompare(a.name, b.name);
-        if (nameDiff !== 0) return nameDiff;
-        return stableTextCompare(a.code, b.code);
-      });
+      return sortSidebarCountriesByNewest(sidebarCountries, videoLocations);
     }
 
     const countryPriority = (country: SidebarCountryItem) => {
@@ -415,6 +431,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
       return stableTextCompare(a.name, b.name);
     });
   }, [countrySortMode, sidebarCountries, videoActivity, videoLocations]);
+  const visibleSidebarCountries = hasMounted ? sortedSidebarCountries : initialSidebarCountries;
   const filteredVideoLocations = useMemo(() => {
     const dateFiltered = (() => {
       if (filter === "all") return videoLocations;
@@ -940,7 +957,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
         {!isMapFullscreen ? (
           <aside className="hidden min-h-0 lg:block">
             <ProposalSidebar2
-              countries={hasMounted ? sortedSidebarCountries : []}
+              countries={visibleSidebarCountries}
               activeItem={activeSidebarItem}
               selectedCountryCode={selectedCountryCode}
               countrySortMode={countrySortMode}
@@ -1287,7 +1304,7 @@ export function MapExperienceCore({ channel, videoLocations, sponsors = [], view
               {!isMapFullscreen && !isVideoFocusMode ? (
                 <ResponsiveMapChrome
                   channel={channel}
-                  countries={hasMounted ? sortedSidebarCountries : []}
+                  countries={visibleSidebarCountries}
                   countrySortMode={countrySortMode}
                   selectedCountryCode={selectedCountryCode}
                   videos={railSourceVideos}
@@ -1677,7 +1694,7 @@ function ProposalSidebar2({
       <div className="mt-0 hidden rounded-xl p-1.5 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-hidden">
         <div className="mb-1.5 shrink-0 text-center">
           <div className="whitespace-nowrap text-[10px] font-black uppercase tracking-[0.08em] text-[#8f98a3]">
-            <span className="text-[#ff5a3d]">{formatCompactMetric(totalCountryCount)}</span> países ·{" "}
+            Mapa: <span className="text-[#ff5a3d]">{formatCompactMetric(totalCountryCount)}</span> países ·{" "}
             <span className="text-[#ff5a3d]">{formatCompactMetric(totalVideoCount)}</span> videos
           </div>
         </div>
@@ -1771,7 +1788,7 @@ function ProposalSidebar2({
               <span className="relative min-w-0">
                 <span className="block truncate text-[12px] font-bold text-white transition group-hover:text-[#ff7d63]">{country.name}</span>
                 <span className="text-[10px] text-[#818a93]">
-                  {country.activeCount} de {country.count} videos
+                  Tu progreso: {country.activeCount} de {country.count} videos
                 </span>
               </span>
             </button>
@@ -1909,14 +1926,16 @@ function ProposalTopbar2({
       <header data-component="ProposalTopbar2" className="relative z-[120] grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:gap-3 lg:grid-cols-[minmax(0,0.5fr)_auto]">
         {/* Search trigger */}
         <div className="relative flex min-w-0 items-center gap-3">
-          <button
-            type="button"
-            onClick={onOpenMenu}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/[0.09] bg-white/[0.035] text-white transition hover:bg-white/[0.07] lg:hidden"
-            aria-label="Abrir menú principal"
-          >
-            <List size={19} />
-          </button>
+          {!isViewer ? (
+            <button
+              type="button"
+              onClick={onOpenMenu}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/[0.09] bg-white/[0.035] text-white transition hover:bg-white/[0.07] lg:hidden"
+              aria-label="Abrir menú principal"
+            >
+              <List size={19} />
+            </button>
+          ) : null}
           <button
             type="button"
             className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/[0.07] bg-white/[0.035] text-[#cbd3dc] shadow-[inset_0_1px_1px_rgba(255,255,255,0.02)] transition-all hover:border-white/[0.12] hover:bg-white/[0.05] focus-visible:border-[#ff5a3d]/40 focus-visible:outline-none sm:flex sm:min-w-0 sm:w-full sm:items-center sm:gap-3 sm:px-4 sm:text-left"

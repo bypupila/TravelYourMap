@@ -15,7 +15,8 @@ export async function POST(request: Request) {
       request,
       scope: "api:youtube-validate",
       windowMinutes: 10,
-      maxAttempts: 30,
+      maxAttempts: 10,
+      failClosed: true,
     });
     if (!rateLimit.allowed) {
       return NextResponse.json(

@@ -1,16 +1,33 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
-import { getValidSessionUserIdFromRequest } from "@/lib/current-user";
+import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { sql } from "@/lib/neon";
+import { enforceRequestRateLimit } from "@/lib/request-rate-limit";
+import { getActiveSubscriptionForUser } from "@/lib/subscription-entitlements";
 
 export const dynamic = "force-dynamic";
-const STALE_RUNNING_RUN_MS = 5 * 60 * 1000;
-
 export async function POST(request: Request) {
   try {
-    const userId = await getValidSessionUserIdFromRequest(request);
-    if (!userId) {
+    const sessionUser = await getValidSessionUserFromRequest(request);
+    if (!sessionUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    if (sessionUser.role !== "creator" && sessionUser.role !== "superadmin") {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    const rateLimit = await enforceRequestRateLimit({
+      request,
+      scope: `api:youtube-import-start:${sessionUser.id}`,
+      windowMinutes: 60,
+      maxAttempts: 3,
+      failClosed: true,
+    });
+    if (!rateLimit.allowed) {
+      return NextResponse.json({ error: "Demasiados intentos de importación." }, { status: 429 });
+    }
+    const userId = sessionUser.id;
+    if (sessionUser.role !== "superadmin" && !(await getActiveSubscriptionForUser(userId))) {
+      return NextResponse.json({ error: "Necesitas una suscripción activa para importar." }, { status: 402 });
     }
 
     const onboardingRows = await sql<Array<{ youtube_channel_id: string | null }>>`
@@ -36,32 +53,11 @@ export async function POST(request: Request) {
     `;
     const existingRun = existingRuns[0] || null;
     if (existingRun?.id) {
-      const updatedAtMs = existingRun.updated_at ? new Date(existingRun.updated_at).getTime() : 0;
-      const isStaleRunningRun =
-        (existingRun.status === "running" || existingRun.status === "queued") &&
-        Number.isFinite(updatedAtMs) &&
-        updatedAtMs > 0 &&
-        Date.now() - updatedAtMs > STALE_RUNNING_RUN_MS;
-
-      if (isStaleRunningRun) {
-        await sql`
-          update public.channel_import_runs
-          set
-            status = 'failed',
-            error_message = 'Import run was stale and has been reset automatically.',
-            finished_at = ${new Date().toISOString()},
-            updated_at = ${new Date().toISOString()}
-          where id = ${existingRun.id}
-        `;
-      } else {
-        if (existingRun.status === "completed" || existingRun.status === "running" || existingRun.status === "queued") {
-          return NextResponse.json({
-            import_run_id: existingRun.id,
-            status: existingRun.status,
-            already_started: true,
-          });
-        }
-      }
+      return NextResponse.json({
+        import_run_id: existingRun.id,
+        status: existingRun.status,
+        already_started: true,
+      });
     }
 
     const nowIso = new Date().toISOString();

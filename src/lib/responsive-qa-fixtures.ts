@@ -131,6 +131,10 @@ export function buildResponsiveQaCreatorPayload(baseUrl = "http://localhost:3000
         { key: "sponsors", label: "Sponsors", status: "missing", detail: "Agrega el primer sponsor para habilitar reportes.", required: false },
       ],
     },
+    entitlements: {
+      sponsors: true,
+      currentPlan: "creator_pro",
+    },
   };
 }
 

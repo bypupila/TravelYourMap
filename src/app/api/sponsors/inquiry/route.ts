@@ -10,12 +10,14 @@ import {
 } from "@/lib/map-events";
 import {
   buildSponsorInquiryNotificationEmail,
-  buildSponsorInquiryReceiptEmail,
   sendAppEmail,
 } from "@/lib/email";
 import { APP_EMAILS } from "@/lib/app-emails";
+import { getTrustedAppOrigin } from "@/lib/map-urls";
 import { sql } from "@/lib/neon";
 import { enforceRequestRateLimit } from "@/lib/request-rate-limit";
+import { reportOperationalError } from "@/lib/observability";
+import { getSponsorEntitlementForUser, SPONSOR_UPGRADE_REQUIRED } from "@/lib/subscription-entitlements";
 
 const payloadSchema = z.object({
   channelId: z.string().uuid(),
@@ -40,6 +42,7 @@ export async function POST(request: Request) {
       scope: "api:sponsors-inquiry",
       windowMinutes: 30,
       maxAttempts: 5,
+      failClosed: true,
     });
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -53,10 +56,19 @@ export async function POST(request: Request) {
 
     const payload = payloadSchema.parse(await request.json());
 
-    const channelRows = await sql<Array<{ id: string; user_id: string; channel_name: string | null }>>`
-      select id, user_id, channel_name
-      from public.channels
-      where id = ${payload.channelId}
+    const channelRows = await sql<Array<{
+      id: string;
+      user_id: string;
+      channel_name: string | null;
+      channel_handle: string | null;
+      username: string;
+    }>>`
+      select c.id, c.user_id, c.channel_name, c.channel_handle, u.username
+      from public.channels c
+      inner join public.users u on u.id = c.user_id
+      where c.id = ${payload.channelId}
+        and c.is_public = true
+        and c.ownership_status = 'verified'
       limit 1
     `;
 
@@ -64,7 +76,12 @@ export async function POST(request: Request) {
     if (!channel?.id) {
       return NextResponse.json({ error: "Canal no encontrado" }, { status: 404 });
     }
-    const creatorName = channel.channel_name || "TravelYourMap creator";
+    const sponsorEntitlement = await getSponsorEntitlementForUser(channel.user_id);
+    if (!sponsorEntitlement.allowed) {
+      return NextResponse.json(SPONSOR_UPGRADE_REQUIRED, { status: 403 });
+    }
+    const publicHandle = String(channel.channel_handle || channel.username).trim().replace(/^@+/, "");
+    const canonicalMapUrl = `${getTrustedAppOrigin()}/u/${encodeURIComponent(publicHandle)}`;
 
     const requestHashes = getRequestHashesFromHeaders(request.headers);
 
@@ -93,7 +110,7 @@ export async function POST(request: Request) {
         ${payload.whatsapp},
         ${payload.proposedBudgetUsd || null},
         ${payload.brief},
-        ${payload.mapUrl},
+        ${canonicalMapUrl},
         ${requestHashes.ipHash},
         ${requestHashes.userAgentHash}
       )
@@ -105,40 +122,24 @@ export async function POST(request: Request) {
       contactEmail: payload.contactEmail,
       proposedBudgetUsd: payload.proposedBudgetUsd || null,
       brief: payload.brief,
-      mapUrl: payload.mapUrl,
-    });
-    const receiptEmail = buildSponsorInquiryReceiptEmail({
-      brandName: payload.brandName,
-      contactName: payload.contactName,
-      creatorName,
-      mapUrl: payload.mapUrl,
+      mapUrl: canonicalMapUrl,
     });
 
-    const [adminResult, receiptResult] = await Promise.all([
-      sendAppEmail({
-        from: "admin",
-        to: APP_EMAILS.admin,
-        replyTo: payload.contactEmail,
-        subject: adminEmail.subject,
-        text: adminEmail.text,
-        html: adminEmail.html,
-      }),
-      sendAppEmail({
-        from: "noreply",
-        to: payload.contactEmail,
-        subject: receiptEmail.subject,
-        text: receiptEmail.text,
-        html: receiptEmail.html,
-      }),
-    ]);
-    if (!adminResult.sent || !receiptResult.sent) {
+    const adminResult = await sendAppEmail({
+      from: "admin",
+      to: APP_EMAILS.admin,
+      replyTo: payload.contactEmail,
+      subject: adminEmail.subject,
+      text: adminEmail.text,
+      html: adminEmail.html,
+    });
+    if (!adminResult.sent) {
       console.warn("[api/sponsors/inquiry] email delivery issue", {
         adminError: adminResult.error,
-        receiptError: receiptResult.error,
       });
     }
 
-    const path = resolvePathFromRequest(request, payload.mapUrl);
+    const path = resolvePathFromRequest(request, canonicalMapUrl);
     if (isPublicMapPath(path) && !(await requestUserOwnsChannel(request, payload.channelId))) {
       try {
         await recordMapEvent({
@@ -159,14 +160,13 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, receipt_email_sent: false });
   } catch (error) {
-    console.error("[api/sponsors/inquiry]", error);
-
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: "Datos invalidos", details: error.issues }, { status: 400 });
     }
 
+    reportOperationalError(error, { area: "sponsors", operation: "create_inquiry" });
     return NextResponse.json({ error: "No se pudo registrar la solicitud" }, { status: 500 });
   }
 }

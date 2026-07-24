@@ -39,7 +39,7 @@ Use the demo route to inspect the product without external credentials:
 1. Set `DATABASE_URL`.
 2. Set `AUTH_SESSION_SECRET`.
 3. Apply `neon/migrations/0001_initial.sql` and `neon/seed/demo.sql` via `./scripts/bootstrap-local.sh`.
-4. Set `YOUTUBE_API_KEY`, one Gemini key (`GOOGLE_GENAI_API_KEY` or `GEMINI_API_KEY` or `GOOGLE_API_KEY`), `POLAR_ACCESS_TOKEN` and `POLAR_WEBHOOK_SECRET`.
+4. Set `YOUTUBE_API_KEY`, `POLAR_ACCESS_TOKEN` and `POLAR_WEBHOOK_SECRET`. Gemini is optional and remains off unless `GEMINI_ENABLED=1` is explicitly set with an API key after cost approval.
 5. (Optional but recommended for cron worker) set `YOUTUBE_IMPORT_WORKER_TOKEN`.
 6. (Optional tuning) set `YOUTUBE_IMPORT_CONCURRENCY` and `YOUTUBE_IMPORT_MAX_VIDEOS_PER_RUN`.
 7. (Required in production for Vercel cron GET auth) set `CRON_SECRET`.
@@ -88,15 +88,16 @@ For stable deploys, configure this in Vercel Project Settings:
    - `DATABASE_URL`
    - `AUTH_SESSION_SECRET` (or `SESSION_SECRET`)
    - `YOUTUBE_API_KEY`
-   - `GOOGLE_GENAI_API_KEY` (or `GEMINI_API_KEY` / `GOOGLE_API_KEY`)
    - `NOMINATIM_USER_AGENT`
    - `NOMINATIM_EMAIL`
+   - `GEMINI_ENABLED=0` (default; an existing Gemini key is inert while disabled)
 4. Optional billing envs if checkout is enabled:
    - `POLAR_ACCESS_TOKEN`
    - `POLAR_WEBHOOK_SECRET`
    - `POLAR_TRIAL_DISCOUNT_ID`
 5. Optional import worker envs:
    - `YOUTUBE_IMPORT_WORKER_TOKEN`
+   - `YOUTUBE_DATA_GOVERNANCE_TOKEN` (optional dedicated token for the statistics expiry sweep)
    - `YOUTUBE_IMPORT_CONCURRENCY`
    - `YOUTUBE_IMPORT_MAX_VIDEOS_PER_RUN`
 6. Optional poll worker env:
@@ -114,12 +115,14 @@ For stable deploys, configure this in Vercel Project Settings:
 - `vercel.json` currently schedules this daily at `0 6 * * *` (06:00 UTC).
 - In production, cron GET requires `Authorization: Bearer <CRON_SECRET>`.
 - No authorization by `user-agent`.
-- If `MAP_POLLS_CRON_TOKEN` is set, manual/externals can auth via query `?token=...`, `x-cron-token`, or `Authorization: Bearer <MAP_POLLS_CRON_TOKEN>`.
+- If `MAP_POLLS_CRON_TOKEN` is set, manual/externals can authenticate with `x-cron-token` or `Authorization: Bearer <MAP_POLLS_CRON_TOKEN>`.
+- Query-string tokens are intentionally rejected so credentials do not leak into logs, analytics, browser history, or referrers.
 
 ## Sponsor report schedules
 
 - Manual/cron runner route: `GET|POST /api/sponsors/reports/schedules/run`.
 - The runner is also called by the existing `GET /api/youtube/data-expiry/sweep` cron so `vercel.json` stays within the two-cron Hobby limit.
 - In production, cron GET requires `Authorization: Bearer <CRON_SECRET>`.
-- If `SPONSOR_REPORTS_CRON_TOKEN` is set, manual/externals can auth via query `?token=...`, `x-cron-token`, or `Authorization: Bearer <SPONSOR_REPORTS_CRON_TOKEN>`.
+- If `SPONSOR_REPORTS_CRON_TOKEN` is set, manual/externals can authenticate with `x-cron-token` or `Authorization: Bearer <SPONSOR_REPORTS_CRON_TOKEN>`.
+- Query-string tokens are intentionally rejected.
 - Automatic email sending requires `RESEND_API_KEY`; without it, schedules still generate report links and expose the missing-email configuration as `last_error`.

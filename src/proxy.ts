@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE_NAMES } from "@/lib/auth-session";
+import { isValidUsername, normalizeUsername } from "@/lib/auth-identifiers";
 import { LOCALE_COOKIE_NAME, normalizeLocale } from "@/lib/i18n";
 
 const CANONICAL_HOST = "travelyourmap.bypupila.com";
@@ -11,8 +12,8 @@ const LEGACY_HOSTS = new Set([
 const VANITY_HOSTS = new Set([
   CANONICAL_HOST,
   "www.travelyourmap.bypupila.com",
+  configuredAppHost(),
 ]);
-const RESERVED_PATHS = new Set(["", "admin", "auth", "dashboard", "creator-panel", "onboarding", "pricing", "explore", "map", "api", "u", "_next", "monitoring"]);
 const LOCAL_ONLY_ROUTES = new Set([
   "/map-proposal",
   "/map-proposal-v1",
@@ -21,10 +22,21 @@ const LOCAL_ONLY_ROUTES = new Set([
   "/country-card-proposals",
 ]);
 
+function configuredAppHost() {
+  const raw = String(process.env.NEXT_PUBLIC_APP_URL || "").trim();
+  if (!raw) return "";
+  try {
+    return new URL(raw).hostname.toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
 export async function proxy(request: NextRequest) {
   const host = String(request.headers.get("host") || "").split(":")[0].toLowerCase();
   const pathname = request.nextUrl.pathname;
-  const firstSegment = pathname.replace(/^\//, "").split("/")[0] || "";
+  const pathSegments = pathname.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
+  const firstSegment = normalizeUsername(pathSegments[0] || "");
 
   if (LEGACY_HOSTS.has(host)) {
     const redirectUrl = request.nextUrl.clone();
@@ -40,9 +52,9 @@ export async function proxy(request: NextRequest) {
     return withLocaleCookie(NextResponse.rewrite(notFoundUrl), request);
   }
 
-  if (VANITY_HOSTS.has(host) && !RESERVED_PATHS.has(firstSegment) && !pathname.startsWith("/favicon")) {
+  if (VANITY_HOSTS.has(host) && pathSegments.length === 1 && isValidUsername(firstSegment)) {
     const rewriteUrl = request.nextUrl.clone();
-    rewriteUrl.pathname = `/u/${firstSegment}`;
+    rewriteUrl.pathname = `/u/${encodeURIComponent(firstSegment)}`;
     return withLocaleCookie(NextResponse.rewrite(rewriteUrl), request);
   }
 
@@ -73,5 +85,5 @@ function withLocaleCookie(response: NextResponse, request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/((?!.*\\..*).*)"],
+  matcher: ["/dashboard/:path*", "/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)"],
 };

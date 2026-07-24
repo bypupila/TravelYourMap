@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { z } from "zod";
-import { getValidSessionUserIdFromRequest } from "@/lib/current-user";
+import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { sql } from "@/lib/neon";
 import { normalizeExternalSponsorUrl, normalizeSponsorLogoUrl } from "@/lib/sponsor-url";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 
 const sponsorSchema = z.object({
   brand_name: z.string().min(2),
@@ -50,10 +51,15 @@ export async function POST(request: Request) {
       });
     }
 
-    const userId = await getValidSessionUserIdFromRequest(request);
-    if (!userId) {
+    const sessionUser = await getValidSessionUserFromRequest(request);
+    if (!sessionUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (sessionUser.role !== "creator" && sessionUser.role !== "superadmin") {
+      return NextResponse.json({ error: "Creator access required" }, { status: 403 });
+    }
+    const entitlementDenial = await requireSponsorEntitlement(sessionUser.id);
+    if (entitlementDenial) return entitlementDenial;
 
     const sponsorRows = await sql<Array<{ id: string }>>`
       insert into public.sponsors (
@@ -67,7 +73,7 @@ export async function POST(request: Request) {
         active
       )
       values (
-        ${userId},
+        ${sessionUser.id},
         ${payload.brand_name},
         ${logoUrl},
         ${websiteUrl},
@@ -115,16 +121,21 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ ok: true, id: sponsorId, demo: true });
     }
 
-    const userId = await getValidSessionUserIdFromRequest(request);
-    if (!userId) {
+    const sessionUser = await getValidSessionUserFromRequest(request);
+    if (!sessionUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
+    if (sessionUser.role !== "creator" && sessionUser.role !== "superadmin") {
+      return NextResponse.json({ error: "Creator access required" }, { status: 403 });
+    }
+    const entitlementDenial = await requireSponsorEntitlement(sessionUser.id);
+    if (entitlementDenial) return entitlementDenial;
 
     const updated = await sql<Array<{ id: string }>>`
       update public.sponsors
       set active = false, updated_at = now()
       where id = ${sponsorId}
-        and user_id = ${userId}
+        and user_id = ${sessionUser.id}
       returning id
     `;
 

@@ -5,6 +5,7 @@ import { getValidSessionUserFromRequest } from "@/lib/current-user";
 import { isDemoChannelId } from "@/lib/demo-data";
 import { columnExists } from "@/lib/db-schema";
 import { sql } from "@/lib/neon";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,8 @@ export async function POST(request: Request) {
 
     const access = await requireCreatorChannelAccess(payload.channelId, sessionUser.id);
     if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+    if (entitlementDenial) return entitlementDenial;
 
     const uniqueIds = Array.from(new Set(payload.orderedSponsorIds));
     if (!uniqueIds.length) return NextResponse.json({ error: "No sponsor ids provided" }, { status: 400 });

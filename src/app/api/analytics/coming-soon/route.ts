@@ -29,6 +29,7 @@ export async function POST(request: Request) {
       scope: "api:coming-soon",
       windowMinutes: 1,
       maxAttempts: 60,
+      failClosed: true,
     });
     if (!rateLimit.allowed) return NextResponse.json({ ok: true, skipped: "rate_limited" });
 

@@ -1,11 +1,12 @@
 import { createHash } from "crypto";
+import { isValidUsername } from "@/lib/auth-identifiers";
 import { getValidSessionUserIdFromRequest } from "@/lib/current-user";
 import type { MapEventType, MapEventViewerMode } from "@/lib/map-event-types";
 import { sql } from "@/lib/neon";
+import { getSponsorEntitlementForUser } from "@/lib/subscription-entitlements";
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const PRIVATE_PATH_PREFIXES = ["/api", "/admin", "/auth", "/dashboard", "/onboarding", "/pricing", "/monitoring"];
-const RESERVED_ROOT_SEGMENTS = new Set(["", "admin", "auth", "dashboard", "onboarding", "pricing", "explore", "map", "api", "u", "_next", "monitoring"]);
 
 export interface MapEventInput {
   channelId: string;
@@ -90,7 +91,7 @@ export function isPublicMapPath(path: string | null | undefined) {
   if (normalized === "/map" || normalized.startsWith("/map?") || normalized.startsWith("/u/")) return true;
 
   const firstSegment = normalized.replace(/^\//, "").split(/[/?#]/)[0] || "";
-  return Boolean(firstSegment && !RESERVED_ROOT_SEGMENTS.has(firstSegment) && !normalized.replace(/^\//, "").includes("/"));
+  return Boolean(isValidUsername(firstSegment) && !normalized.replace(/^\//, "").includes("/"));
 }
 
 export async function requestUserOwnsChannel(request: Request, channelId: string) {
@@ -121,6 +122,27 @@ export async function isMadeForKidsVideo(channelId: string, youtubeVideoId: stri
   `;
 
   return rows[0]?.made_for_kids === true;
+}
+
+export async function isActiveSponsorForPublicChannel(sponsorId: string, channelId: string) {
+  if (!isUuid(sponsorId) || !isUuid(channelId)) return false;
+
+  const rows = await sql<Array<{ id: string; user_id: string }>>`
+    select s.id::text as id, c.user_id::text as user_id
+    from public.sponsors s
+    inner join public.channels c on c.user_id = s.user_id
+    where s.id = ${sponsorId}
+      and c.id = ${channelId}
+      and c.is_public = true
+      and c.ownership_status = 'verified'
+      and s.active = true
+      and (s.start_date is null or s.start_date <= now())
+      and (s.end_date is null or s.end_date > now())
+    limit 1
+  `;
+
+  const match = rows[0] || null;
+  return Boolean(match?.id && (await getSponsorEntitlementForUser(match.user_id)).allowed);
 }
 
 export async function recordMapEvent(input: MapEventInput) {

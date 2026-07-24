@@ -1,8 +1,10 @@
-import { createHash, createHmac, randomInt, randomUUID } from "crypto";
+import { createHash, createHmac, randomBytes, randomInt, randomUUID, timingSafeEqual } from "crypto";
 import { columnExists, tableExists } from "@/lib/db-schema";
 import { buildCampaignRenewalEmail, sendAppEmail } from "@/lib/email";
 import { sql } from "@/lib/neon";
+import { enforceActorRateLimit } from "@/lib/request-rate-limit";
 import { normalizeSponsorInquiryStatus, type SponsorInquiryStatus } from "@/lib/sponsor-inquiries";
+import { getSponsorEntitlementForUser } from "@/lib/subscription-entitlements";
 
 export const SPONSOR_CAMPAIGN_STATUSES = ["lead", "proposal", "negotiation", "active", "delivered", "paid", "lost"] as const;
 export type SponsorCampaignStatus = (typeof SPONSOR_CAMPAIGN_STATUSES)[number];
@@ -162,6 +164,7 @@ export interface BrandPortalLinkSummary {
   view_count: number;
   last_viewed_at: string | null;
   revoked_at: string | null;
+  expires_at: string | null;
   created_at: string;
   public_url?: string;
 }
@@ -599,40 +602,55 @@ export async function createBrandPortalLink({
   channelId: string;
   campaignId: string;
   createdByUserId: string;
-  accessEmail?: string | null;
+  accessEmail: string | null;
 }): Promise<BrandPortalLinkCreateResult | null> {
   if (!(await brandPortalLinksTableExists())) {
     throw new Error("La tabla brand_portal_links no existe. Ejecuta las migraciones antes de crear portales de marca.");
   }
-  const token = randomUUID();
+  const linkId = randomUUID();
+  const token = randomBytes(32).toString("base64url");
   const tokenHash = hashBrandPortalToken(token);
   const email = normalizeEmail(accessEmail);
-  const accessCode = email ? String(randomInt(100000, 999999)) : null;
-  const accessCodeHash = accessCode ? hashBrandPortalAccessCode(accessCode) : null;
+  if (!email) throw new Error("El portal de marca requiere un email de acceso válido.");
+  const accessCode = String(randomInt(100000, 999999));
+  const accessCodeHash = hashBrandPortalAccessCode(accessCode);
   const rows = await sql<Array<{ id: string }>>`
-    insert into public.brand_portal_links (
-      id,
-      channel_id,
-      campaign_id,
-      created_by_user_id,
-      token_hash,
-      access_email,
-      access_code_hash,
-      require_access_code
+    with revoked as (
+      update public.brand_portal_links
+      set active = false,
+          revoked_at = coalesce(revoked_at, now()),
+          updated_at = now()
+      where campaign_id = ${campaignId}
+        and channel_id = ${channelId}
+        and active = true
+      returning id
+    ), inserted as (
+      insert into public.brand_portal_links (
+        id,
+        channel_id,
+        campaign_id,
+        created_by_user_id,
+        token_hash,
+        access_email,
+        access_code_hash,
+        require_access_code,
+        expires_at
+      )
+      select ${linkId}, channel_id, id, ${createdByUserId}, ${tokenHash},
+        ${email}, ${accessCodeHash}, true, now() + interval '30 days'
+      from public.sponsor_campaigns
+      where id = ${campaignId}
+        and channel_id = ${channelId}
+      returning id::text as id
     )
-    select ${token}, channel_id, id, ${createdByUserId}, ${tokenHash}
-      , ${email || null}, ${accessCodeHash}, ${Boolean(accessCode)}
-    from public.sponsor_campaigns
-    where id = ${campaignId}
-      and channel_id = ${channelId}
-    returning id::text as id
+    select id from inserted
   `;
   const id = rows[0]?.id || null;
   return id
     ? {
         id,
         public_url: buildBrandPortalUrl(undefined, token),
-        access_email: email || null,
+        access_email: email,
         access_code: accessCode,
       }
     : null;
@@ -667,13 +685,14 @@ export async function verifyBrandPortalAccessCode({
   code: string;
 }) {
   if (!(await brandPortalLinksTableExists())) return null;
+  if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return null;
   const tokenHash = hashBrandPortalToken(token);
   const normalizedEmail = normalizeEmail(email);
   const normalizedCode = String(code || "").replace(/\D/g, "");
   if (!normalizedEmail || normalizedCode.length !== 6) return null;
 
-  const rows = await sql<Array<{ id: string; access_email: string | null; access_code_hash: string | null }>>`
-    select id::text as id, access_email, access_code_hash
+  const rows = await sql<Array<{ id: string; access_email: string | null; access_code_hash: string | null; expires_at: string | null }>>`
+    select id::text as id, access_email, access_code_hash, expires_at
     from public.brand_portal_links
     where token_hash = ${tokenHash}
       and active = true
@@ -683,7 +702,15 @@ export async function verifyBrandPortalAccessCode({
   `;
   const link = rows[0] || null;
   if (!link?.access_code_hash || normalizeEmail(link.access_email) !== normalizedEmail) return null;
-  if (hashBrandPortalAccessCode(normalizedCode) !== link.access_code_hash) return null;
+  const ownerRows = await sql<Array<{ user_id: string }>>`
+    select user_id::text as user_id
+    from public.channels
+    where id = (select channel_id from public.brand_portal_links where id = ${link.id})
+    limit 1
+  `;
+  const ownerUserId = ownerRows[0]?.user_id || "";
+  if (!ownerUserId || !(await getSponsorEntitlementForUser(ownerUserId)).allowed) return null;
+  if (!safeSecretEqual(hashBrandPortalAccessCode(normalizedCode), link.access_code_hash)) return null;
 
   await sql`
     update public.brand_portal_links
@@ -692,39 +719,76 @@ export async function verifyBrandPortalAccessCode({
     where id = ${link.id}
   `;
 
+  const maxLifetimeSeconds = 60 * 60 * 24 * 30;
+  const portalRemainingSeconds = link.expires_at
+    ? Math.max(1, Math.floor((new Date(link.expires_at).getTime() - Date.now()) / 1000))
+    : maxLifetimeSeconds;
+  const maxAgeSeconds = Math.min(maxLifetimeSeconds, portalRemainingSeconds);
+  const expiresAtEpochSeconds = Math.floor(Date.now() / 1000) + maxAgeSeconds;
+
   return {
     cookieName: getBrandPortalAccessCookieName(token),
-    cookieValue: signBrandPortalAccessCookie({ token, linkId: link.id, accessCodeHash: link.access_code_hash }),
+    cookieValue: signBrandPortalAccessCookie({
+      token,
+      linkId: link.id,
+      accessCodeHash: link.access_code_hash,
+      expiresAtEpochSeconds,
+    }),
+    maxAgeSeconds,
   };
 }
 
 export async function loadBrandPortalByToken(token: string, accessCookie?: string | null): Promise<BrandPortalLoadResult> {
   if (!(await brandPortalLinksTableExists())) return { status: "not_found" };
+  if (!/^[A-Za-z0-9_-]{43}$/.test(token)) return { status: "not_found" };
   const tokenHash = hashBrandPortalToken(token);
+  const accessQuota = await enforceActorRateLimit({
+    scope: "private-link:brand-portal",
+    actorKey: tokenHash,
+    windowMinutes: 60,
+    maxAttempts: 120,
+    failClosed: process.env.NODE_ENV === "production",
+  });
+  if (!accessQuota.allowed) return { status: "not_found" };
   const linkRows = await sql<Array<BrandPortalLinkSummary & { channel_id: string; token_hash: string; access_code_hash: string | null; brand_name: string }>>`
     select
-      id::text as id,
-      channel_id::text as channel_id,
-      campaign_id::text as campaign_id,
-      token_hash,
+      bpl.id::text as id,
+      bpl.channel_id::text as channel_id,
+      bpl.campaign_id::text as campaign_id,
+      bpl.token_hash,
       s.brand_name,
-      active,
-      require_access_code,
-      access_email,
-      access_code_hash,
-      view_count,
-      last_viewed_at,
-      revoked_at,
-      created_at
-    from public.brand_portal_links
-    where token_hash = ${tokenHash}
-      and active = true
-      and revoked_at is null
-      and (expires_at is null or expires_at > now())
+      bpl.active,
+      bpl.require_access_code,
+      bpl.access_email,
+      bpl.access_code_hash,
+      bpl.view_count,
+      bpl.last_viewed_at,
+      bpl.revoked_at,
+      bpl.expires_at,
+      bpl.created_at
+    from public.brand_portal_links bpl
+    inner join public.sponsor_campaigns s
+      on s.id = bpl.campaign_id
+      and s.channel_id = bpl.channel_id
+    where bpl.token_hash = ${tokenHash}
+      and bpl.active = true
+      and bpl.revoked_at is null
+      and (bpl.expires_at is null or bpl.expires_at > now())
     limit 1
   `;
   const link = linkRows[0] || null;
   if (!link) return { status: "not_found" };
+
+  const ownerRows = await sql<Array<{ user_id: string }>>`
+    select user_id::text as user_id
+    from public.channels
+    where id = ${link.channel_id}
+    limit 1
+  `;
+  const ownerUserId = ownerRows[0]?.user_id || "";
+  if (!ownerUserId || !(await getSponsorEntitlementForUser(ownerUserId)).allowed) {
+    return { status: "not_found" };
+  }
 
   if (link.require_access_code && !isValidBrandPortalAccessCookie({
     cookieValue: accessCookie,
@@ -740,12 +804,15 @@ export async function loadBrandPortalByToken(token: string, accessCookie?: strin
     };
   }
 
-  await sql`
+  const viewRows = await sql<Array<{ view_count: number | string; last_viewed_at: string }>>`
     update public.brand_portal_links
     set view_count = view_count + 1,
         last_viewed_at = now()
     where id = ${link.id}
+      and (last_viewed_at is null or last_viewed_at <= now() - interval '30 minutes')
+    returning view_count, last_viewed_at
   `;
+  const countedView = viewRows[0];
 
   const crm = await loadSponsorCrm(link.channel_id);
   const campaign = crm.campaigns.find((entry) => entry.id === link.campaign_id) || null;
@@ -766,8 +833,9 @@ export async function loadBrandPortalByToken(token: string, accessCookie?: strin
         ...link,
         require_access_code: Boolean(link.require_access_code),
         access_email: link.access_email,
-        view_count: Number(link.view_count || 0) + 1,
-        public_url: buildBrandPortalUrl(undefined, link.id),
+        view_count: Number(countedView?.view_count ?? link.view_count ?? 0),
+        last_viewed_at: countedView?.last_viewed_at ?? link.last_viewed_at,
+        public_url: undefined,
       },
       creator,
       campaign,
@@ -799,6 +867,7 @@ async function loadBrandPortalLinks(channelId: string): Promise<BrandPortalLinkS
       view_count,
       last_viewed_at,
       revoked_at,
+      expires_at,
       created_at
     from public.brand_portal_links
     where channel_id = ${channelId}
@@ -808,7 +877,7 @@ async function loadBrandPortalLinks(channelId: string): Promise<BrandPortalLinkS
   return rows.map((row) => ({
     ...row,
     view_count: Number(row.view_count || 0),
-    public_url: buildBrandPortalUrl(undefined, row.id),
+    public_url: undefined,
   }));
 }
 
@@ -1897,19 +1966,33 @@ function maskEmail(value: string | null | undefined) {
 }
 
 function brandPortalAccessSecret() {
-  return String(process.env.BRAND_PORTAL_ACCESS_SECRET || process.env.AUTH_SESSION_SECRET || process.env.SESSION_SECRET || "dev-brand-portal-secret").trim();
+  const configured = String(
+    process.env.BRAND_PORTAL_ACCESS_SECRET || process.env.AUTH_SESSION_SECRET || process.env.SESSION_SECRET || ""
+  ).trim();
+  if (!configured && process.env.NODE_ENV === "production") {
+    throw new Error("Brand portal access secret is not configured.");
+  }
+  return configured || "dev-brand-portal-secret";
+}
+
+function safeSecretEqual(left: string, right: string) {
+  const leftBuffer = Buffer.from(left);
+  const rightBuffer = Buffer.from(right);
+  return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
 }
 
 function signBrandPortalAccessCookie({
   token,
   linkId,
   accessCodeHash,
+  expiresAtEpochSeconds,
 }: {
   token: string;
   linkId: string;
   accessCodeHash: string;
+  expiresAtEpochSeconds: number;
 }) {
-  const payload = `${token}.${linkId}.${accessCodeHash}`;
+  const payload = `${token}.${linkId}.${accessCodeHash}.${expiresAtEpochSeconds}`;
   const signature = createHmac("sha256", brandPortalAccessSecret()).update(payload).digest("base64url");
   return `${Buffer.from(payload).toString("base64url")}.${signature}`;
 }
@@ -1929,7 +2012,12 @@ function isValidBrandPortalAccessCookie({
   const [encodedPayload, signature] = cookieValue.split(".");
   if (!encodedPayload || !signature) return false;
   const payload = Buffer.from(encodedPayload, "base64url").toString("utf8");
-  if (payload !== `${token}.${linkId}.${accessCodeHash}`) return false;
+  const expectedPrefix = `${token}.${linkId}.${accessCodeHash}.`;
+  if (!payload.startsWith(expectedPrefix)) return false;
+  const expiresAtEpochSeconds = Number(payload.slice(expectedPrefix.length));
+  if (!Number.isSafeInteger(expiresAtEpochSeconds) || expiresAtEpochSeconds <= Math.floor(Date.now() / 1000)) {
+    return false;
+  }
   const expected = createHmac("sha256", brandPortalAccessSecret()).update(payload).digest("base64url");
-  return signature === expected;
+  return safeSecretEqual(signature, expected);
 }

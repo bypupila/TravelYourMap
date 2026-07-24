@@ -1,7 +1,12 @@
 import { withSentryConfig } from "@sentry/nextjs";
 const isDev = process.env.NODE_ENV !== "production";
 const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN;
-const shouldUploadSentryArtifacts = Boolean(sentryAuthToken);
+const sentryOrg = process.env.SENTRY_ORG;
+const sentryProject = process.env.SENTRY_PROJECT;
+const sentryEnabled = process.env.SENTRY_ENABLED === "1";
+const shouldUploadSentryArtifacts = Boolean(
+  sentryEnabled && sentryAuthToken && sentryOrg && sentryProject
+);
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -69,20 +74,22 @@ const nextConfig = {
   }
 };
 
-export default withSentryConfig(nextConfig, {
+const configuredNextConfig = sentryEnabled ? withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://www.npmjs.com/package/@sentry/webpack-plugin#options
 
   ...(shouldUploadSentryArtifacts
     ? {
-        org: "by-pupila",
-        project: "javascript-nextjs",
+        org: sentryOrg,
+        project: sentryProject,
         authToken: sentryAuthToken,
       }
     : {}),
 
   // Only print logs for uploading source maps in CI
   silent: !process.env.CI,
+  telemetry: false,
+  enabled: sentryEnabled,
 
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
@@ -101,7 +108,7 @@ export default withSentryConfig(nextConfig, {
     // See the following for more information:
     // https://docs.sentry.io/product/crons/
     // https://vercel.com/docs/cron-jobs
-    automaticVercelMonitors: true,
+    automaticVercelMonitors: sentryEnabled,
 
     // Tree-shaking options for reducing bundle size
     treeshake: {
@@ -109,4 +116,6 @@ export default withSentryConfig(nextConfig, {
       removeDebugLogging: true,
     },
   }
-});
+}) : nextConfig;
+
+export default configuredNextConfig;

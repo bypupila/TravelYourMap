@@ -14,6 +14,7 @@ import {
 } from "@/lib/map-polls";
 import { sql } from "@/lib/neon";
 import { normalizeExternalSponsorUrl } from "@/lib/sponsor-url";
+import { requireSponsorEntitlement } from "@/lib/sponsor-entitlement";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Modo demo: esta operación no persiste cambios." }, { status: 400 });
     }
     const access = await requireCreatorChannelAccess(payload.channelId, sessionUser.id);
-    if (!access) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    if (!access?.ownerUserId) return NextResponse.json({ error: "Channel not found for this user" }, { status: 404 });
+    if (typeof payload.sponsorId !== "undefined" || typeof payload.sponsorUrl !== "undefined") {
+      const entitlementDenial = await requireSponsorEntitlement(access.ownerUserId);
+      if (entitlementDenial) return entitlementDenial;
+    }
     const schema = await getPollSchemaFeatures();
 
     if (payload.action === "close") {

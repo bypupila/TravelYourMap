@@ -4,6 +4,7 @@ import { DEMO_CHANNEL, DEMO_CHANNEL_ID, DEMO_USERNAME, DEMO_VIDEO_LOCATIONS, isD
 import { buildPublicMapUrl } from "@/lib/map-urls";
 import { normalizeCountryCode } from "@/lib/map-polls";
 import { sql } from "@/lib/neon";
+import { getSponsorEntitlementForUser } from "@/lib/subscription-entitlements";
 
 export interface MediaKitSettings {
   public_enabled: boolean;
@@ -61,6 +62,7 @@ export interface MediaKitPayload {
   };
   topCountries: MediaKitCountry[];
   activeSponsors: MediaKitSponsor[];
+  sponsorFeaturesEnabled: boolean;
 }
 
 interface MediaKitChannelRow {
@@ -185,6 +187,7 @@ async function resolvePublicMediaKitChannel(identifier: string) {
     from public.channels c
     inner join public.users u on u.id = c.user_id
     where c.is_public = true
+      and c.ownership_status = 'verified'
       and (
         u.username = ${normalized}
         or ltrim(lower(coalesce(c.channel_handle, '')), '@') = ${normalized}
@@ -218,12 +221,13 @@ async function buildMediaKitPayload(channel: MediaKitPayload["channel"]): Promis
     return buildDemoMediaKitPayload(channel);
   }
 
-  const [settings, summaryRows, countryRows, sponsorRows] = await Promise.all([
+  const [settings, summaryRows, countryRows, sponsorEntitlement] = await Promise.all([
     loadMediaKitSettings(channel),
     loadSummaryRows(channel.id),
     loadTopCountries(channel.id),
-    loadActiveSponsors(channel.user_id),
+    getSponsorEntitlementForUser(channel.user_id),
   ]);
+  const sponsorRows = sponsorEntitlement.allowed ? await loadActiveSponsors(channel.user_id) : [];
 
   const summary = summaryRows[0] || {
     videos: 0,
@@ -263,12 +267,13 @@ async function buildMediaKitPayload(channel: MediaKitPayload["channel"]): Promis
       youtube_views: Number(summary.youtube_views || 0),
       youtube_likes: Number(summary.youtube_likes || 0),
       map_events_30d: Number(summary.map_events_30d || 0),
-      sponsor_clicks_30d: Number(summary.sponsor_clicks_30d || 0),
-      inquiries_30d: Number(summary.inquiries_30d || 0),
+      sponsor_clicks_30d: sponsorEntitlement.allowed ? Number(summary.sponsor_clicks_30d || 0) : 0,
+      inquiries_30d: sponsorEntitlement.allowed ? Number(summary.inquiries_30d || 0) : 0,
       active_sponsors: sponsorRows.length,
     },
     topCountries: preferredCountries.slice(0, 8),
     activeSponsors: sponsorRows.slice(0, 12),
+    sponsorFeaturesEnabled: sponsorEntitlement.allowed,
   };
 }
 
@@ -319,6 +324,7 @@ function buildDemoMediaKitPayload(channel: MediaKitPayload["channel"]): MediaKit
     },
     topCountries: topCountries.slice(0, 8),
     activeSponsors,
+    sponsorFeaturesEnabled: true,
   };
 }
 

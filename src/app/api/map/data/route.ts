@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getValidSessionUserFromRequest, userIsSuperAdmin } from "@/lib/current-user";
 import { loadMapDataByChannelId } from "@/lib/map-data";
+import { toPublicVideoLocations } from "@/lib/public-map-sanitization";
 import { sql } from "@/lib/neon";
 
 export const dynamic = "force-dynamic";
@@ -14,23 +15,33 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "channelId is required" }, { status: 400 });
     }
 
-    const payload = await loadMapDataByChannelId(channelId);
-    if (!payload) {
-      return NextResponse.json({ error: "Channel not found" }, { status: 404 });
-    }
-
     const sessionUser = await getValidSessionUserFromRequest(request);
     let canViewInternalQueue = false;
 
-    if (sessionUser && UUID_PATTERN.test(channelId)) {
-      const ownerRows = await sql<Array<{ user_id: string }>>`
-        select user_id
+    if (UUID_PATTERN.test(channelId)) {
+      const channelRows = await sql<Array<{ user_id: string; is_public: boolean; ownership_status: string }>>`
+        select user_id, is_public, ownership_status
         from public.channels
         where id = ${channelId}
         limit 1
       `;
-      const ownerUserId = ownerRows[0]?.user_id || null;
-      canViewInternalQueue = Boolean(ownerUserId && (ownerUserId === sessionUser.id || userIsSuperAdmin(sessionUser.role)));
+      const channel = channelRows[0] || null;
+      if (!channel) {
+        return NextResponse.json({ error: "Channel not found" }, { status: 404 });
+      }
+      canViewInternalQueue = Boolean(
+        sessionUser &&
+          (userIsSuperAdmin(sessionUser.role) ||
+            (sessionUser.role === "creator" && channel.user_id === sessionUser.id))
+      );
+      if ((!channel.is_public || channel.ownership_status !== "verified") && !canViewInternalQueue) {
+        return NextResponse.json({ error: "Channel not found" }, { status: 404 });
+      }
+    }
+
+    const payload = await loadMapDataByChannelId(channelId);
+    if (!payload) {
+      return NextResponse.json({ error: "Channel not found" }, { status: 404 });
     }
 
     if (canViewInternalQueue) {
@@ -39,6 +50,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       ...payload,
+      videoLocations: toPublicVideoLocations(payload.videoLocations),
       manualQueue: [],
       summary: {
         ...payload.summary,

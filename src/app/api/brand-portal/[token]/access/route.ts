@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { enforceRequestRateLimit } from "@/lib/request-rate-limit";
 import { verifyBrandPortalAccessCode } from "@/lib/sponsor-crm";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +12,23 @@ const accessSchema = z.object({
 
 export async function POST(request: Request, context: { params: Promise<{ token: string }> }) {
   try {
+    const rateLimit = await enforceRequestRateLimit({
+      request,
+      scope: "api:brand-portal-access",
+      windowMinutes: 15,
+      maxAttempts: 5,
+      failClosed: process.env.NODE_ENV === "production",
+    });
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Demasiados intentos. Reintenta más tarde." },
+        {
+          status: 429,
+          headers: rateLimit.retryAfterSeconds ? { "Retry-After": String(rateLimit.retryAfterSeconds) } : undefined,
+        }
+      );
+    }
+
     const { token } = await context.params;
     const payload = accessSchema.parse(await request.json());
     const access = await verifyBrandPortalAccessCode({
@@ -26,7 +44,7 @@ export async function POST(request: Request, context: { params: Promise<{ token:
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: `/brand-portal/${encodeURIComponent(token)}`,
-      maxAge: 60 * 60 * 24 * 30,
+      maxAge: access.maxAgeSeconds,
     });
     return response;
   } catch (error) {

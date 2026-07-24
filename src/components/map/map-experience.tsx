@@ -4077,7 +4077,8 @@ function SponsorManagerDialog({
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const formData = new FormData(formElement);
     const input: SponsorInput = {
       brand_name: String(formData.get("brand_name") || "").trim(),
       logo_url: String(formData.get("logo_url") || "").trim() || null,
@@ -4095,7 +4096,7 @@ function SponsorManagerDialog({
     setError(null);
     try {
       await onCreateSponsor(input);
-      event.currentTarget.reset();
+      formElement.reset();
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "No se pudo guardar el sponsor.");
     } finally {

@@ -4,25 +4,24 @@ import { z } from "zod";
 import { normalizeEmail, normalizeUsername } from "@/lib/auth-identifiers";
 import { verifyPassword } from "@/lib/auth-password";
 import { setSessionCookie } from "@/lib/auth-session";
-import { normalizeAttributionChannelId, upsertCreatorViewerSubscription } from "@/lib/creator-viewer-subscriptions";
-import { tableExists } from "@/lib/db-schema";
 import { normalizeAppUserRole } from "@/lib/current-user";
+import {
+  LoginRateLimitUnavailableError,
+  releaseSuccessfulLoginReservation,
+  reserveLoginAttempt,
+} from "@/lib/login-rate-limit";
 import { sql } from "@/lib/neon";
 import { getPostHogClient } from "@/lib/posthog-server";
 
 const payloadSchema = z.object({
   identifier: z.string().min(3),
   password: z.string().min(1),
-  registrationChannelId: z.string().trim().optional().nullable(),
-  utmSource: z.string().trim().max(120).optional().nullable(),
-  utmMedium: z.string().trim().max(120).optional().nullable(),
-  utmCampaign: z.string().trim().max(160).optional().nullable(),
 });
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-const LOGIN_WINDOW_MINUTES = 15;
-const MAX_FAILED_ATTEMPTS_PER_WINDOW = 10;
+const DUMMY_PASSWORD_HASH =
+  "00000000000000000000000000000000:69a91ee73211f6c44993e4b78adf1add6df8a4fcabf3ad90839df9101f2513bca5c5d8bf399d10c0c5087a6043c1f5f8df73402404bf12886a017af4152462b3";
 
 function hashValue(value: string) {
   return createHash("sha256").update(value).digest("hex");
@@ -36,72 +35,23 @@ function readClientIp(request: Request) {
   return String(request.headers.get("x-real-ip") || "").trim();
 }
 
-async function hasTooManyRecentFailures(identifierHash: string, ipHash: string | null) {
-  try {
-    if (!(await tableExists("public", "auth_login_attempts"))) {
-      return false;
-    }
-    const rows = ipHash
-      ? await sql<Array<{ attempts: number }>>`
-          select count(*)::int as attempts
-          from public.auth_login_attempts
-          where created_at >= now() - ${`${LOGIN_WINDOW_MINUTES} minutes`}::interval
-            and (identifier_hash = ${identifierHash} or ip_hash = ${ipHash})
-        `
-      : await sql<Array<{ attempts: number }>>`
-          select count(*)::int as attempts
-          from public.auth_login_attempts
-          where created_at >= now() - ${`${LOGIN_WINDOW_MINUTES} minutes`}::interval
-            and identifier_hash = ${identifierHash}
-        `;
-    return (rows[0]?.attempts || 0) >= MAX_FAILED_ATTEMPTS_PER_WINDOW;
-  } catch (error) {
-    console.error("[api/auth/login] rate-limit check failed", error);
-    return false;
-  }
-}
-
-async function recordFailedLoginAttempt(identifierHash: string, ipHash: string | null) {
-  try {
-    if (!(await tableExists("public", "auth_login_attempts"))) {
-      return;
-    }
-    await sql`
-      insert into public.auth_login_attempts (identifier_hash, ip_hash, created_at)
-      values (${identifierHash}, ${ipHash}, now())
-    `;
-  } catch (error) {
-    console.error("[api/auth/login] failed to record login attempt", error);
-  }
-}
-
-async function clearRecentFailedAttempts(identifierHash: string, ipHash: string | null) {
-  try {
-    if (!(await tableExists("public", "auth_login_attempts"))) {
-      return;
-    }
-    if (ipHash) {
-      await sql`
-        delete from public.auth_login_attempts
-        where created_at >= now() - ${`${LOGIN_WINDOW_MINUTES} minutes`}::interval
-          and (identifier_hash = ${identifierHash} or ip_hash = ${ipHash})
-      `;
-      return;
-    }
-
-    await sql`
-      delete from public.auth_login_attempts
-      where created_at >= now() - ${`${LOGIN_WINDOW_MINUTES} minutes`}::interval
-        and identifier_hash = ${identifierHash}
-    `;
-  } catch (error) {
-    console.error("[api/auth/login] failed to clear login attempts", error);
-  }
-}
-
 export async function POST(request: Request) {
+  let body: unknown;
   try {
-    const payload = payloadSchema.parse(await request.json());
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Solicitud de inicio de sesión inválida." }, { status: 400 });
+  }
+  const parsed = payloadSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Completa un usuario o email y una contraseña válidos.", details: parsed.error.issues },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const payload = parsed.data;
     const identifier = String(payload.identifier || "").trim();
     const isEmail = identifier.includes("@");
     const normalizedIdentifier = isEmail ? normalizeEmail(identifier) : normalizeUsername(identifier);
@@ -109,7 +59,8 @@ export async function POST(request: Request) {
     const ipValue = readClientIp(request);
     const ipHash = ipValue ? hashValue(ipValue) : null;
 
-    if (await hasTooManyRecentFailures(identifierHash, ipHash)) {
+    const loginReservation = await reserveLoginAttempt(identifierHash, ipHash);
+    if (loginReservation.limited) {
       return NextResponse.json(
         { error: "Demasiados intentos. Reintenta en unos minutos." },
         { status: 429 }
@@ -118,54 +69,33 @@ export async function POST(request: Request) {
 
     const userRows = isEmail
       ? await sql<
-          Array<{ id: string; email: string; username: string; display_name: string; role: string | null }>
+          Array<{ id: string; email: string; username: string; display_name: string; role: string | null; password_hash: string | null }>
         >`
-          select id, email, username, display_name, role::text as role
-          from public.users
-          where email = ${normalizedIdentifier}
+          select u.id, u.email, u.username, u.display_name, u.role::text as role, uc.password_hash
+          from public.users u
+          left join public.user_credentials uc on uc.user_id = u.id
+          where u.email = ${normalizedIdentifier}
           limit 1
         `
       : await sql<
-          Array<{ id: string; email: string; username: string; display_name: string; role: string | null }>
+          Array<{ id: string; email: string; username: string; display_name: string; role: string | null; password_hash: string | null }>
         >`
-          select id, email, username, display_name, role::text as role
-          from public.users
-          where username = ${normalizedIdentifier}
+          select u.id, u.email, u.username, u.display_name, u.role::text as role, uc.password_hash
+          from public.users u
+          left join public.user_credentials uc on uc.user_id = u.id
+          where u.username = ${normalizedIdentifier}
           limit 1
         `;
 
     const user = userRows[0];
-    if (!user) {
-      await recordFailedLoginAttempt(identifierHash, ipHash);
+    const storedHash = user?.password_hash || DUMMY_PASSWORD_HASH;
+    const passwordMatches = verifyPassword(payload.password, storedHash);
+    if (!user || !user.password_hash || !passwordMatches) {
       return NextResponse.json({ error: "Credenciales inválidas." }, { status: 401 });
     }
 
-    const credentials = await sql<Array<{ password_hash: string }>>`
-      select password_hash
-      from public.user_credentials
-      where user_id = ${user.id}
-      limit 1
-    `;
-    const storedHash = credentials[0]?.password_hash || "";
-    if (!storedHash || !verifyPassword(payload.password, storedHash)) {
-      await recordFailedLoginAttempt(identifierHash, ipHash);
-      return NextResponse.json({ error: "Credenciales inválidas." }, { status: 401 });
-    }
-
-    await clearRecentFailedAttempts(identifierHash, ipHash);
+    await releaseSuccessfulLoginReservation(loginReservation);
     const normalizedRole = normalizeAppUserRole(user.role);
-    const registrationChannelId = normalizeAttributionChannelId(payload.registrationChannelId);
-    const creatorSubscriptionId =
-      normalizedRole === "viewer"
-        ? await upsertCreatorViewerSubscription({
-            channelId: registrationChannelId,
-            viewerUserId: user.id,
-            source: "viewer_login",
-            utmSource: payload.utmSource,
-            utmMedium: payload.utmMedium,
-            utmCampaign: payload.utmCampaign,
-          })
-        : null;
 
     const posthog = getPostHogClient();
     posthog.identify({
@@ -194,12 +124,18 @@ export async function POST(request: Request) {
         display_name: user.display_name,
         role: normalizedRole,
       },
-      creator_subscription_id: creatorSubscriptionId,
+      creator_subscription_id: null,
     });
     setSessionCookie(response, user.id, request.headers.get("host"));
     return response;
   } catch (error) {
     console.error("[api/auth/login]", error);
+    if (error instanceof LoginRateLimitUnavailableError) {
+      return NextResponse.json(
+        { error: "Inicio de sesión temporalmente no disponible." },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
       { error: "No se pudo iniciar sesión." },
       { status: 400 }

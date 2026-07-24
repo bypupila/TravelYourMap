@@ -4,8 +4,6 @@ import { z } from "zod";
 import { hashPassword } from "@/lib/auth-password";
 import { normalizeEmail, normalizeUsername } from "@/lib/auth-identifiers";
 import { setSessionCookie } from "@/lib/auth-session";
-import { normalizeAttributionChannelId } from "@/lib/creator-viewer-subscriptions";
-import { normalizeAppUserRole } from "@/lib/current-user";
 import { buildWelcomeEmail, sendAppEmail } from "@/lib/email";
 import { sql } from "@/lib/neon";
 import { enforceRequestRateLimit } from "@/lib/request-rate-limit";
@@ -58,6 +56,7 @@ export async function POST(request: Request) {
       scope: "api:auth-register-viewer",
       windowMinutes: 15,
       maxAttempts: 8,
+      failClosed: true,
     });
     if (!rateLimit.allowed) {
       return NextResponse.json(
@@ -77,90 +76,39 @@ export async function POST(request: Request) {
     const email = normalizeEmail(payload.email);
     const countryCode = payload.countryCode.toUpperCase();
     const city = payload.city.trim();
-    const registrationChannelId = normalizeAttributionChannelId(payload.registrationChannelId);
+    // A client-provided channel ID is not proof of acquisition. Keep creator
+    // attribution empty until it is backed by a server-issued signed context;
+    // viewers can still follow a verified public map after authentication.
+    const registrationChannelId = null;
 
-    const existingRows = await sql<Array<{ id: string; username: string; role: string | null }>>`
-      select id, username, role::text as role
+    const existingRows = await sql<Array<{ id: string }>>`
+      select id
       from public.users
       where email = ${email}
       limit 1
     `;
     const existing = existingRows[0] || null;
-    if (existing && normalizeAppUserRole(existing.role) !== "viewer") {
-      return NextResponse.json({ error: "Ya existe una cuenta con ese email. Inicia sesión." }, { status: 409 });
+    if (existing) {
+      return NextResponse.json(
+        { error: "No se pudo crear la cuenta con esos datos. Inicia sesión o usa otros datos." },
+        { status: 409 }
+      );
     }
 
-    const userId = existing?.id || randomUUID();
-    const username = existing?.username || (await buildUniqueViewerUsername(email));
+    const userId = randomUUID();
+    const username = await buildUniqueViewerUsername(email);
     const now = new Date().toISOString();
-    const currentStateRows = existing
-      ? await sql<Array<{ has_credentials: boolean; has_profile: boolean; consent_types: number }>>`
-          select
-            exists (
-              select 1
-              from public.user_credentials uc
-              where uc.user_id = ${userId}
-            ) as has_credentials,
-            exists (
-              select 1
-              from public.viewer_profiles vp
-              where vp.user_id = ${userId}
-            ) as has_profile,
-            (
-              select count(distinct consent_type)::int
-              from public.user_consents uc
-              where uc.user_id = ${userId}
-                and uc.consent_type in ('account_operation', 'platform_promotions', 'creator_promotions')
-            ) as consent_types
-        `
-      : [{ has_credentials: false, has_profile: false, consent_types: 0 }];
-    const currentState = currentStateRows[0] || {
-      has_credentials: false,
-      has_profile: false,
-      consent_types: 0,
-    };
-    const hasSubscriptionRows =
-      existing && registrationChannelId
-        ? await sql<Array<{ has_subscription: boolean }>>`
-            select exists (
-              select 1
-              from public.creator_viewer_subscriptions cvs
-              where cvs.viewer_user_id = ${userId}
-                and cvs.channel_id = ${registrationChannelId}
-            ) as has_subscription
-          `
-        : [{ has_subscription: false }];
-    const hasSubscription = Boolean(hasSubscriptionRows[0]?.has_subscription);
-
-    const registrationAlreadyComplete =
-      Boolean(existing) &&
-      currentState.has_credentials &&
-      currentState.has_profile &&
-      currentState.consent_types >= 3 &&
-      (!registrationChannelId || hasSubscription);
-
-    if (registrationAlreadyComplete) {
-      return NextResponse.json({ error: "Ya existe una cuenta con ese email. Inicia sesión." }, { status: 409 });
-    }
 
     await sql.transaction((txn) => {
       const queries = [
         txn`
           insert into public.users (id, email, username, display_name, role, updated_at)
           values (${userId}, ${email}, ${username}, ${payload.displayName.trim()}, 'viewer', ${now})
-          on conflict (email)
-          do update set
-            display_name = excluded.display_name,
-            role = 'viewer',
-            updated_at = excluded.updated_at
+          on conflict do nothing
         `,
         txn`
           insert into public.user_credentials (user_id, password_hash, updated_at)
           values (${userId}, ${hashPassword(payload.password)}, ${now})
-          on conflict (user_id)
-          do update set
-            password_hash = excluded.password_hash,
-            updated_at = excluded.updated_at
         `,
         txn`
           insert into public.viewer_profiles (
@@ -191,95 +139,18 @@ export async function POST(request: Request) {
             ${now},
             ${now}
           )
-          on conflict (user_id)
-          do update set
-            country_code = excluded.country_code,
-            city = excluded.city,
-            has_youtube_travel_channel = excluded.has_youtube_travel_channel,
-            youtube_channel_url = excluded.youtube_channel_url,
-            registration_source = excluded.registration_source,
-            registration_channel_id = excluded.registration_channel_id,
-            registration_utm_source = excluded.registration_utm_source,
-            registration_utm_medium = excluded.registration_utm_medium,
-            registration_utm_campaign = excluded.registration_utm_campaign,
-            updated_at = excluded.updated_at
-        `,
-        txn`
-          delete from public.user_consents
-          where user_id = ${userId}
         `,
         txn`
           insert into public.user_consents (user_id, consent_type, accepted, consent_version, accepted_at, metadata, created_at, updated_at)
           values
-            (${userId}, 'account_operation', true, ${payload.consentVersion}, ${now}, ${JSON.stringify({ source: payload.registrationSource, channelId: registrationChannelId })}::jsonb, ${now}, ${now}),
+            (${userId}, 'account_operation', true, ${payload.consentVersion}, ${now}, ${JSON.stringify({ source: "platform", channelId: null })}::jsonb, ${now}, ${now}),
             (${userId}, 'platform_promotions', ${payload.consentPlatformPromotions}, ${payload.consentVersion}, ${now}, '{}'::jsonb, ${now}, ${now}),
             (${userId}, 'creator_promotions', ${payload.consentCreatorPromotions}, ${payload.consentVersion}, ${now}, '{}'::jsonb, ${now}, ${now})
         `,
       ];
 
-      if (registrationChannelId) {
-        queries.push(
-          txn`
-            with channel_owner as (
-              select user_id as creator_user_id
-              from public.channels
-              where id = ${registrationChannelId}
-                and is_public = true
-              limit 1
-            )
-            insert into public.creator_viewer_subscriptions (
-              channel_id,
-              creator_user_id,
-              viewer_user_id,
-              source,
-              registration_utm_source,
-              registration_utm_medium,
-              registration_utm_campaign,
-              subscribed_at,
-              unsubscribed_at,
-              updated_at
-            )
-            select
-              ${registrationChannelId},
-              channel_owner.creator_user_id,
-              ${userId},
-              'viewer_register',
-              ${payload.utmSource || null},
-              ${payload.utmMedium || null},
-              ${payload.utmCampaign || null},
-              now(),
-              null,
-              now()
-            from channel_owner
-            where channel_owner.creator_user_id is not null
-              and channel_owner.creator_user_id <> ${userId}
-            on conflict (channel_id, viewer_user_id)
-            do update set
-              source = excluded.source,
-              creator_user_id = excluded.creator_user_id,
-              registration_utm_source = coalesce(excluded.registration_utm_source, public.creator_viewer_subscriptions.registration_utm_source),
-              registration_utm_medium = coalesce(excluded.registration_utm_medium, public.creator_viewer_subscriptions.registration_utm_medium),
-              registration_utm_campaign = coalesce(excluded.registration_utm_campaign, public.creator_viewer_subscriptions.registration_utm_campaign),
-              unsubscribed_at = null,
-              updated_at = excluded.updated_at
-          `
-        );
-      }
-
       return queries;
     });
-
-    const creatorSubscriptionId = registrationChannelId
-      ? (
-          await sql<Array<{ id: string }>>`
-            select id
-            from public.creator_viewer_subscriptions
-            where viewer_user_id = ${userId}
-              and channel_id = ${registrationChannelId}
-            limit 1
-          `
-        )[0]?.id || null
-      : null;
 
     const response = NextResponse.json({
       ok: true,
@@ -288,7 +159,7 @@ export async function POST(request: Request) {
       role: "viewer",
       country_code: countryCode,
       city,
-      creator_subscription_id: creatorSubscriptionId,
+      creator_subscription_id: null,
     });
     setSessionCookie(response, userId, request.headers.get("host"));
 
