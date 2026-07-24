@@ -31,18 +31,16 @@ export async function generateMetadata({ params }: MediaKitPageProps): Promise<M
   return {
     title,
     description,
-    robots: {
-      index: true,
-      follow: true,
-      nocache: true,
-    },
-    alternates: { canonical: canonicalUrl },
+    robots: mediaKit.channel.mapIsPublic
+      ? { index: true, follow: true, nocache: true }
+      : { index: false, follow: false, nocache: true },
+    alternates: mediaKit.channel.mapIsPublic ? { canonical: canonicalUrl } : undefined,
     openGraph: {
       title,
       description,
       type: "profile",
       url: canonicalUrl,
-      siteName: "TravelYourMap - BY PUPILA",
+      siteName: "TravelYourMap",
     },
     twitter: {
       card: "summary_large_image",
@@ -57,7 +55,6 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
   const mediaKit = await loadPublicMediaKit(username);
   if (!mediaKit) notFound();
 
-  const absoluteMapUrl = `${siteUrl}${mediaKit.urls.mapUrl}`;
   const absoluteMediaKitUrl = `${siteUrl}${mediaKit.urls.mediaKitUrl}`;
   const partnershipEmail = mediaKit.settings.partnership_email || APP_EMAILS.marketing;
 
@@ -66,13 +63,13 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
       <section className="mx-auto grid min-h-[92dvh] w-full max-w-7xl gap-8 px-4 py-5 sm:px-6 lg:grid-cols-[minmax(0,1fr)_420px] lg:px-8">
         <div className="flex min-w-0 flex-col justify-between gap-8">
           <header className="flex items-center justify-between gap-3">
-            <Link href={mediaKit.urls.mapUrl} className="flex min-w-0 items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
               <CreatorAvatar mediaKit={mediaKit} size="sm" />
               <span className="min-w-0">
                 <span className="block truncate text-sm font-black">{mediaKit.channel.channel_name}</span>
                 <span className="block truncate text-xs font-bold text-[#64748b]">@{mediaKit.channel.canonicalHandle}</span>
               </span>
-            </Link>
+            </div>
             <Link href="/" className="shrink-0 text-xs font-black uppercase tracking-[0.14em] text-[#ff5a3d]">
               TravelYourMap
             </Link>
@@ -92,9 +89,11 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
                   {mediaKit.settings.preferred_cta_label || "Solicitar partnership"}
                 </a>
               ) : null}
-              <Link href={mediaKit.urls.mapUrl} className="inline-flex h-11 items-center rounded-lg border border-[#cbd5e1] bg-white px-4 text-sm font-black text-[#111827]">
-                Ver mapa público
-              </Link>
+              {mediaKit.channel.mapIsPublic ? (
+                <Link href={mediaKit.urls.mapUrl} className="inline-flex h-11 items-center rounded-lg border border-[#cbd5e1] bg-white px-4 text-sm font-black text-[#111827]">
+                  Ver mapa público
+                </Link>
+              ) : null}
               {mediaKit.settings.rate_card_url ? (
                 <a href={mediaKit.settings.rate_card_url} target="_blank" rel="noreferrer" className="inline-flex h-11 items-center rounded-lg border border-[#cbd5e1] bg-white px-4 text-sm font-black text-[#111827]">
                   Ver rate card
@@ -195,7 +194,7 @@ export default async function MediaKitPage({ params }: MediaKitPageProps) {
             Link del media kit: <span className="break-all font-bold text-[#111827]">{absoluteMediaKitUrl}</span>
           </div>
         </div>
-        <MediaKitInquiryForm channelId={mediaKit.channel.id} creatorName={mediaKit.channel.channel_name} mapUrl={absoluteMapUrl} />
+        <MediaKitInquiryForm channelId={mediaKit.channel.id} creatorName={mediaKit.channel.channel_name} mapUrl={absoluteMediaKitUrl} />
       </section> : null}
     </main>
   );

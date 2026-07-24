@@ -88,7 +88,7 @@ Ultima actualizacion: 2026-05-25
 
 ## 11) Analítica MVP
 
-- [ ] Dashboard creador muestra origen de métrica (YouTube vs Travel Your Map).
+- [ ] Dashboard creador muestra origen de métrica (YouTube vs TravelYourMap).
 - [ ] Dashboard admin y creador soportan filtros `7/30/90/180 días`.
 - [ ] Métricas internas mínimas visibles: `map_view`, `video_panel_open`, `poll_vote`, `sponsor_click`.
-- [ ] Métricas internas de engagement visibles: guardados, favoritos, ver más tarde, horas reproducidas en Travel Your Map.
+- [ ] Métricas internas de engagement visibles: guardados, favoritos, ver más tarde, horas reproducidas en TravelYourMap.

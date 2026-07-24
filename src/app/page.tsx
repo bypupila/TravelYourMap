@@ -18,7 +18,7 @@ export const metadata: Metadata = {
       "Convierte tu canal de YouTube en un media kit geográfico con mapa 3D, analytics por país, sponsors visibles y página pública SEO.",
     type: "website",
     url: siteUrl,
-    siteName: "TravelYourMap - BY PUPILA",
+    siteName: "TravelYourMap",
   },
   twitter: {
     card: "summary_large_image",

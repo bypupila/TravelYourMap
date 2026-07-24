@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     description: "Visualiza todos los videos extraidos como puntos sobre el globo.",
     type: "website",
     url: `${siteUrl}/map`,
-    siteName: "TravelYourMap - BY PUPILA",
+    siteName: "TravelYourMap",
   },
 };
 

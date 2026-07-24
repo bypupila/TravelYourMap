@@ -9,7 +9,7 @@ Su objetivo es cerrar alcance de producto para iniciar desarrollo de MVP sin rea
 
 - La plataforma es una herramienta de YouTube orientada a historial, analitica y operacion para creadores de viajes.
 - El foco principal no es contable ni financiero avanzado; el foco es analitica util y operacion de contenido/sponsors.
-- Flujo obligatorio: primero existe el video en YouTube, luego se importa y opera en Travel Your Map.
+- Flujo obligatorio: primero existe el video en YouTube, luego se importa y opera en TravelYourMap.
 
 ## Dos. Modelo geografico
 
@@ -68,7 +68,7 @@ Su objetivo es cerrar alcance de producto para iniciar desarrollo de MVP sin rea
 
 - Consentimientos separados:
   - funcionamiento de cuenta (obligatorio)
-  - promociones de Travel Your Map (opcional)
+  - promociones de TravelYourMap (opcional)
   - promociones de creadores (opcional)
 - Guardar evidencia de consentimiento por version legal y fecha.
 - Derechos del titular, eliminacion y trazabilidad obligatorios.
@@ -77,7 +77,7 @@ Su objetivo es cerrar alcance de producto para iniciar desarrollo de MVP sin rea
 ## Nueve. Analitica
 
 - Diferenciar siempre:
-  - Horas reproducidas en Travel Your Map (interna)
+  - Horas reproducidas en TravelYourMap (interna)
   - Metricas provenientes de YouTube
 - Mostrar origen de cada metrica en interfaz.
 - Eventos y tableros minimos por producto, creador, sponsor y geografia.

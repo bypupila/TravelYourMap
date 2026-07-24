@@ -1672,12 +1672,12 @@ function ProposalSidebar2({
       
       {/* Brand Logo Header */}
       <div className="mb-2.5 flex shrink-0 items-center justify-between lg:block">
-        <Link href="/" className="group flex min-w-0 items-center gap-2 px-1 sm:gap-3 sm:px-0" aria-label="Travel Your Map home">
+        <Link href="/" className="group flex min-w-0 items-center gap-2 px-1 sm:gap-3 sm:px-0" aria-label="TravelYourMap home">
           <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#ff6258]/35 bg-[radial-gradient(circle_at_35%_25%,#2a2424,#111417_70%)] text-[#ff5147] shadow-[0_10px_28px_-14px_rgba(255,71,59,0.8),inset_0_1px_0_rgba(255,255,255,0.12)] transition-transform duration-300 group-hover:rotate-[-8deg] group-hover:scale-105 sm:h-10 sm:w-10">
             <GlobeHemisphereWest size={20} weight="fill" className="sm:h-[22px] sm:w-[22px]" />
           </span>
           <span className="leading-none">
-            <span className="mb-[5px] block whitespace-nowrap text-[11px] font-extrabold uppercase tracking-[0.08em] text-white sm:text-[13px]">Travel Your Map</span>
+            <span className="mb-[5px] block whitespace-nowrap text-[11px] font-extrabold uppercase tracking-[0.08em] text-white sm:text-[13px]">TravelYourMap</span>
             <span className="block text-[8px] font-bold uppercase tracking-[0.26em] text-white/48 sm:text-[9px]">BY PUPILA</span>
           </span>
         </Link>
@@ -1968,7 +1968,7 @@ function ProposalTopbar2({
                 href="/onboarding?demo=1"
                 className="hidden h-11 items-center gap-2 rounded-full border border-[#ff5a3d]/55 bg-[#ff5a3d] px-4 text-[12px] font-bold text-white transition hover:bg-[#ff6a50] active:scale-[0.98] md:inline-flex lg:h-10"
               >
-                Crea tu mapa
+                Crear cuenta gratis
               </Link>
             </>
           ) : null}

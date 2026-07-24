@@ -66,9 +66,9 @@ export async function POST(request: Request) {
       select c.id, c.user_id, c.channel_name, c.channel_handle, u.username
       from public.channels c
       inner join public.users u on u.id = c.user_id
+      inner join public.media_kit_settings m on m.channel_id = c.id
+        and m.public_enabled = true
       where c.id = ${payload.channelId}
-        and c.is_public = true
-        and c.ownership_status = 'verified'
       limit 1
     `;
 
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
       return NextResponse.json(SPONSOR_UPGRADE_REQUIRED, { status: 403 });
     }
     const publicHandle = String(channel.channel_handle || channel.username).trim().replace(/^@+/, "");
-    const canonicalMapUrl = `${getTrustedAppOrigin()}/u/${encodeURIComponent(publicHandle)}`;
+    const canonicalMediaKitUrl = `${getTrustedAppOrigin()}/u/${encodeURIComponent(publicHandle)}/media-kit`;
 
     const requestHashes = getRequestHashesFromHeaders(request.headers);
 
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
         ${payload.whatsapp},
         ${payload.proposedBudgetUsd || null},
         ${payload.brief},
-        ${canonicalMapUrl},
+        ${canonicalMediaKitUrl},
         ${requestHashes.ipHash},
         ${requestHashes.userAgentHash}
       )
@@ -122,7 +122,7 @@ export async function POST(request: Request) {
       contactEmail: payload.contactEmail,
       proposedBudgetUsd: payload.proposedBudgetUsd || null,
       brief: payload.brief,
-      mapUrl: canonicalMapUrl,
+      mapUrl: canonicalMediaKitUrl,
     });
 
     const adminResult = await sendAppEmail({
@@ -139,7 +139,7 @@ export async function POST(request: Request) {
       });
     }
 
-    const path = resolvePathFromRequest(request, canonicalMapUrl);
+    const path = resolvePathFromRequest(request, canonicalMediaKitUrl);
     if (isPublicMapPath(path) && !(await requestUserOwnsChannel(request, payload.channelId))) {
       try {
         await recordMapEvent({

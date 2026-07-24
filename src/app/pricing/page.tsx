@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     description: "Planes para publicar mapas de viaje, gestionar sponsors y analizar destinos.",
     type: "website",
     url: `${siteUrl}/pricing`,
-    siteName: "TravelYourMap - BY PUPILA",
+    siteName: "TravelYourMap",
   },
 };
 

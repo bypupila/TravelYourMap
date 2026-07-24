@@ -50,7 +50,7 @@ export async function generateMetadata({ params }: PublicMapPageProps): Promise<
       description,
       type: "website",
       url: canonicalUrl,
-      siteName: "TravelYourMap - BY PUPILA",
+      siteName: "TravelYourMap",
     },
     twitter: {
       card: "summary_large_image",

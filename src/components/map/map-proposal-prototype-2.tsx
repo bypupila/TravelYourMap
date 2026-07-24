@@ -1267,7 +1267,7 @@ function ProposalSidebar2({
             </svg>
           </span>
           <div>
-            <span className="block whitespace-nowrap text-[14px] font-black uppercase leading-none tracking-[0.12em] text-white">TRAVEL YOUR MAP</span>
+            <span className="block whitespace-nowrap text-[14px] font-black uppercase leading-none tracking-[0.12em] text-white">TRAVELYOURMAP</span>
             <span className="mt-1 block text-[8px] font-semibold uppercase tracking-[0.22em] text-[#818b95]">
               BY PUPILA
             </span>

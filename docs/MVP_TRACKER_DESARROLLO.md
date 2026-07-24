@@ -42,11 +42,11 @@ Referencias:
   - votaciones bloqueadas para anonimos en backend (`/api/map/fan-votes/vote`, `/api/map/polls/[pollId]/vote`) con respuesta `401` y flujo de registro obligatorio.
   - flujo de eliminacion de cuenta viewer implementado (`DELETE /api/auth/viewer-account`) con revocacion de sesion, auditoria y limpieza de cookie.
 - Etapa Cinco:
-  - API de analitica extendida con metricas internas de Travel Your Map (map views, video opens, sponsor clicks, poll votes).
-  - dashboard de analitica actualizado con origen de metrica (YouTube vs Travel Your Map).
+  - API de analitica extendida con metricas internas de TravelYourMap (map views, video opens, sponsor clicks, poll votes).
+  - dashboard de analitica actualizado con origen de metrica (YouTube vs TravelYourMap).
   - dashboard de analitica de creador con filtro de periodo (`7/30/90/180 dias`) para metrica interna.
-  - instrumentacion interna adicional en mapa para favoritos, ver mas tarde y horas reproducidas dentro de Travel Your Map.
-  - paneles de analitica (creador y admin) ampliados con favoritos, ver mas tarde y horas reproducidas (Travel Your Map).
+  - instrumentacion interna adicional en mapa para favoritos, ver mas tarde y horas reproducidas dentro de TravelYourMap.
+  - paneles de analitica (creador y admin) ampliados con favoritos, ver mas tarde y horas reproducidas (TravelYourMap).
   - visual de analitica embebida en tab de actividad del panel actual de creador.
   - endpoint global `GET /api/admin/analytics/overview` para superadmin con:
     - producto (viewers/creators registrados, actividad mensual, interacciones 30d)

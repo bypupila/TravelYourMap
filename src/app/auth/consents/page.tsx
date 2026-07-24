@@ -135,7 +135,7 @@ export default function AuthConsentsPage() {
                   checked={consentPlatformPromotions}
                   onChange={(event) => setConsentPlatformPromotions(event.target.checked)}
                 />
-                <span>Recibir promociones de Travel Your Map.</span>
+                <span>Recibir promociones de TravelYourMap.</span>
               </label>
               <label className="flex min-h-11 items-start gap-3 text-sm text-muted-foreground">
                 <input

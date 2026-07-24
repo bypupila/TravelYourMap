@@ -2723,7 +2723,7 @@ function MapOverviewRail({
             <div className="flex min-w-0 items-center gap-3">
               <ChannelAvatar channel={channel} size="sm" />
               <div className="min-w-0">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8f98a3]">Travel Your Map</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#8f98a3]">TravelYourMap</p>
                 <CardTitle className="truncate text-[15px] font-semibold text-[#f5f7fb]">{getCreatorDisplayName(channel.channel_name)}</CardTitle>
               </div>
             </div>

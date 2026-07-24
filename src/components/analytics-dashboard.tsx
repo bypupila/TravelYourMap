@@ -163,7 +163,7 @@ export function AnalyticsDashboard({ channelId, initialStats }: { channelId?: st
 
         <article className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
           <h3 className="mb-3 text-sm font-semibold text-slate-100">
-            Interacciones internas (Travel Your Map · {stats.window_days || days}d)
+            Interacciones internas (TravelYourMap · {stats.window_days || days}d)
           </h3>
           <div className="grid gap-2 sm:grid-cols-2">
             <MiniMetric label="Map views" value={internalMetrics.map_views} />
@@ -209,7 +209,7 @@ export function AnalyticsDashboard({ channelId, initialStats }: { channelId?: st
 function KpiCard({ label, value, source }: { label: string; value: string | number; source: "youtube" | "travelyourmap" }) {
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
-      <p className="mb-1 text-[10px] uppercase tracking-[0.15em] text-slate-500">{source === "youtube" ? "Fuente: YouTube" : "Fuente: Travel Your Map"}</p>
+      <p className="mb-1 text-[10px] uppercase tracking-[0.15em] text-slate-500">{source === "youtube" ? "Fuente: YouTube" : "Fuente: TravelYourMap"}</p>
       <p className="text-2xl font-semibold text-slate-50">{value}</p>
       <p className="mt-1 text-xs text-slate-400">{label}</p>
     </div>

@@ -55,8 +55,17 @@ async function polarRequest({ token, server, apiPath }) {
     },
   });
   if (!response.ok) {
-    await response.body?.cancel().catch(() => undefined);
-    throw new Error(`Polar API verification failed with status ${response.status}`);
+    const body = await response.text().catch(() => "");
+    let detail = "";
+    try {
+      const parsed = JSON.parse(body);
+      detail = String(parsed?.error_description || parsed?.detail || parsed?.error || "").trim();
+    } catch {
+      detail = body.trim().slice(0, 180);
+    }
+    throw new Error(
+      `Polar API verification failed with status ${response.status}${detail ? `: ${detail}` : ""}`
+    );
   }
   return response.json();
 }
@@ -381,7 +390,7 @@ async function main() {
     checks.push(
       process.env.SENTRY_DSN === process.env.NEXT_PUBLIC_SENTRY_DSN &&
       process.env.SENTRY_ORG === "by-pupila" &&
-      process.env.SENTRY_PROJECT === "youmap" &&
+      process.env.SENTRY_PROJECT === "travelyourmap" &&
       process.env.SENTRY_ENVIRONMENT === "production" &&
       process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT === "production"
         ? pass("observability_sentry_identity", "Sentry DSN, project, and production environment are consistent across runtimes.")

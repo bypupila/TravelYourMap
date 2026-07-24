@@ -38,7 +38,7 @@ export const metadata: Metadata = {
       "Conecta tu canal, importa tus videos y conviértelos en un mapa interactivo con analytics, monetización y páginas públicas.",
     type: "website",
     url: siteUrl,
-    siteName: "TravelYourMap - BY PUPILA",
+    siteName: "TravelYourMap",
   },
   twitter: {
     card: "summary_large_image",

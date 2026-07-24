@@ -4,14 +4,14 @@
 Done
 
 ## Problem
-El panel actual del creador muestra datos utiles, pero no los convierte en una herramienta clara de productividad para un influencer de viajes. La informacion critica queda repartida entre resumen tecnico, actividad, sponsors y analytics; no prioriza decisiones como que videos corregir, que paises monetizar, que destinos empujar, que contenido genera interaccion en el mapa o que senales first-party aporta Travel Your Map frente a YouTube.
+El panel actual del creador muestra datos utiles, pero no los convierte en una herramienta clara de productividad para un influencer de viajes. La informacion critica queda repartida entre resumen tecnico, actividad, sponsors y analytics; no prioriza decisiones como que videos corregir, que paises monetizar, que destinos empujar, que contenido genera interaccion en el mapa o que senales first-party aporta TravelYourMap frente a YouTube.
 
 ## Desired Behavior
-El panel debe funcionar como centro de decision del creador: mostrar salud del mapa, oportunidades comerciales, rendimiento de contenido, comportamiento dentro del mapa, votaciones, sponsors y acciones prioritarias en una UI simple, responsive y accionable. Debe distinguir claramente datos de YouTube de datos propios de Travel Your Map.
+El panel debe funcionar como centro de decision del creador: mostrar salud del mapa, oportunidades comerciales, rendimiento de contenido, comportamiento dentro del mapa, votaciones, sponsors y acciones prioritarias en una UI simple, responsive y accionable. Debe distinguir claramente datos de YouTube de datos propios de TravelYourMap.
 
 ## Resolved Language
 - `Panel del creador`: workspace privado operacional del influencer para gestionar mapa, videos, votaciones, sponsors, audiencia y acciones prioritarias.
-- `Metricas del mapa`: datos first-party capturados dentro de Travel Your Map, separados de metricas de YouTube.
+- `Metricas del mapa`: datos first-party capturados dentro de TravelYourMap, separados de metricas de YouTube.
 - `Accion prioritaria`: recomendacion operacional unica basada en salud del mapa, tareas pendientes, audiencia, monetizacion o sync.
 
 ## Decisions

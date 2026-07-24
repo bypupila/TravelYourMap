@@ -37,7 +37,7 @@ The private operational workspace where a travel creator manages their public ma
 _Avoid_: admin global, superadmin panel, creator-panel legacy
 
 **Metricas del mapa**:
-First-party audience and interaction metrics captured inside Travel Your Map, separate from YouTube metrics.
+First-party audience and interaction metrics captured inside TravelYourMap, separate from YouTube metrics.
 _Avoid_: YouTube Analytics, YouTube Console data
 
 **Accion prioritaria**:

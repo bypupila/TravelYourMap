@@ -131,12 +131,12 @@ function CreatorNav({
     <header className="sticky top-3 z-30 rounded-[26px] border border-white/10 bg-[#080b0e]/88 p-1.5 shadow-[0_24px_70px_-34px_rgba(0,0,0,0.95),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl sm:rounded-full sm:p-2.5">
       <nav>
         <div className="flex items-center justify-between gap-2 sm:gap-3">
-          <Link href={buildLocalizedHref("/", locale)} className="group flex min-w-0 items-center gap-2 px-1 sm:gap-3 sm:px-0" aria-label="Travel Your Map home">
+          <Link href={buildLocalizedHref("/", locale)} className="group flex min-w-0 items-center gap-2 px-1 sm:gap-3 sm:px-0" aria-label="TravelYourMap home">
             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[#ff6258]/35 bg-[radial-gradient(circle_at_35%_25%,#2a2424,#111417_70%)] text-[#ff5147] shadow-[0_10px_28px_-14px_rgba(255,71,59,0.8),inset_0_1px_0_rgba(255,255,255,0.12)] transition-transform duration-300 group-hover:rotate-[-8deg] group-hover:scale-105 sm:h-10 sm:w-10">
               <GlobeHemisphereWest size={20} weight="fill" className="sm:h-[22px] sm:w-[22px]" />
             </span>
             <span className="leading-none">
-              <span className="mb-[5px] block whitespace-nowrap text-[11px] font-extrabold uppercase tracking-[0.08em] text-white sm:text-[13px]">Travel Your Map</span>
+              <span className="mb-[5px] block whitespace-nowrap text-[11px] font-extrabold uppercase tracking-[0.08em] text-white sm:text-[13px]">TravelYourMap</span>
               <span className="block text-[8px] font-bold uppercase tracking-[0.26em] text-white/48 sm:text-[9px]">BY PUPILA</span>
             </span>
           </Link>

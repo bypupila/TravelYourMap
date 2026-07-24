@@ -510,12 +510,12 @@ function AdminSidebar({
   const activeVotes = payload.polls.filter((poll) => poll.status === "live").length;
   const sidebar = (
     <aside className="flex h-full flex-col border-r border-white/10 bg-[#0a0d13] px-3 py-5 lg:sticky lg:top-0 lg:h-[100dvh] lg:px-4">
-      <Link href="/" className="group flex min-w-0 items-center gap-2 px-1 sm:gap-3 sm:px-0" aria-label="Travel Your Map home">
+      <Link href="/" className="group flex min-w-0 items-center gap-2 px-1 sm:gap-3 sm:px-0" aria-label="TravelYourMap home">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-[#ff6258]/35 bg-[radial-gradient(circle_at_35%_25%,#2a2424,#111417_70%)] text-[#ff5147] shadow-[0_10px_28px_-14px_rgba(255,71,59,0.8),inset_0_1px_0_rgba(255,255,255,0.12)] transition-transform duration-300 group-hover:rotate-[-8deg] group-hover:scale-105 sm:h-10 sm:w-10">
           <GlobeHemisphereWest size={20} weight="fill" className="sm:h-[22px] sm:w-[22px]" />
         </span>
         <span className="leading-none">
-          <span className="mb-[5px] block whitespace-nowrap text-[11px] font-extrabold uppercase tracking-[0.08em] text-white sm:text-[13px]">Travel Your Map</span>
+          <span className="mb-[5px] block whitespace-nowrap text-[11px] font-extrabold uppercase tracking-[0.08em] text-white sm:text-[13px]">TravelYourMap</span>
           <span className="block text-[8px] font-bold uppercase tracking-[0.26em] text-white/48 sm:text-[9px]">BY PUPILA</span>
         </span>
       </Link>
@@ -2120,7 +2120,7 @@ function MediaKitTab({ payload }: { payload: CreatorAdminPayload }) {
       if (!response.ok || !body?.mediaKit) throw new Error(body?.error || "No se pudo guardar el media kit.");
       setMediaKit(body.mediaKit);
       setFormState(body.mediaKit.settings);
-      setMessage("Media kit actualizado.");
+      setMessage("Media Kit guardado. Ya puedes compartir su enlace con posibles sponsors.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "No se pudo guardar el media kit.");
     } finally {
@@ -2203,7 +2203,7 @@ function MediaKitTab({ payload }: { payload: CreatorAdminPayload }) {
               </div>
 
               <details className="rounded-lg border border-white/10 bg-white/[0.02] p-3"><summary className="cursor-pointer text-[12px] font-semibold text-white">Ajustes avanzados</summary><div className="mt-3 space-y-3"><TextArea label="Nota de audiencia" value={formState.audience_note || ""} maxLength={500} rows={3} onChange={(event) => updateField("audience_note", event.currentTarget.value)} /><Field label="Rate card URL" type="url" value={formState.rate_card_url || ""} onChange={(event) => updateField("rate_card_url", event.currentTarget.value)} /><Field label="CTA principal" value={formState.preferred_cta_label || ""} maxLength={80} onChange={(event) => updateField("preferred_cta_label", event.currentTarget.value)} /></div></details>
-              <Button type="button" className="min-h-12 w-full" onClick={() => void saveMediaKit()} disabled={busy !== "idle"}>{busy === "saving" ? "Guardando..." : "Guardar y publicar"}</Button>
+              <Button type="button" className="min-h-12 w-full" onClick={() => void saveMediaKit()} disabled={busy !== "idle"}>{busy === "saving" ? "Guardando..." : "Guardar Media Kit"}</Button>
               <div className="grid grid-cols-2 gap-2"><Button type="button" variant="outline" onClick={() => void copyMediaKitLink()} disabled={!mediaKit?.urls.absoluteMediaKitUrl}>Copiar link</Button><Button type="button" variant="outline" onClick={() => mediaKit?.urls.absoluteMediaKitUrl ? window.open(mediaKit.urls.absoluteMediaKitUrl, "_blank", "noopener,noreferrer") : setMessage("El link del media kit no está disponible.")} disabled={!mediaKit?.urls.absoluteMediaKitUrl}>Ver página</Button></div>
               {message ? <p className="rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2 text-[12px] text-[#b7d9ff]">{message}</p> : null}
             </div>
@@ -3549,7 +3549,7 @@ function AudienceTab({ payload, onNavigate }: { payload: CreatorAdminPayload; on
           <p className="font-mono text-2xl font-black text-white">{formatCompact(payload.countries.reduce((sum, country) => sum + country.total_views, 0))}</p>
         </div>
         <div className="flex items-end justify-between gap-4 rounded-2xl bg-white/[0.025] p-5">
-          <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#737c88]">Travel Your Map</p><p className="mt-2 text-[13px] font-bold text-white">Intencion registrada</p></div>
+          <div><p className="text-[10px] font-black uppercase tracking-[0.15em] text-[#737c88]">TravelYourMap</p><p className="mt-2 text-[13px] font-bold text-white">Intencion registrada</p></div>
           <p className="font-mono text-2xl font-black text-[#ff7b63]">{formatCompact(totalSignals)}</p>
         </div>
       </section>

@@ -1,4 +1,4 @@
-# TravelYourMap - BY PUPILA
+# TravelYourMap
 
 TravelYourMap convierte un canal de viajes en un globo 3D interactivo con analytics, sponsors contextuales y una URL pública por creador.
 

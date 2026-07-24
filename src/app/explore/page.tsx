@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     description: "Directorio visual de creadores y videos por destino para discovery y SEO.",
     type: "website",
     url: `${siteUrl}/explore`,
-    siteName: "TravelYourMap - BY PUPILA",
+    siteName: "TravelYourMap",
   },
 };
 

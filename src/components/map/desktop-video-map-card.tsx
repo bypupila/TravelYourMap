@@ -300,12 +300,12 @@ export function DesktopVideoMapCard({
     if (hidePlatformAds) return null;
     const ad = platformAd || {
       title: "Descuento del 15%",
-      description: "En tu primer mapa como creador, disfrutando de todas las herramientas que Travel Your Map te ofrece.",
+      description: "En tu primer mapa como creador, disfrutando de todas las herramientas que TravelYourMap te ofrece.",
       cta_label: "Ver promoción",
       href: null,
     };
     const promoTitle = ad.title;
-    const promoDescription = ad.description || "Promoción activa para viewers y creadores de Travel Your Map.";
+    const promoDescription = ad.description || "Promoción activa para viewers y creadores de TravelYourMap.";
     const hasAdHref = Boolean(ad.href);
     return (
       <section className="group relative w-full overflow-hidden rounded-xl border border-red-500/35 bg-black px-3 py-2 text-white shadow-[0_30px_90px_-30px_rgba(0,0,0,0.95)] transition-all duration-300 hover:border-red-500/45 sm:px-4 sm:py-2.5">

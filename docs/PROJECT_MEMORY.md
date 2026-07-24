@@ -63,7 +63,7 @@ npm run dev
 
 ## Marca y posicionamiento
 
-- Marca principal: `TravelYourMap - BY PUPILA`.
+- Marca principal: `TravelYourMap`.
 - Contrato unico de diseno y compliance visual: `Design.MD`.
 - Promesa central: convertir un canal de viajes en una experiencia geografica interactiva y publicable.
 - Tono de marca: editorial, premium, tecnico y directo; evita UI generica o demasiado neutra.
@@ -259,8 +259,8 @@ python scripts/extract_youtube_channel_videos.py --handle @luisitocomunica
   - UI `/auth/consents` para gestionar consentimientos promocionales
 - Se implementa auto-creacion de borrador de votacion de ciudades al cerrar votacion de pais (idempotente por marcador de poll padre).
 - Se extiende analitica minima:
-  - `GET /api/analytics/[channelId]` ahora incluye metricas internas de Travel Your Map y top paises por interaccion interna.
-  - `AnalyticsDashboard` muestra origen de cada metrica (YouTube vs Travel Your Map) y bloque de interacciones internas.
+  - `GET /api/analytics/[channelId]` ahora incluye metricas internas de TravelYourMap y top paises por interaccion interna.
+  - `AnalyticsDashboard` muestra origen de cada metrica (YouTube vs TravelYourMap) y bloque de interacciones internas.
 - Se completa analitica minima de superadmin:
   - nueva capa `src/lib/admin-analytics.ts` para consolidar producto/creadores/sponsors/geografia.
   - nuevo endpoint `GET /api/admin/analytics/overview` protegido por rol `superadmin`.
@@ -303,9 +303,9 @@ python scripts/extract_youtube_channel_videos.py --handle @luisitocomunica
 - Se amplia telemetria first-party del mapa para analitica de engagement:
   - nuevos eventos internos en `map_events`: favoritos, guardados, ver mas tarde y tiempo de reproduccion interno.
   - migracion `0014_map_events_internal_video_activity.sql` para ampliar `event_type` y agregar indice de consulta por canal/evento.
-  - `MapExperience` ahora registra tiempo reproducido en Travel Your Map (no YouTube) al pausar, terminar, cambiar video, cerrar video y ocultar/salir de pagina.
+  - `MapExperience` ahora registra tiempo reproducido en TravelYourMap (no YouTube) al pausar, terminar, cambiar video, cerrar video y ocultar/salir de pagina.
 - Se amplian paneles de analitica (creador y admin):
-  - `GET /api/analytics/[channelId]` agrega favoritos, ver mas tarde y horas reproducidas en Travel Your Map.
+  - `GET /api/analytics/[channelId]` agrega favoritos, ver mas tarde y horas reproducidas en TravelYourMap.
   - `GET /api/admin/analytics/overview` agrega KPIs globales de favoritos, ver mas tarde y horas reproducidas de plataforma.
 - Se normaliza catalogo geografico global para votaciones:
   - nuevo modulo `src/lib/geo-catalog.ts` como fuente comun de paises/ciudades basada en `country-state-city`.

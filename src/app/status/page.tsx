@@ -34,7 +34,7 @@ export default async function StatusPage() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(225,84,58,0.18),transparent_34%),linear-gradient(180deg,rgba(11,13,15,0.98),rgba(17,20,22,0.96))]" />
       <div className="relative mx-auto max-w-[1120px] px-4 py-8 lg:px-6 lg:py-10">
         <header className="tm-surface-strong rounded-[2rem] border border-white/10 px-6 py-5">
-          <p className="tym-overline text-[#8ff0ff]">Travel Your Map</p>
+          <p className="tym-overline text-[#8ff0ff]">TravelYourMap</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-[#f5f7fb]">Estado del servicio</h1>
           <p className="mt-2 text-sm text-[#aab2bc]">Última actualización: {generatedAt.toLocaleString("es-AR")}</p>
           <div className="mt-3">

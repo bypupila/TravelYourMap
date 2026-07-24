@@ -6,7 +6,7 @@ El creador de viajes necesita un panel privado que le diga que hacer con su mapa
 
 ## Solution
 
-Reemplazar la experiencia actual del `Panel del creador` por una version elevada del panel avanzado existente. El nuevo panel debe ser la experiencia principal para creadores: sidebar claro, resumen accionable, salud del mapa, videos, paises, votaciones, sponsors, `Metricas del mapa`, actividad y una `Accion prioritaria` visible. La UI debe distinguir datos de YouTube de datos first-party de Travel Your Map y convertirlos en lectura operacional simple.
+Reemplazar la experiencia actual del `Panel del creador` por una version elevada del panel avanzado existente. El nuevo panel debe ser la experiencia principal para creadores: sidebar claro, resumen accionable, salud del mapa, videos, paises, votaciones, sponsors, `Metricas del mapa`, actividad y una `Accion prioritaria` visible. La UI debe distinguir datos de YouTube de datos first-party de TravelYourMap y convertirlos en lectura operacional simple.
 
 ## User Stories
 
@@ -17,7 +17,7 @@ Reemplazar la experiencia actual del `Panel del creador` por una version elevada
 5. As a travel creator, I want videos grouped by status and country, so that I can review large catalogs efficiently.
 6. As a travel creator, I want to edit a video's country, city, visibility, featured state and notes, so that my map stays accurate.
 7. As a travel creator, I want to see YouTube-derived performance beside map behavior, so that I can compare reach with actual map usage.
-8. As a travel creator, I want map metrics labeled as Travel Your Map data, so that I do not confuse them with YouTube Analytics.
+8. As a travel creator, I want map metrics labeled as TravelYourMap data, so that I do not confuse them with YouTube Analytics.
 9. As a travel creator, I want top countries by map interaction, so that I can identify demand from my audience.
 10. As a travel creator, I want top videos opened from the map, so that I know which map content attracts attention.
 11. As a travel creator, I want sponsor clicks visible in the same workflow, so that I can understand monetization performance.

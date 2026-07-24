@@ -38,7 +38,7 @@ El backend sólo comprueba que exista una suscripción activa; todavía no aplic
 ## PRD
 [Planes canónicos y permisos de Sponsors](../prd/canonical-plans-and-sponsor-entitlements.md)
 
-Issue de seguimiento: [#51](https://github.com/bypupila/youmap/issues/51)
+Issue de seguimiento: [#51](https://github.com/bypupila/TravelYourMap/issues/51)
 
 ## Implemented
 - `src/lib/plans.ts` es la fuente canónica de nombres, aliases, precios, copy y capacidad `sponsors`.

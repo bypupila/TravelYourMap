@@ -43,6 +43,7 @@ export interface MediaKitPayload {
     thumbnail_url: string | null;
     subscriber_count: number | null;
     description: string | null;
+    mapIsPublic: boolean;
   };
   settings: MediaKitSettings;
   urls: {
@@ -74,6 +75,8 @@ interface MediaKitChannelRow {
   thumbnail_url: string | null;
   subscriber_count: number | string | null;
   description: string | null;
+  is_public: boolean;
+  ownership_status: string | null;
 }
 
 type SaveMediaKitSettingsInput = {
@@ -171,6 +174,8 @@ async function resolvePublicMediaKitChannel(identifier: string) {
       thumbnail_url: DEMO_CHANNEL.thumbnail_url || null,
       subscriber_count: DEMO_CHANNEL.subscriber_count || null,
       description: null,
+      is_public: true,
+      ownership_status: "verified",
     });
   }
 
@@ -183,12 +188,14 @@ async function resolvePublicMediaKitChannel(identifier: string) {
       c.channel_handle,
       c.thumbnail_url,
       c.subscriber_count,
-      c.description
+      c.description,
+      c.is_public,
+      c.ownership_status
     from public.channels c
     inner join public.users u on u.id = c.user_id
-    where c.is_public = true
-      and c.ownership_status = 'verified'
-      and (
+    inner join public.media_kit_settings m on m.channel_id = c.id
+      and m.public_enabled = true
+    where (
         u.username = ${normalized}
         or ltrim(lower(coalesce(c.channel_handle, '')), '@') = ${normalized}
       )
@@ -207,7 +214,9 @@ async function loadChannelById(channelId: string) {
       c.channel_handle,
       c.thumbnail_url,
       c.subscriber_count,
-      c.description
+      c.description,
+      c.is_public,
+      c.ownership_status
     from public.channels c
     inner join public.users u on u.id = c.user_id
     where c.id = ${channelId}
@@ -484,6 +493,7 @@ function normalizeChannelRow(row: MediaKitChannelRow): MediaKitPayload["channel"
     thumbnail_url: row.thumbnail_url,
     subscriber_count: row.subscriber_count === null ? null : Number(row.subscriber_count),
     description: row.description,
+    mapIsPublic: row.is_public === true && row.ownership_status === "verified",
   };
 }
 
