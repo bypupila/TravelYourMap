@@ -10,6 +10,7 @@ import { DesinInspectorRuntime } from "@/components/site/desin-inspector-runtime
 import { LocaleDocumentSync } from "@/components/site/locale-document-sync";
 import { ComingSoonProvider } from "@/components/site/coming-soon-provider";
 import { SafeAnalytics } from "@/components/site/safe-analytics";
+import { ClarityConsent } from "@/components/site/clarity-consent";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -78,6 +79,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <DesinInspectorRuntime enabled={process.env.NODE_ENV === "development"} />
         </TooltipProvider>
         <SafeAnalytics />
+        <ClarityConsent />
       </body>
     </html>
   );

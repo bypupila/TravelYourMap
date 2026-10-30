@@ -1,6 +1,12 @@
 import * as Sentry from "@sentry/nextjs";
 import posthog from "posthog-js";
 import { isPrivateCapabilityPath, sanitizeSentryEvent } from "@/lib/sentry-sanitize";
+import {
+  CLARITY_CONSENT_EVENT,
+  isClarityAllowedPath,
+  isClarityConfigured,
+  readClarityConsent,
+} from "@/lib/clarity-consent";
 
 declare global {
   type ClarityStub = {
@@ -53,12 +59,11 @@ function installExtensionHydrationGuard() {
 
 function installMicrosoftClarity() {
   if (typeof window === "undefined" || typeof document === "undefined") return;
-  if (isPrivateCapabilityPath(window.location.pathname)) return;
+  if (!isClarityAllowedPath(window.location.pathname)) return;
+  if (readClarityConsent() !== true) return;
   if (document.getElementById("microsoft-clarity-script")) return;
   const clarityProjectId = process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID;
-  const clarityEnabled =
-    process.env.NODE_ENV === "production" || process.env.NEXT_PUBLIC_ENABLE_CLARITY_IN_DEV === "1";
-  if (!clarityEnabled || !clarityProjectId) return;
+  if (!isClarityConfigured() || !clarityProjectId) return;
 
   if (typeof window.clarity !== "function") {
     const stub: ClarityStub = (...args: unknown[]) => {
@@ -67,6 +72,8 @@ function installMicrosoftClarity() {
     };
     window.clarity = stub;
   }
+
+  window.clarity("consentv2", { ad_Storage: "denied", analytics_Storage: "granted" });
 
   const script = document.createElement("script");
   script.id = "microsoft-clarity-script";
@@ -77,6 +84,18 @@ function installMicrosoftClarity() {
 
 installExtensionHydrationGuard();
 installMicrosoftClarity();
+
+if (typeof window !== "undefined") {
+  window.addEventListener(CLARITY_CONSENT_EVENT, (event) => {
+    const accepted = (event as CustomEvent<{ accepted?: boolean }>).detail?.accepted === true;
+    if (accepted) {
+      installMicrosoftClarity();
+    } else if (document.getElementById("microsoft-clarity-script")) {
+      window.clarity?.("consent", false);
+      window.location.reload();
+    }
+  });
+}
 
 const posthogToken = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN;
 const isProduction = process.env.NODE_ENV === "production";
