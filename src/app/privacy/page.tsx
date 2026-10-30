@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import Link from "next/link";
 import { ContactStrip } from "@/components/site/contact-strip";
+import { ClarityConsentPreferences } from "@/components/site/clarity-consent";
 import { LOCALE_COOKIE_NAME, normalizeLocale } from "@/lib/i18n";
 
 export const metadata: Metadata = {
@@ -35,6 +36,10 @@ export default async function PrivacyPage({ searchParams }: { searchParams: Prom
         <p>
           {en ? "We also record our own product metrics (for example, panel openings and navigation actions) to improve TravelYourMap operations." : "También registramos métricas propias de producto (por ejemplo, apertura de paneles y acciones de navegación) para mejorar la operación de TravelYourMap."}
         </p>
+        <p>
+          {en ? "If you accept analytics, Microsoft Clarity records masked interactions and session replays on public pages only, and it is not loaded before your choice." : "Si aceptas la analítica, Microsoft Clarity registra interacciones y reproducciones de sesión enmascaradas solo en páginas públicas, y no se carga antes de tu decisión."}
+        </p>
+        <ClarityConsentPreferences en={en} />
         <p>
           {en ? "For more detail about Google's data processing, see Google's " : "Para más detalle sobre el tratamiento de datos por parte de Google, consulta la "}{" "}
           <a
